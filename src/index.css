@@ -106,13 +106,8 @@
      --ink-rgb: Schrift, Linien und helle Schleier; --ground-rgb: der Grund.
      Tailwind liest `white`, `black` und `slate-*` aus diesen Kanälen. */
   /* Hoku-Licht (src/lib/hokuLicht.ts): ein Look schaltet es mit --hoku-licht: 1
-     ein; die übrigen Werte setzt das Skript je Fläche, hier die Ruhelage. */
+     ein; die übrigen Werte setzt das Skript je Fläche (Ruhelage: @property unten). */
   --hoku-licht: 0;
-  --hl-a: 0deg;
-  --hl-w: 60deg;
-  --hl-i: 0;
-  --hl-x: 50%;
-  --hl-y: 0%;
   --ink-rgb:    255 255 255;
   --ground-rgb: 0 0 0;
   --slate-50:  245 245 247;
@@ -1070,6 +1065,10 @@ main.flex-1 {
    steigt darüber, damit das X sichtbar und drückbar bleibt. */
 .tyd-tabdock[data-open='true'] { z-index: 47; }
 .tyd-tabdock-action {
+  /* Ein runder Glasknopf wie bei Apple: dasselbe Glas wie die Leiste
+     („Glas der Navbar“), das Plus in der Akzentfarbe. */
+  position: relative;
+  color: var(--tabbar-aktiv);
   flex: none;
   width: var(--bottom-nav-capsule);
   height: var(--bottom-nav-capsule);
@@ -1255,6 +1254,281 @@ main.flex-1 {
 }
 
 .tyd-tabbar-pill[data-ohne-ziel='true'] { opacity: 0; }
+
+/* ── Linse und gerechnete Glaskante (Ideen aus Glisse) ─────────────────
+   Farbe nur unter der Pille: die echten Symbole bleiben grau; in der Pille
+   liegt eine farbige Kopie genau darüber (LiquidGlassTabBar). So färbt sich
+   wie bei Apple nur der Teil eines Symbols, über dem die Pille steht.
+   Linse: gehalten wächst die Pille über die Leiste hinaus (--linse-wachsen),
+   hebt sich (--linse-heben), wird deckend und vergrößert die Kopie
+   (--linse-zoom; Werte aus src/lib/linse.ts). Am Rand ein Hauch Farbsaum wie
+   bei echter Brechung.
+   Kante: `--glas-kante` ist ein gerechnetes Bild (src/lib/glasKante.ts) —
+   gewölbte Fase, die oben links glänzt. Nur in den Glas-Looks. */
+:root { --linse-zoom: 1.08; --linse-heben: 0px; --linse-wachsen: 36px; --linse-hoehe: 40px; --linse-farbe: 0.1; --linse-klar: 1; --linse-ruhe: 1; --linse-fuellung: 1; --linse-rand: 1; --linse-art: 1;
+  /* Navbar im Apple-Stil, für alle Looks gleich; ein Look pflegt nur diese
+     Werte, wenn er abweichen will (liquid-glass.css):
+     --tabbar-kapsel / -kante  Füllung und Kante der ruhenden Kapsel
+     --tabbar-aktiv            Farbe des aktiven Symbols und des Plus
+     --tabbar-rund             Rundung der Leiste (Kapsel: halbe Höhe)
+     --linse-rund              Rundung der Linse */
+  --tabbar-kapsel: rgb(var(--ink-rgb) / 0.15);
+  --tabbar-kapsel-kante: inset 0 0.5px 0 rgb(var(--ink-rgb) / 0.12);
+  --tabbar-aktiv: var(--accent);
+  --tabbar-rund: calc(var(--bottom-nav-capsule) / 2);
+  --linse-rund: 999px;
+}
+/* Seitlich derselbe Einzug wie oben und unten: so liegt die Kapsel am
+   äußeren Reiter parallel zur Rundung der Leiste. */
+.tyd-tabdock .tyd-tabbar { padding-inline: var(--bottom-nav-pill-inset); }
+.tyd-tabbar .tyd-tabbar-pill.tyd-tabbar-pill {
+  /* Über den echten Symbolen (die liegen auf z-index 1); fängt keine Finger */
+  z-index: 2;
+  /* Lage, Wachsen und Dehnen sind EIN transform um die Mitte, geschrieben von
+     der Feder in LiquidGlassTabBar (am Finger Bild für Bild, sonst als
+     vorab gerechnete Animation des Browsers). Nichts davon misst neu — darum
+     bleibt die Fahrt flüssig, auch während die neue Seite aufgebaut wird. */
+  transition: background 160ms linear, box-shadow 160ms linear, opacity 200ms linear;
+  transform-origin: 50% 50%;
+  scale: none;
+  will-change: transform;
+  /* Aussehen kommt aus den Navbar-Werten (::before), nicht aus alten Pillen-Regeln */
+  background: none;
+  box-shadow: none;
+  /* konzentrisch zur Leiste: deren Rundung minus Einzug */
+  border-radius: max(3px, calc(var(--tabbar-rund) - var(--bottom-nav-pill-inset)));
+}
+/* Das deckende Glas der Linse; blendet mit ihrer Größe ein (opacity). */
+.tyd-tabbar-linse-glas,
+.tyd-tabbar-linse-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--linse-rund);
+  pointer-events: none;
+  opacity: 0;
+}
+/* Das Glas trägt Kante und Schatten; seine Füllung (::before) wird mit
+   --linse-klar durchsichtig — bei Apple ist die Linse klar, man sieht die
+   Seite über und unter der Leiste hindurch. Klarer Rand: weniger Schatten. */
+.tyd-tabbar-linse-glas {
+  box-shadow:
+    inset 0 1px 0 rgb(var(--ink-rgb) / 0.40),
+    inset 0 -1px 1px rgb(var(--ink-rgb) / calc(0.25 * var(--linse-klar))),
+    inset 0 0 0 0.5px rgb(var(--ink-rgb) / calc(0.18 + 0.22 * var(--linse-klar))),
+    inset 0 0 8px rgb(var(--ink-rgb) / calc(0.12 * var(--linse-klar))),
+    inset 5px 0 6px -3px rgb(255 70 140 / calc(var(--linse-farbe) * 0.7)),
+    inset -5px 0 6px -3px rgb(60 190 255 / calc(var(--linse-farbe) * 0.7)),
+    inset 0 -4px 6px -3px rgb(255 210 80 / calc(var(--linse-farbe) * 0.45)),
+    0 10px 26px rgb(0 0 0 / calc(0.40 * (1 - 0.6 * var(--linse-klar))));
+}
+.tyd-tabbar-linse-glas::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgb(var(--ink-rgb) / 0.18) 0%, rgb(var(--ink-rgb) / 0.05) 70%),
+    linear-gradient(var(--surface), var(--surface)),
+    var(--app-bg);
+  opacity: calc(1 - var(--linse-klar));
+}
+/* Das Abbild der Leiste in der Linse: deckend (Grund der App unter dem Glas
+   der Leiste), damit die echten Symbole darunter nicht doppelt erscheinen.
+   Aussehen der Leiste überträgt LiquidGlassTabBar. In der Linse vergrößert,
+   liegt ihr Rand oben und unten sichtbar im Glas — wie bei Apple. */
+.tyd-tabbar-linse-abbild {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  opacity: 0;
+  /* Wie die echte Leiste: Glas über der Seite, nicht deckend dunkel (sonst
+     zeigte die Linse die Navbar als dunklen Fleck). Stärker verschwommen als
+     die Leiste, damit die echten Symbole darunter nicht doppelt erscheinen.
+     Höchstens 24 px: mehr Unschärfe kostet auf dem iPhone spürbar Bilder. */
+  -webkit-backdrop-filter: blur(min(calc(var(--nav-unschaerfe, 3px) + 7px), 24px)) saturate(var(--nav-saettigung, 1.5));
+  backdrop-filter: blur(min(calc(var(--nav-unschaerfe, 3px) + 7px), 24px)) saturate(var(--nav-saettigung, 1.5));
+}
+/* In den Ringen sieht die Kopie die Seite nicht (die Maske trennt sie davon):
+   dort ohne eigenes Glas; die Symbole liegen dann gestaucht über den
+   vergrößerten — das liest sich wie Brechung an der Kante. */
+.tyd-tabbar-linse-saum .tyd-tabbar-linse-abbild {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: transparent;
+}
+.tyd-tabbar-linse-abbild-glas {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+/* Farbsaum wie bei Apple (Glisse: „Dispersion"): ein Regenbogenring an der
+   Kante — rosa links, gelb unten, cyan/blau rechts. Stärke: --linse-farbe. */
+.tyd-tabbar-linse-ring::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  /* Oben und unten hell und fast weiß, an den Enden links und rechts der
+     Regenbogen — dort bricht das Licht in der Rundung am stärksten. */
+  background: conic-gradient(from 0deg at 50% 50%,
+    rgb(255 255 255 / 0.85) 0deg, rgb(255 255 255 / 0.5) 40deg,
+    rgb(255 220 90) 62deg, rgb(120 255 170) 78deg, rgb(60 200 255) 94deg, rgb(130 110 255) 110deg, rgb(255 80 170) 124deg,
+    rgb(255 255 255 / 0.35) 145deg, rgb(255 255 255 / 0.55) 180deg, rgb(255 255 255 / 0.35) 215deg,
+    rgb(255 80 170) 236deg, rgb(130 110 255) 250deg, rgb(60 200 255) 266deg, rgb(120 255 170) 282deg, rgb(255 220 90) 298deg,
+    rgb(255 255 255 / 0.5) 320deg, rgb(255 255 255 / 0.85) 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: calc(var(--linse-farbe) * 0.9);
+}
+/* Schneidet die Kopie auf die Form der Pille zu (das Glas darunter wirft
+   seinen Schatten frei nach außen). */
+.tyd-tabbar-linse-rahmen {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+/* Die Kopie liegt auf Höhe der Kapsel; ihr transform (aus der Feder) hebt
+   Lage und Skalierung der Pille auf und vergrößert um die Linsenmitte. */
+.tyd-tabbar-linse {
+  position: absolute;
+  top: calc(-1 * var(--bottom-nav-pill-inset));
+  height: var(--bottom-nav-capsule);
+  left: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+.tyd-tabbar-linse-platz {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  color: var(--tabbar-aktiv);
+}
+/* Die echten Symbole bleiben grau, solange die Pille die Farbe trägt — auch in
+   Looks, die den aktiven Reiter einfärben oder leuchten lassen. */
+.tyd-tabbar[data-farbe-in-pille='true'] .tyd-tabbar-item:is([aria-current='page'], [data-tyd-nah='true']) {
+  color: var(--text-dim) !important;
+  filter: none !important;
+}
+.tyd-tabbar[data-farbe-in-pille='true'] .tyd-tabbar-item:is([aria-current='page'], [data-tyd-nah='true']) svg { filter: none !important; }
+/* Als Linse (groß, solange ein Finger liegt oder sie noch gleitet): rund wie
+   eine Kapsel, auch in Looks mit eckiger Pille. */
+.tyd-tabbar .tyd-tabbar-pill.tyd-tabbar-pill[data-linse='true'] { border-radius: var(--linse-rund); }
+/* In Ruhe deckt die farbige Kopie das aktive Symbol ganz; das graue Original
+   darunter wird ausgeblendet, sonst flimmern beide beim Scrollen gegeneinander. */
+.tyd-tabbar[data-ruhig] .tyd-tabbar-item[aria-current='page'] > svg { opacity: 0; }
+/* Ruhend als graue, gefüllte Kapsel wie bei Apple (--linse-fuellung). */
+.tyd-tabbar .tyd-tabbar-pill.tyd-tabbar-pill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--tabbar-kapsel);
+  box-shadow: var(--tabbar-kapsel-kante);
+  opacity: var(--linse-fuellung);
+  pointer-events: none;
+}
+/* Ein Ring der Randbrechung: eine weitere Kopie, auf den Rand maskiert
+   (Maske rechnet LiquidGlassTabBar, saumMaske). Darin deckt das Abbild der
+   Leiste immer. Kein Farbschatten an den Symbolen: drop-shadow in den
+   bewegten Kopien kostete im Test die Hälfte der Bilder; den Farbsaum trägt
+   der Glasrand (bei Glisse der Filter selbst). */
+.tyd-tabbar-linse-saum {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+.tyd-tabbar-linse-saum .tyd-tabbar-linse-abbild { opacity: 1; }
+
+/* ── Glas der Navbar (Leiste und Plus) ────────────────────────────────────
+   Ein Material für beide, nach Glisse' „Glass“ (https://github.com/0kzh/glisse,
+   MIT): halbdurchsichtige Füllung, wenig Unschärfe mit mehr Sättigung, eine
+   hauchdünne Kante und der gerechnete Lichtrand (src/lib/glasKante.ts). Beim
+   Drücken glimmt es auf. Leiste und Plus unterscheiden sich nur in Form und
+   Inhalt. Ein Look tönt es nur über diese Werte (liquid-glass.css); eigene
+   Materialien der Looks gelten nur mit <html data-navbar="eigen">. */
+:root {
+  /* Regler für das Navbar-Glas (src/lib/linse.ts, Test-Menü im Profil):
+     Unschärfe, Deckkraft der Füllung, Sättigung, Kantenbreite, Glanz */
+  /* vom Nutzer am iPhone eingestellt (2026-11-04) */
+  --nav-unschaerfe: 30px;
+  --nav-deckkraft: 0;
+  --nav-saettigung: 3;
+  --nav-kante: 1px;
+  --nav-glanz: 0.2;
+  --glas-fuellung: rgb(40 40 40 / var(--nav-deckkraft));
+  --glas-toenung: transparent;
+  --glas-kante-farbe: rgba(255, 255, 255, 0.08);
+  --glas-tropfen: transparent;
+  --glas-unschaerfe: var(--nav-unschaerfe);
+  --glas-glimmen: rgba(255, 255, 255, 0.09);
+}
+html:not([data-navbar='eigen']) .tyd-tabdock :is(.tyd-tabbar, .tyd-tabdock-action) {
+  background: linear-gradient(var(--glas-toenung), var(--glas-toenung)), linear-gradient(var(--glas-fuellung), var(--glas-fuellung));
+  -webkit-backdrop-filter: blur(var(--glas-unschaerfe)) saturate(var(--nav-saettigung));
+  backdrop-filter: blur(var(--glas-unschaerfe)) saturate(var(--nav-saettigung));
+  box-shadow: inset 0 0 0 var(--nav-kante) var(--glas-kante-farbe), 0 1px 3px var(--glas-tropfen);
+}
+/* Die Leiste trägt ihre Unschärfe in einer eigenen Ebene (.tyd-glas-koerper),
+   nicht selbst: ein Element mit backdrop-filter schneidet alles in ihm von der
+   Seite ab — die Kopie der Leiste in der Linse sah dann nur Grau. Für das Auge
+   gleich (gleichmäßige Füllung + verschwommene Seite). */
+html:not([data-navbar='eigen']) .tyd-tabdock .tyd-tabbar {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.tyd-glas-koerper {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(var(--glas-unschaerfe)) saturate(var(--nav-saettigung));
+  backdrop-filter: blur(var(--glas-unschaerfe)) saturate(var(--nav-saettigung));
+}
+html[data-navbar='eigen'] .tyd-glas-koerper { display: none; }
+/* Lichtrand: das gerechnete Bild, sonst eine feine Haarlinie */
+html:not([data-navbar='eigen']) .tyd-tabdock :is(.tyd-tabbar, .tyd-tabdock-action)::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  display: block;
+}
+html:not([data-navbar='eigen']) .tyd-tabdock :is(.tyd-tabbar, .tyd-tabdock-action)[data-glas-kante]::before {
+  padding: 0;
+  background: var(--glas-kante) center / 100% 100% no-repeat;
+  -webkit-mask: none;
+  mask: none;
+  opacity: var(--nav-glanz);
+}
+/* Glimmen beim Drücken (Glisse: :after mit weichem Schein) */
+html:not([data-navbar='eigen']) .tyd-tabdock :is(.tyd-tabbar, .tyd-tabdock-action)::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  display: block;
+  background: radial-gradient(circle 240px at var(--tyd-glint, 50%) 50%, var(--glas-glimmen), transparent 70%);
+  opacity: 0;
+  transition: opacity 220ms ease-in-out;
+}
+html:not([data-navbar='eigen']) .tyd-tabdock :is(.tyd-tabbar[data-gedrueckt='true'], .tyd-tabdock-action:active)::after {
+  opacity: 1;
+  transition-duration: 0s;
+}
 
 /*
  * Gehalten: aus der Pille wird eine Blase.
@@ -1691,3 +1965,23 @@ body[data-zieht] [data-abgelehnt] [data-periode-sperre] { color: var(--lg-warn);
   }
 }
 @keyframes tyd-wackeln { from { transform: rotate(-0.35deg); } to { transform: rotate(0.35deg); } }
+
+/* ── Hoku-Licht: Werte je Fläche, NICHT vererbt ───────────────────────────
+   hokuLicht.ts schreibt sie jedes Bild, in dem Hoku sich bewegt, an jede
+   sichtbare Fläche. Vererbt hätten sie jedes Mal den ganzen Inhalt der Karte
+   neu berechnen lassen (gemessen: im Frost-Look viermal so viel Stilarbeit
+   wie ohne Licht). Nicht vererbt rechnet nur die Fläche selbst; ihre Kanten
+   (::before/::after) holen sich die Werte ausdrücklich. Ruhelage = initial. */
+@property --hl-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --hl-w { syntax: '<angle>'; inherits: false; initial-value: 60deg; }
+@property --hl-i { syntax: '<number>'; inherits: false; initial-value: 0; }
+@property --hl-x { syntax: '<percentage>'; inherits: false; initial-value: 50%; }
+@property --hl-y { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+:is(.lg-surface, .card, .lg-group, .lg-glass, .lg-btn, .btn-primary, .lg-icon-btn, .lg-chip, .tyd-tabbar, .tyd-tabdock-action)::before,
+:is(.lg-surface, .card, .lg-group, .lg-glass, .lg-btn, .btn-primary, .lg-icon-btn, .lg-chip, .tyd-tabbar, .tyd-tabdock-action)::after {
+  --hl-a: inherit;
+  --hl-w: inherit;
+  --hl-i: inherit;
+  --hl-x: inherit;
+  --hl-y: inherit;
+}

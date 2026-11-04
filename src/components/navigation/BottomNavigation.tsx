@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { CalendarDays, FlaskConical, Home, Plus, User } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -5,6 +6,7 @@ import { hapticTick } from '../../lib/haptics'
 import { TAB_ITEMS, resolveActiveTabId, type TabId } from './tabModel'
 import { LiquidGlassTabBar, type GlassTabItem } from './LiquidGlassTabBar'
 import { DotLogo } from '../../features/dot/DotLogo'
+import { haengeGlasKante } from '../../lib/glasKante'
 import { dotStore, useDotStand } from '../../features/dot/dotStore'
 import { useDotText } from '../../features/dot/texte'
 
@@ -37,6 +39,12 @@ export function BottomNavigation({
   onToggleQuickActions,
 }: BottomNavigationProps) {
   const { t } = useTranslation()
+  const plusRef = useRef<HTMLButtonElement | null>(null)
+  // Dieselbe gerechnete Glaskante wie die Leiste (src/lib/glasKante.ts)
+  useEffect(() => {
+    const plus = plusRef.current
+    return plus ? haengeGlasKante(plus, { fase: 2.5, glanz: 0.9 }) : undefined
+  }, [])
   const navigate = useNavigate()
   const activeId = resolveActiveTabId(pathname)
   const dot = useDotStand()
@@ -94,8 +102,6 @@ export function BottomNavigation({
 
   return (
     <div className="tyd-tabdock" data-open={quickActionsOpen}>
-      {/* Sein Eingang: hier öffnet sich der Rahmen der Kapsel, solange Dot draußen ist */}
-      <span className="tyd-dot-spalt" aria-hidden="true" />
       <LiquidGlassTabBar
         items={reiter}
         activeId={activeId}
@@ -104,16 +110,24 @@ export function BottomNavigation({
         // Uhr, und dasselbe Gefuehl wie im My-Stack-Karussell.
         onPreviewChange={() => { void hapticTick() }}
         ariaLabel={String(t('nav_aria_label', { defaultValue: 'Navigation' }))}
+        // Sein Eingang: hier öffnet sich der Rahmen der Kapsel, solange Dot
+        // draußen ist. Er gehört zum Rahmen und liegt darum unter der Linse.
+        unterLinse={<>
+          <span className="tyd-dot-spalt" aria-hidden="true" />
+          {/* Torschein und Torkanten: Hoku malt sie hierher, unter die Linse */}
+          <canvas className="tyd-dot-torbild" aria-hidden="true" />
+        </>}
       />
       {/* Der Schnellzugriff ist kein Reiter: er führt zu keiner Seite. Darum
           steht er wie in iOS 26 als eigene Glas-Scheibe neben der Kapsel. Offen
           dreht sich das Plus zum X; aria-expanded sagt es der Vorlesung. */}
       <button
+        ref={plusRef}
         type="button"
         onClick={onToggleQuickActions}
         aria-expanded={quickActionsOpen}
         aria-label={String(t('home_quick_actions', { defaultValue: 'Quick Actions' }))}
-        className="tyd-tabdock-action lg-btn-primary"
+        className="tyd-tabdock-action"
       >
         <Plus size={26} strokeWidth={2.6} aria-hidden="true" />
       </button>

@@ -845,19 +845,21 @@ html[data-look='instrument'] .lg-group-title {
   letter-spacing: 0.12em;
   color: #8a8a8f;
 }
+/* Navbar-Material: alle Looks tragen das gemeinsame Apple-Glas (index.css,
+   „Glas der Navbar“) und tönen es nur über --glas-*. Die früheren eigenen
+   Materialien der Looks bleiben als Alternative hier stehen und gelten nur mit
+   <html data-navbar="eigen"> — gedacht vor allem für Papier (weiß), Obsidian und
+   Instrument (fest, dunkel), falls sie wieder kein Glas sein sollen. */
 /* Leiste: feste Kapsel mit Haarlinie, kein Glas, kein Schimmer; aktiv weiß */
-html[data-look='instrument'] .tyd-tabbar {
+html[data-look='instrument'][data-navbar='eigen'] .tyd-tabbar {
   background: #0b0c0e;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
   box-shadow: inset 0 0 0 1px rgb(var(--ink-rgb) / 0.08), 0 8px 24px rgba(0,0,0,0.6);
 }
-html[data-look='instrument'] .tyd-tabbar::before,
-html[data-look='instrument'] .tyd-tabbar::after { display: none; }
-html[data-look='instrument'] .tyd-tabbar-pill {
-  background: rgb(var(--ink-rgb) / 0.08);
-  box-shadow: none;
-}
+html[data-look='instrument'][data-navbar='eigen'] .tyd-tabbar::before,
+html[data-look='instrument'][data-navbar='eigen'] .tyd-tabbar::after { display: none; }
+html[data-look='instrument'] { --tabbar-kapsel: rgb(var(--ink-rgb) / 0.08); --tabbar-kapsel-kante: none; --tabbar-aktiv: #f2f2f2; }
 html[data-look='instrument'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #f2f2f2; }
 
 /* ── Erscheinungsbild „Soft Dark" ───────────────────────────────────────
@@ -974,20 +976,18 @@ html[data-look='softdark'] .lg-sheet {
 
 /* Leiste: eine erhabene Kapsel. Die Pille ist eine Stufe heller, der aktive
    Reiter leuchtet blau — das Leuchten blendet in 240 ms ein. */
-html[data-look='softdark'] .tyd-tabbar {
+html[data-look='softdark'][data-navbar='eigen'] .tyd-tabbar {
   background: linear-gradient(180deg, #23272d 0%, #1e2026 100%);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
   box-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.06), inset 0 0 0 1px rgb(var(--ink-rgb) / 0.03), 0 2px 6px rgba(0,0,0,0.35), 0 18px 34px -14px rgba(0,0,0,0.9);
 }
-html[data-look='softdark'] .tyd-tabbar::before,
-html[data-look='softdark'] .tyd-tabbar::after { display: none; }
-html[data-look='softdark'] .tyd-tabbar-pill {
-  background: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.07) 0%, rgb(var(--ink-rgb) / 0.03) 100%);
-  box-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.08), 0 4px 10px -4px rgba(0,0,0,0.6);
-}
-html[data-look='softdark'] .tyd-tabbar-pill[data-gehalten='true'] {
-  background: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.12) 0%, rgb(var(--ink-rgb) / 0.05) 100%);
+html[data-look='softdark'][data-navbar='eigen'] .tyd-tabbar::before,
+html[data-look='softdark'][data-navbar='eigen'] .tyd-tabbar::after { display: none; }
+html[data-look='softdark'] {
+  --tabbar-kapsel: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.12) 0%, rgb(var(--ink-rgb) / 0.06) 100%);
+  --tabbar-kapsel-kante: inset 0 1px 0 rgb(var(--ink-rgb) / 0.08), 0 4px 10px -4px rgba(0,0,0,0.6);
+  --tabbar-aktiv: #6cbcff;
 }
 html[data-look='softdark'] .tyd-tabbar-item svg { transition: filter 240ms ease; }
 html[data-look='softdark'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #6cbcff; }
@@ -1061,7 +1061,7 @@ html[data-look='frost'] body {
 }
 html[data-look='frost'] .lg-backdrop { background-color: #050c11; }
 /* Hoku-Licht: die Kante leuchtet auf der Seite, die zu Hoku zeigt */
-html[data-look='frost'] :is(.lg-surface, .card, .lg-group, .lg-glass, .tyd-tabbar)::before {
+html[data-look='frost'] :is(.lg-surface, .card, .lg-group, .lg-glass)::before {
   background: conic-gradient(from var(--hl-a),
     rgb(var(--frost-cyan) / calc(0.10 + var(--hl-i) * 0.85)) 0deg,
     rgb(var(--frost-cyan) / calc(0.10 + var(--hl-i) * 0.30)) calc(var(--hl-w) * 0.5),
@@ -1074,7 +1074,7 @@ html[data-look='frost'] :is(.lg-surface, .card, .lg-group)::after {
   background: radial-gradient(70% 70% at var(--hl-x) var(--hl-y), rgb(var(--frost-cyan) / calc(var(--hl-i) * 0.13)), transparent 70%);
 }
 /* Knöpfe in Hokus Nähe glimmen (Stufe 2): Schein wächst mit --hl-i */
-html[data-look='frost'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+html[data-look='frost'] :is(.lg-btn-primary, .btn-primary) {
   box-shadow: var(--shadow-btn-primary), 0 0 calc(var(--hl-i) * 30px) rgb(var(--frost-cyan) / calc(var(--hl-i) * 0.65));
 }
 html[data-look='frost'] :is(.lg-btn-tint, .lg-btn-glass, .lg-chip, .lg-icon-btn.lg-glass) {
@@ -1087,12 +1087,12 @@ html[data-look='frost'] .lg-btn-tint {
 }
 html[data-look='frost'] .lg-sheet { box-shadow: 0 -16px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(200,245,255,0.14); }
 /* Leiste: getöntes Glas, ihre Kante fängt Hokus Licht wie die Karten */
-html[data-look='frost'] .tyd-tabbar {
+html[data-look='frost'][data-navbar='eigen'] .tyd-tabbar {
   background: linear-gradient(180deg, rgba(150,225,255,0.10), rgba(150,225,255,0.04)), rgba(6,16,20,0.55);
   box-shadow: 0 12px 32px -12px rgba(0,0,0,0.85), 0 0 calc(var(--hl-i) * 26px) rgb(var(--frost-cyan) / calc(var(--hl-i) * 0.30));
 }
-html[data-look='frost'] .tyd-tabbar::after { display: none; }
-html[data-look='frost'] .tyd-tabbar-pill { background: linear-gradient(180deg, rgba(95,220,255,0.20), rgba(95,220,255,0.08)); box-shadow: inset 0 1px 0 rgba(200,245,255,0.20); }
+html[data-look='frost'][data-navbar='eigen'] .tyd-tabbar::after { display: none; }
+html[data-look='frost'] { --tabbar-kapsel: linear-gradient(180deg, rgba(95,220,255,0.20), rgba(95,220,255,0.08)); --tabbar-kapsel-kante: inset 0 1px 0 rgba(200,245,255,0.20); --tabbar-aktiv: #8eeaff; }
 html[data-look='frost'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #8eeaff; }
 @media (prefers-reduced-transparency: reduce) {
   html[data-look='frost'] { --lg-glass-filter: none; --lg-glass-fill: #0c1a20; --lg-sheet-blur: none; --lg-sheet-bg: #0a161c; }
@@ -1148,7 +1148,7 @@ html[data-look='labor'] body {
     var(--app-bg);
 }
 html[data-look='labor'] .lg-backdrop { background-color: #020405; }
-html[data-look='labor'] :is(.lg-surface, .card, .lg-group, .lg-glass, .tyd-tabbar)::before {
+html[data-look='labor'] :is(.lg-surface, .card, .lg-group, .lg-glass)::before {
   background: conic-gradient(from var(--hl-a),
     rgb(var(--lab-cyan) / calc(0.14 + var(--hl-i) * 0.80)) 0deg,
     rgb(var(--lab-cyan) / 0.14) var(--hl-w),
@@ -1165,11 +1165,19 @@ html[data-look='labor'] :is(.lg-surface, .card, .lg-group)::after {
 }
 html[data-look='labor'] :is(.lg-btn, .lg-chip, .stack-tab) { border-radius: 6px; }
 html[data-look='labor'] .lg-icon-btn { border-radius: 8px; }
-html[data-look='labor'] .tyd-tabbar { border-radius: 10px; background: rgba(3,10,13,0.94); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 0 calc(var(--hl-i) * 24px) rgb(var(--lab-cyan) / calc(var(--hl-i) * 0.35)); }
-html[data-look='labor'] .tyd-tabbar::after { display: none; }
-html[data-look='labor'] .tyd-tabbar-pill { border-radius: 7px; background: rgba(95,220,255,0.10); box-shadow: inset 0 0 0 1px rgba(95,220,255,0.30); }
+html[data-look='labor'] .tyd-tabbar { border-radius: 10px; }
+html[data-look='labor'][data-navbar='eigen'] .tyd-tabbar { background: rgba(3,10,13,0.94); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 0 calc(var(--hl-i) * 24px) rgb(var(--lab-cyan) / calc(var(--hl-i) * 0.35)); }
+html[data-look='labor'][data-navbar='eigen'] .tyd-tabbar::after { display: none; }
+/* Labor ist eckig: Leiste, Kapsel, Linse und Plus mit kleiner Rundung, parallel zueinander */
+html[data-look='labor'] {
+  --tabbar-rund: 10px;
+  --linse-rund: 14px;
+  --tabbar-kapsel: rgba(95,220,255,0.10);
+  --tabbar-kapsel-kante: inset 0 0 0 1px rgba(95,220,255,0.30);
+  --tabbar-aktiv: #7fe6ff;
+}
 html[data-look='labor'] .lg-sheet { border-radius: 14px; box-shadow: 0 -12px 40px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(95,220,255,0.18); }
-html[data-look='labor'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+html[data-look='labor'] :is(.lg-btn-primary, .btn-primary) {
   color: #7fe6ff;
   font-family: var(--lab-mono);
   letter-spacing: 0.08em;
@@ -1229,7 +1237,7 @@ html[data-look='neon'] :is(.lg-surface, .card, .lg-group, .lg-glass) {
 }
 html[data-look='neon'] :is(.lg-surface, .card, .lg-group, .lg-glass)::before,
 html[data-look='neon'] :is(.lg-surface, .card, .lg-group, .lg-glass)::after { display: none; }
-html[data-look='neon'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+html[data-look='neon'] :is(.lg-btn-primary, .btn-primary) {
   color: #8eeaff;
   text-shadow: 0 0 10px rgba(95,220,255,0.7);
   box-shadow:
@@ -1237,19 +1245,19 @@ html[data-look='neon'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
     0 0 calc(10px + var(--hl-i) * 30px) rgb(var(--neon) / calc(0.25 + var(--hl-i) * 0.5)),
     inset 0 0 calc(8px + var(--hl-i) * 16px) rgb(var(--neon) / calc(0.12 + var(--hl-i) * 0.3));
 }
-html[data-look='neon'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action)::before,
-html[data-look='neon'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action)::after { display: none; }
+html[data-look='neon'] :is(.lg-btn-primary, .btn-primary)::before,
+html[data-look='neon'] :is(.lg-btn-primary, .btn-primary)::after { display: none; }
 html[data-look='neon'] .lg-btn-tint { color: #8eeaff; background: #04070a; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 0 0 1px rgba(95,220,255,0.5), 0 0 14px rgba(95,220,255,0.25); animation: none; }
 html[data-look='neon'] .lg-large-title { text-shadow: 0 0 18px rgba(95,220,255,0.35); }
 html[data-look='neon'] .lg-sheet { box-shadow: 0 -12px 40px rgba(0,0,0,0.8), 0 0 0 1px rgba(95,220,255,0.35), 0 0 24px rgba(95,220,255,0.15); }
-html[data-look='neon'] .tyd-tabbar {
+html[data-look='neon'][data-navbar='eigen'] .tyd-tabbar {
   background: #04070a;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
   box-shadow: 0 0 0 1px rgb(var(--neon) / calc(0.35 + var(--hl-i) * 0.6)), 0 0 calc(8px + var(--hl-i) * 26px) rgb(var(--neon) / calc(0.15 + var(--hl-i) * 0.45));
 }
-html[data-look='neon'] .tyd-tabbar::before, html[data-look='neon'] .tyd-tabbar::after { display: none; }
-html[data-look='neon'] .tyd-tabbar-pill { background: rgba(95,220,255,0.10); box-shadow: inset 0 0 0 1px rgba(95,220,255,0.45), 0 0 10px rgba(95,220,255,0.25); }
+html[data-look='neon'][data-navbar='eigen'] .tyd-tabbar::before, html[data-look='neon'][data-navbar='eigen'] .tyd-tabbar::after { display: none; }
+html[data-look='neon'] { --tabbar-kapsel: rgba(95,220,255,0.10); --tabbar-kapsel-kante: inset 0 0 0 1px rgba(95,220,255,0.45), 0 0 10px rgba(95,220,255,0.25); --tabbar-aktiv: #8eeaff; }
 html[data-look='neon'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #8eeaff; filter: drop-shadow(0 0 6px rgba(95,220,255,0.6)); }
 
 /* ── Erscheinungsbild „Tiefsee" ─────────────────────────────────────────
@@ -1302,7 +1310,7 @@ html[data-look='tiefsee'] .lg-backdrop { background-color: #01090b; }
 html[data-look='tiefsee'] :is(.lg-surface, .card, .lg-group) {
   background: radial-gradient(110% 120% at var(--hl-x) var(--hl-y), rgb(var(--see) / calc(0.04 + var(--hl-i) * 0.16)), rgba(2,20,22,0.6) 65%);
 }
-html[data-look='tiefsee'] :is(.lg-surface, .card, .lg-group, .lg-glass, .tyd-tabbar)::before {
+html[data-look='tiefsee'] :is(.lg-surface, .card, .lg-group, .lg-glass)::before {
   background: conic-gradient(from var(--hl-a),
     rgb(var(--see) / calc(0.10 + var(--hl-i) * 0.70)) 0deg,
     rgb(var(--see) / 0.10) var(--hl-w),
@@ -1312,13 +1320,13 @@ html[data-look='tiefsee'] :is(.lg-surface, .card, .lg-group, .lg-glass, .tyd-tab
 html[data-look='tiefsee'] :is(.lg-surface, .card, .lg-group)::after {
   background: radial-gradient(50% 50% at var(--hl-x) var(--hl-y), rgb(var(--see) / calc(var(--hl-i) * 0.22)), transparent 70%);
 }
-html[data-look='tiefsee'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+html[data-look='tiefsee'] :is(.lg-btn-primary, .btn-primary) {
   box-shadow: var(--shadow-btn-primary), 0 0 calc(var(--hl-i) * 30px) rgb(var(--see) / calc(var(--hl-i) * 0.6));
 }
 html[data-look='tiefsee'] .lg-btn-tint { color: #b5fbef; background: linear-gradient(180deg, rgba(70,242,214,0.24), rgba(70,242,214,0.08)); animation: none; }
-html[data-look='tiefsee'] .tyd-tabbar { background: linear-gradient(180deg, rgba(70,242,214,0.10), rgba(70,242,214,0.04)), rgba(2,16,18,0.6); }
-html[data-look='tiefsee'] .tyd-tabbar::after { display: none; }
-html[data-look='tiefsee'] .tyd-tabbar-pill { background: linear-gradient(180deg, rgba(70,242,214,0.22), rgba(70,242,214,0.08)); box-shadow: inset 0 1px 0 rgba(220,255,248,0.18); }
+html[data-look='tiefsee'][data-navbar='eigen'] .tyd-tabbar { background: linear-gradient(180deg, rgba(70,242,214,0.10), rgba(70,242,214,0.04)), rgba(2,16,18,0.6); }
+html[data-look='tiefsee'][data-navbar='eigen'] .tyd-tabbar::after { display: none; }
+html[data-look='tiefsee'] { --tabbar-kapsel: linear-gradient(180deg, rgba(70,242,214,0.22), rgba(70,242,214,0.08)); --tabbar-kapsel-kante: inset 0 1px 0 rgba(220,255,248,0.18); --tabbar-aktiv: #8ff7e5; }
 html[data-look='tiefsee'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #8ff7e5; }
 
 /* ── Erscheinungsbild „Obsidian" ────────────────────────────────────────
@@ -1360,17 +1368,18 @@ html[data-look='obsidian'] :is(.lg-surface, .card, .lg-group, .lg-glass)::after 
     radial-gradient(38% 22% at var(--hl-x) var(--hl-y), rgba(210,248,255, calc(var(--hl-i) * 0.30)), transparent 70%),
     radial-gradient(80% 60% at var(--hl-x) var(--hl-y), rgb(var(--obs) / calc(var(--hl-i) * 0.10)), transparent 70%);
 }
-html[data-look='obsidian'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+html[data-look='obsidian'] :is(.lg-btn-primary, .btn-primary) {
   color: #8eeaff;
   box-shadow: var(--shadow-btn-primary), 0 0 calc(var(--hl-i) * 24px) rgb(var(--obs) / calc(var(--hl-i) * 0.45));
 }
 html[data-look='obsidian'] .lg-btn-tint { color: #8eeaff; background: linear-gradient(165deg, #10161a, #040506); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: var(--lg-glass-shadow); animation: none; }
-html[data-look='obsidian'] .tyd-tabbar { background: linear-gradient(165deg, #10141a, #030405); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 14px 30px -12px rgba(0,0,0,1); }
-html[data-look='obsidian'] .tyd-tabbar::after {
+html[data-look='obsidian'][data-navbar='eigen'] .tyd-tabbar { background: linear-gradient(165deg, #10141a, #030405); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 14px 30px -12px rgba(0,0,0,1); }
+html[data-look='obsidian'][data-navbar='eigen'] .tyd-tabbar::after {
   opacity: 1;
   background: radial-gradient(30% 120% at var(--hl-x) var(--hl-y), rgba(210,248,255, calc(var(--hl-i) * 0.22)), transparent 70%);
 }
 html[data-look='obsidian'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #8eeaff; }
+html[data-look='obsidian'] { --tabbar-aktiv: #8eeaff; }
 
 /* ── Erscheinungsbild „Papier" (Vorschau) ──────────────────────────────
    Hell, nur Schwarz und Weiß wie das Logo. Der erste Look, der alle Farbrollen
@@ -1454,15 +1463,15 @@ html[data-look='papier'] .lg-backdrop { background-color: #f6f6f4; }
 html[data-look='papier'] .lg-seg-fill .lg-seg-pill { background: #ffffff; box-shadow: var(--lg-pill-shadow); }
 html[data-look='papier'] .lg-sheet { box-shadow: 0 -12px 40px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06); }
 html[data-look='papier'] .lg-btn-tint { color: #0b0b0c; background: #ffffff; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 0 0 1px rgba(0,0,0,0.12), 0 6px 16px -10px rgba(0,0,0,0.35); animation: none; }
-html[data-look='papier'] .tyd-tabbar {
+html[data-look='papier'][data-navbar='eigen'] .tyd-tabbar {
   background: #ffffff;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
   box-shadow: 0 0 0 1px rgba(0,0,0,0.08), 0 14px 30px -14px rgba(0,0,0,0.35);
 }
-html[data-look='papier'] .tyd-tabbar::before,
-html[data-look='papier'] .tyd-tabbar::after { display: none; }
-html[data-look='papier'] .tyd-tabbar-pill { background: rgba(0,0,0,0.06); box-shadow: none; }
+html[data-look='papier'][data-navbar='eigen'] .tyd-tabbar::before,
+html[data-look='papier'][data-navbar='eigen'] .tyd-tabbar::after { display: none; }
+html[data-look='papier'] { --tabbar-kapsel: rgba(0,0,0,0.07); --tabbar-kapsel-kante: none; --tabbar-aktiv: #0b0b0c; }
 html[data-look='papier'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #0b0b0c; }
 /* Hoku schwarz auf Weiß wie im Logo: die Engine zeichnet ihn hell und leuchtend
    (additiv); umgekehrt wird daraus schwarze Tinte, die Leere bleibt durchsichtig. */
@@ -1693,3 +1702,12 @@ html[data-look='schwarz'] :is(.lg-surface, .card, .lg-group)::after {
 /* Ungültige Eingabe: rote Haarlinie innen — mit Fokus bleibt der Fokusring dazu */
 .input[aria-invalid='true'] { box-shadow: inset 0 0 0 1.5px var(--lg-bad); }
 .input[aria-invalid='true']:focus { box-shadow: var(--shadow-input-focus), inset 0 0 0 1.5px var(--lg-bad); }
+
+/* Glas der Navbar je Look: nur Tönung und Kante (Material in index.css) */
+html[data-look='softdark'] { --glas-toenung: rgba(108,188,255,0.04); }
+html[data-look='frost'] { --glas-toenung: rgba(95,220,255,0.08); --glas-kante-farbe: rgba(200,245,255,0.16); }
+html[data-look='labor'] { --glas-toenung: rgba(95,220,255,0.05); --glas-kante-farbe: rgba(95,220,255,0.30); }
+html[data-look='neon'] { --glas-toenung: rgba(95,220,255,0.05); --glas-kante-farbe: rgba(95,220,255,0.40); --glas-glimmen: rgba(95,220,255,0.16); }
+html[data-look='tiefsee'] { --glas-toenung: rgba(70,242,214,0.07); --glas-kante-farbe: rgba(220,255,248,0.14); }
+html[data-look='papier'] { --glas-fuellung: rgb(255 255 255 / calc(var(--nav-deckkraft) - 0.02)); --glas-kante-farbe: rgba(0,0,0,0.08); --glas-tropfen: rgba(0,0,0,0.06); --glas-glimmen: rgba(0,0,0,0.05); }
+html[data-look='labor'] .tyd-tabdock-action { border-radius: 10px; }
