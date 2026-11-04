@@ -1008,9 +1008,9 @@
     "semantic_hash": ""
   },
   "src/pages/Profil.tsx": {
-    "mtime": 1793762412.7943435,
-    "seen": 1793762460.6964417,
-    "ast_hash": "640c03da74ec4274e14922c3b2b75941",
+    "mtime": 1793764024.0344443,
+    "seen": 1793764179.5563858,
+    "ast_hash": "f144d5373726cdfd25c725ab34182ad1",
     "semantic_hash": ""
   },
   "src/pages/Progress.tsx": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793761440.1054387,
-    "seen": 1793761507.6042082,
+    "mtime": 1793764127.049789,
+    "seen": 1793764179.5566049,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -21690,9 +21690,9 @@
     "semantic_hash": ""
   },
   "src/lib/linse.ts": {
-    "mtime": 1793762412.7943435,
-    "seen": 1793762460.6963146,
-    "ast_hash": "83437b6518748a43bad4effafa91e6f1",
+    "mtime": 1793764024.0340517,
+    "seen": 1793764179.5562575,
+    "ast_hash": "7498846b7693d3bbb8772d725795cafc",
     "semantic_hash": ""
   },
   "src/components/navigation/linsenFeder.test.ts": {
