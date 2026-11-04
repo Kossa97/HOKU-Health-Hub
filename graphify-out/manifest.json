@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793821731.102808,
-    "seen": 1793831279.6913962,
+    "mtime": 1793831443.3553898,
+    "seen": 1793832592.4042752,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -21972,9 +21972,9 @@
     "semantic_hash": ""
   },
   "supabase/functions/auth-mail/vorlagen.ts": {
-    "mtime": 1793821632.6419778,
-    "seen": 1793831279.6914437,
-    "ast_hash": "8ea06541cdffce3b68ac40f20c8111e1",
+    "mtime": 1793831539.106286,
+    "seen": 1793832592.4050498,
+    "ast_hash": "67d638f731cd2ebb02ddf595d9f1a8ea",
     "semantic_hash": ""
   },
   "docs/registrierung/APP-LINKS.md": {
