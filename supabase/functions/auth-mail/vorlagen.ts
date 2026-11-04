@@ -213,7 +213,23 @@ export function gueltigBis(jetzt: Date, minuten: number, zeitzone: unknown, spra
   }
 }
 
-const FARBE = { grund: '#f4f6f8', karte: '#ffffff', text: '#0f1a20', leise: '#5b6770', akzent: '#00a9cc', codeGrund: '#eef9fc' }
+/**
+ * Brand-Kit v2 (docs/logo/hoku/brand-kit-v2/HOKU-Brand-Guide.md): ruhige dunkle Fläche im
+ * Blau-Schwarz des App-Icons, Cyan #00CCF5 als einziger Akzent, Schrift neutral weiß. Kopf ist
+ * das Hauptlogo (Hoku in Cyan, HOKU / HEALTH HUB weiß, freigestellt) in 240 px, der kleinsten
+ * empfohlenen Breite; die Datei liegt in public/mail. Michroma und IBM Plex Mono kommen über
+ * Google Fonts — Apple Mail lädt sie, andere Programme nehmen die Ersatzschriften.
+ */
+const FARBE = {
+  grund: '#000101', karte: '#0a1014', rand: 'rgba(255,255,255,0.08)',
+  text: '#ffffff', zweit: '#c3ccd2', leise: '#86929a',
+  cyan: '#00ccf5', codeGrund: 'rgba(0,204,245,0.08)', codeRand: 'rgba(0,204,245,0.35)',
+}
+const SCHRIFT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+const MONO = "'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"
+const MARKE = "Michroma,'Arial Black',Helvetica,Arial,sans-serif"
+/** Logo im Kopf: Datei 720 × 235 px (dreifach), angezeigt mit 240 px Breite */
+export const LOGO = { pfad: '/mail/hoku-health-hub-logo-720.png', breite: 240, hoehe: 78 }
 
 function seite(sprache: Sprache, appUrl: string, vorschau: string, titel: string, inhalt: string): string {
   const r = RAHMEN[sprache]
@@ -223,21 +239,25 @@ function seite(sprache: Sprache, appUrl: string, vorschau: string, titel: string
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light">
-<meta name="supported-color-schemes" content="light">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
 <title>${escape(titel)}</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Michroma&display=swap" rel="stylesheet">
+<style>:root{color-scheme:dark;supported-color-schemes:dark}</style>
 </head>
 <body style="margin:0;padding:0;background:${FARBE.grund};">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${escape(vorschau)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${FARBE.grund};">
 <tr><td align="center" style="padding:32px 16px;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:${FARBE.karte};border-radius:20px;">
-<tr><td style="padding:32px 28px 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:${FARBE.text};">
-<div style="font-size:15px;font-weight:600;letter-spacing:0.02em;color:${FARBE.akzent};">Hoku</div>
-<h1 style="margin:16px 0 0;font-size:22px;line-height:1.3;font-weight:700;">${escape(titel)}</h1>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:${FARBE.karte};border:1px solid ${FARBE.rand};border-radius:24px;">
+<tr><td align="center" style="padding:24px 28px 16px;border-bottom:1px solid ${FARBE.rand};">
+<img src="${escape(basis + LOGO.pfad)}" width="${LOGO.breite}" height="${LOGO.hoehe}" alt="HOKU · HEALTH HUB" style="display:block;margin:0 auto;width:${LOGO.breite}px;max-width:100%;height:auto;border:0;outline:none;color:${FARBE.text};font-family:${MARKE};font-size:20px;letter-spacing:0.16em;">
+</td></tr>
+<tr><td style="padding:24px 28px 8px;font-family:${SCHRIFT};color:${FARBE.text};">
+<h1 style="margin:0;font-size:22px;line-height:1.3;font-weight:700;color:${FARBE.text};">${escape(titel)}</h1>
 ${inhalt}
 </td></tr>
-<tr><td style="padding:8px 28px 28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:${FARBE.leise};">
+<tr><td style="padding:16px 28px 28px;font-family:${SCHRIFT};font-size:12px;line-height:1.6;color:${FARBE.leise};">
 ${escape(r.fuss)}<br>
 <a href="${escape(basis)}/impressum" style="color:${FARBE.leise};">${escape(r.impressum)}</a> · <a href="${escape(basis)}/datenschutz" style="color:${FARBE.leise};">${escape(r.datenschutz)}</a>
 </td></tr>
@@ -249,7 +269,7 @@ ${escape(r.fuss)}<br>
 }
 
 const absatz = (text: string) =>
-  `<p style="margin:12px 0 0;font-size:16px;line-height:1.5;">${escape(text)}</p>`
+  `<p style="margin:12px 0 0;font-size:16px;line-height:1.5;color:${FARBE.zweit};">${escape(text)}</p>`
 const leise = (text: string) =>
   `<p style="margin:12px 0 0;font-size:14px;line-height:1.5;color:${FARBE.leise};">${escape(text)}</p>`
 
@@ -258,9 +278,9 @@ export function codeMail(e: CodeEingabe): Mail {
   const r = RAHMEN[e.sprache]
   const code = e.code
   const gilt = r.gilt(e.minuten, e.bis)
-  const codeBox = `<div style="margin:24px 0 0;padding:20px 12px;background:${FARBE.codeGrund};border-radius:14px;text-align:center;">
-<div style="font-size:13px;color:${FARBE.leise};">${escape(r.code)}</div>
-<div style="margin-top:6px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:38px;font-weight:700;letter-spacing:8px;padding-left:8px;color:${FARBE.text};-webkit-user-select:all;user-select:all;">${escape(code)}</div>
+  const codeBox = `<div style="margin:24px 0 0;padding:20px 12px 22px;background:${FARBE.codeGrund};border:1px solid ${FARBE.codeRand};border-radius:16px;text-align:center;">
+<div style="font-family:${MONO};font-size:11px;font-weight:500;letter-spacing:0.3em;text-transform:uppercase;color:${FARBE.cyan};">${escape(r.code)}</div>
+<div style="margin-top:10px;font-family:${MONO};font-size:40px;font-weight:500;letter-spacing:10px;padding-left:10px;color:${FARBE.text};-webkit-user-select:all;user-select:all;">${escape(code)}</div>
 </div>`
   const html = seite(e.sprache, e.appUrl, `${r.code}: ${code}`, t.titel,
     absatz(t.einleitung) + codeBox + leise(gilt) + leise(t.ignorieren))
