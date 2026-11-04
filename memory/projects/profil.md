@@ -156,6 +156,10 @@ Erfahrungsberichte auf „Alle“; Desktop: „In Hoku öffnen“ zeigt Store-Kn
   2b: Baseline aus Health über bestehende Einwilligung (Art. 9); freigegebener Bereichswert mit nur einem
   Wert verrät dessen Verlauf (z. B. Blut), freigegebene Abzeichen-IDs verraten Gesundheitsfakten
   (first_bloodwork, all_markers_in_range, first_cycle_done) — nur nach Freigabe, Standard „Nur ich“.
+  2c: Rückfall-Text „kann Muster finden“ nur mit Musterfunktion; keine Wörter wie „überwacht/erkennt/warnt“.
+  Titel (04.11.): persönliche Titel aus Gesundheits-/Einnahmedaten — Bestätigungstext als Einwilligung nach
+  Art. 9 Abs. 2 a DSGVO (ausdrücklich, informiert, widerrufbar) und neutrale Namen (Apple/Google-Richtlinien zu
+  Substanzen); Nutzer will sich damit auseinandersetzen.
 - 2a: Durchsicht-Punkte vom Nutzer bestätigt (Schnappschuss, Web-Link Standard aus, Prüffehler = privat).
   Chips: kleiner Punkt + Wort in derselben Zeile neben der Beschriftung. Bau auf Branch
   `profil-p2a-sichtbarkeit` (von profil-p1-datenbasis abgezweigt; nach Merge von #114 auf main umsetzen).
