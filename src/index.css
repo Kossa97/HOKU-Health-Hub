@@ -1448,18 +1448,25 @@ main.flex-1 {
    Inhalt. Ein Look tönt es nur über diese Werte (liquid-glass.css); eigene
    Materialien der Looks gelten nur mit <html data-navbar="eigen">. */
 :root {
-  --glas-fuellung: rgba(40, 40, 40, 0.62);
+  /* Regler für das Navbar-Glas (src/lib/linse.ts, Test-Menü im Profil):
+     Unschärfe, Deckkraft der Füllung, Sättigung, Kantenbreite, Glanz */
+  --nav-unschaerfe: 3px;
+  --nav-deckkraft: 0.62;
+  --nav-saettigung: 1.5;
+  --nav-kante: 0.5px;
+  --nav-glanz: 1;
+  --glas-fuellung: rgb(40 40 40 / var(--nav-deckkraft));
   --glas-toenung: transparent;
   --glas-kante-farbe: rgba(255, 255, 255, 0.08);
   --glas-tropfen: transparent;
-  --glas-unschaerfe: 3px;
+  --glas-unschaerfe: var(--nav-unschaerfe);
   --glas-glimmen: rgba(255, 255, 255, 0.09);
 }
 html:not([data-navbar='eigen']) .tyd-tabdock :is(.tyd-tabbar, .tyd-tabdock-action) {
   background: linear-gradient(var(--glas-toenung), var(--glas-toenung)), linear-gradient(var(--glas-fuellung), var(--glas-fuellung));
-  -webkit-backdrop-filter: blur(var(--glas-unschaerfe)) saturate(1.5);
-  backdrop-filter: blur(var(--glas-unschaerfe)) saturate(1.5);
-  box-shadow: inset 0 0 0 0.5px var(--glas-kante-farbe), 0 1px 3px var(--glas-tropfen);
+  -webkit-backdrop-filter: blur(var(--glas-unschaerfe)) saturate(var(--nav-saettigung));
+  backdrop-filter: blur(var(--glas-unschaerfe)) saturate(var(--nav-saettigung));
+  box-shadow: inset 0 0 0 var(--nav-kante) var(--glas-kante-farbe), 0 1px 3px var(--glas-tropfen);
 }
 /* Lichtrand: das gerechnete Bild, sonst eine feine Haarlinie */
 html:not([data-navbar='eigen']) .tyd-tabdock :is(.tyd-tabbar, .tyd-tabdock-action)::before {
@@ -1475,6 +1482,7 @@ html:not([data-navbar='eigen']) .tyd-tabdock :is(.tyd-tabbar, .tyd-tabdock-actio
   background: var(--glas-kante) center / 100% 100% no-repeat;
   -webkit-mask: none;
   mask: none;
+  opacity: var(--nav-glanz);
 }
 /* Glimmen beim Drücken (Glisse: :after mit weichem Schein) */
 html:not([data-navbar='eigen']) .tyd-tabdock :is(.tyd-tabbar, .tyd-tabdock-action)::after {

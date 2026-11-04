@@ -604,9 +604,10 @@ function LinsenTest() {
           aria-label={name}
         />
         <span style={{ fontSize: 14, textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: 'var(--lg-text-2)' }}>
-          {key === 'zoom' || key === 'farbe' || key === 'schwingen' || key === 'klar' || key === 'ruhe' || key === 'fuellung' || key === 'rand' || key === 'saumAussen' || key === 'saumInnen'
+          {key === 'zoom' || key === 'farbe' || key === 'schwingen' || key === 'klar' || key === 'ruhe' || key === 'fuellung' || key === 'rand' || key === 'saumAussen' || key === 'saumInnen' || key === 'navDeckkraft' || key === 'navGlanz'
             ? `${Math.round(werte[key] * 100)} %`
-            : key === 'tempo' ? `${werte[key].toFixed(2)} s` : `${werte[key]} ${einheit}`}
+            : key === 'tempo' ? `${werte[key].toFixed(2)} s`
+              : key === 'navSaettigung' ? `${werte[key].toFixed(2)}×` : `${werte[key]} ${einheit}`}
         </span>
       </label>
     )
@@ -657,6 +658,27 @@ function LinsenTest() {
             {regler('saumInnen', 'Innen stark', '')}
           </>
         )}
+        <p className="lg-group-title" style={{ marginTop: 18 }}>Navbar-Glas</p>
+        <p style={{ margin: '0 0 4px', fontSize: 13, color: 'var(--lg-text-3)' }}>
+          Nur Leiste und Plus, die Linse bleibt, wie sie ist.
+        </p>
+        {regler('navUnschaerfe', 'Unschärfe', 'px')}
+        {regler('navDeckkraft', 'Füllung', '')}
+        {regler('navSaettigung', 'Farbkraft', '')}
+        {regler('navKante', 'Randlinie', 'px')}
+        {regler('navGlanz', 'Glanz', '')}
+        <button
+          type="button"
+          className="lg-btn lg-btn-glass lg-btn-compact"
+          style={{ marginTop: 6 }}
+          onClick={() => setze({
+            ...werte,
+            navUnschaerfe: LINSE_STANDARD.navUnschaerfe, navDeckkraft: LINSE_STANDARD.navDeckkraft,
+            navSaettigung: LINSE_STANDARD.navSaettigung, navKante: LINSE_STANDARD.navKante, navGlanz: LINSE_STANDARD.navGlanz,
+          })}
+        >
+          Navbar-Glas zurücksetzen
+        </button>
         <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
           <button type="button" className="lg-btn lg-btn-glass lg-btn-compact" onClick={() => setze({ ...LINSE_STANDARD })}>
             Zurücksetzen (Apple)

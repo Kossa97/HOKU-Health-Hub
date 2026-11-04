@@ -1724,5 +1724,5 @@ html[data-look='frost'] { --glas-toenung: rgba(95,220,255,0.08); --glas-kante-fa
 html[data-look='labor'] { --glas-toenung: rgba(95,220,255,0.05); --glas-kante-farbe: rgba(95,220,255,0.30); }
 html[data-look='neon'] { --glas-toenung: rgba(95,220,255,0.05); --glas-kante-farbe: rgba(95,220,255,0.40); --glas-glimmen: rgba(95,220,255,0.16); }
 html[data-look='tiefsee'] { --glas-toenung: rgba(70,242,214,0.07); --glas-kante-farbe: rgba(220,255,248,0.14); }
-html[data-look='papier'] { --glas-fuellung: rgba(255,255,255,0.6); --glas-kante-farbe: rgba(0,0,0,0.08); --glas-tropfen: rgba(0,0,0,0.06); --glas-glimmen: rgba(0,0,0,0.05); }
+html[data-look='papier'] { --glas-fuellung: rgb(255 255 255 / calc(var(--nav-deckkraft) - 0.02)); --glas-kante-farbe: rgba(0,0,0,0.08); --glas-tropfen: rgba(0,0,0,0.06); --glas-glimmen: rgba(0,0,0,0.05); }
 html[data-look='labor'] .tyd-tabdock-action { border-radius: 10px; }
