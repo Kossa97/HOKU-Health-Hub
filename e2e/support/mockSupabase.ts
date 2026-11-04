@@ -577,7 +577,52 @@ export class MockSupabase {
     return route.fulfill({ status: 404, headers: corsHeaders(), json: { message: 'not mocked' } })
   }
 
+  /**
+   * Registrieren und Passwort vergessen mit Code aus der Mail (docs/registrierung/PLAN.md).
+   * `code` ist der richtige Code; `unbestaetigt` lässt das Anmelden mit Passwort an der
+   * unbestätigten Adresse scheitern; `vorhanden` meldet die Adresse beim Registrieren als
+   * vergeben (Konto ohne Anmeldewege, wie Supabase mit „E-Mail bestätigen").
+   */
+  readonly authMail = {
+    code: '123456',
+    /** token_hash für den Knopf „In Hoku öffnen" in der Mail */
+    hash: '7d5b7b1964cf5d388340a7f04f1dbb5eeb6c7b52ef8270e1737a58d0',
+    unbestaetigt: false,
+    vorhanden: false,
+    /** Anfragen an signup/verify/resend/recover und das neue Passwort, mit Inhalt */
+    calls: [] as { pfad: string; body: Record<string, unknown> }[],
+    neuesPasswort: null as string | null,
+  }
+
   private async handleAuth(route: Route, url: URL): Promise<void> {
+    const method = route.request().method()
+    const body = () => (route.request().postDataJSON() ?? {}) as Record<string, unknown>
+    const fehler = (status: number, code: string, msg: string) =>
+      route.fulfill({ status, headers: corsHeaders(), json: { code: status, error_code: code, msg } })
+    if (['/auth/v1/signup', '/auth/v1/verify', '/auth/v1/resend', '/auth/v1/recover'].includes(url.pathname) && method === 'POST') {
+      const inhalt = body()
+      this.authMail.calls.push({ pfad: url.pathname.slice('/auth/v1/'.length), body: inhalt })
+      if (url.pathname === '/auth/v1/signup') {
+        const user = { ...fakeSession(this.now()).user, email: inhalt.email, user_metadata: inhalt.data ?? {},
+          identities: this.authMail.vorhanden ? [] : [{ provider: 'email', identity_id: 'e2e-identity' }] }
+        // „E-Mail bestätigen" ist an: Konto ohne Sitzung
+        return route.fulfill({ headers: corsHeaders(), json: user })
+      }
+      if (url.pathname === '/auth/v1/verify') {
+        const passt = inhalt.token_hash ? inhalt.token_hash === this.authMail.hash : inhalt.token === this.authMail.code
+        if (!passt) return fehler(403, 'otp_expired', 'Token has expired or is invalid')
+        this.authMail.unbestaetigt = false
+        return route.fulfill({ headers: corsHeaders(), json: fakeSession(this.now()) })
+      }
+      return route.fulfill({ headers: corsHeaders(), json: {} })
+    }
+    if (url.pathname === '/auth/v1/user' && method === 'PUT') {
+      this.authMail.neuesPasswort = String(body().password ?? '')
+      return route.fulfill({ headers: corsHeaders(), json: fakeSession(this.now()).user })
+    }
+    if (url.pathname === '/auth/v1/token' && this.authMail.unbestaetigt && url.searchParams.get('grant_type') === 'password') {
+      return fehler(400, 'email_not_confirmed', 'Email not confirmed')
+    }
     if (url.pathname === '/auth/v1/user') {
       return route.fulfill({ headers: corsHeaders(), json: fakeSession(this.now()).user })
     }
