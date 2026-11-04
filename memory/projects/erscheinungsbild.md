@@ -226,3 +226,8 @@ Frost war davon betroffen und ist korrigiert; im Browser nachgemessen
   Werte in Stufen (2°, 2 %, 0,02). Gemessen Frost: Stil 131 → 38 ms/s (wie Schwarz).
   Hokus Tor in Linsen-Kopien nur bei sichtbarer Linse. Achtung: Chromium im Container
   rendert backdrop-filter NICHT (Software-Compositing) — Glas nur am Gerät beurteilbar.
+- Hoku „schwammig“ in den neuen Looks (2026-11-04): Im Container messbar kein Unterschied
+  Licht an/aus mehr (Schreibungen nur 3–9/s, nur nahe Karten). hokuLicht misst Lagen
+  jetzt nur bei Bedarf (Scroll/Resize/Inhalt, sonst alle 500 ms) und rechnet höchstens
+  30×/s. Prüfschalter am Gerät per Adresse: ?licht=aus, ?effekte=aus (main.tsx,
+  index.css) — Ergebnis vom iPhone steht noch aus.

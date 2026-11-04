@@ -1985,3 +1985,15 @@ body[data-zieht] [data-abgelehnt] [data-periode-sperre] { color: var(--lg-warn);
   --hl-x: inherit;
   --hl-y: inherit;
 }
+
+/* Prüfschalter ?effekte=aus (main.tsx): die schweren Effekte der Looks aus —
+   Leuchtschatten, Glas und Kanten auf Karten und Knöpfen. Nur zum Eingrenzen
+   am Gerät, nicht für Nutzer gedacht. */
+html[data-effekte-aus] :is(.lg-surface, .card, .lg-group, .lg-glass, .lg-btn, .btn-primary, .lg-chip, .lg-icon-btn) {
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  filter: none !important;
+}
+html[data-effekte-aus] :is(.lg-surface, .card, .lg-group, .lg-glass)::before,
+html[data-effekte-aus] :is(.lg-surface, .card, .lg-group, .lg-glass)::after { display: none !important; }

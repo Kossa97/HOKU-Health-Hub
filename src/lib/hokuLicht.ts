@@ -71,9 +71,24 @@ export function installHokuLicht(): () => void {
   let frame = 0
   let zuletzt: Point | null = null
   let dirty = true
+  /*
+   * Die Lage der Flächen wird gemerkt, nicht jedes Bild neu gemessen: jedes
+   * getBoundingClientRect zwingt den Browser, die Seite sofort neu anzuordnen,
+   * sobald sich vorher etwas geändert hat — und Hoku ändert ständig etwas.
+   * Neu gemessen wird beim Scrollen, bei Größen- und Inhaltsänderung und
+   * sicherheitshalber alle halbe Sekunde (für Flächen, die sich bewegen).
+   */
+  const lagen = new Map<HTMLElement, DOMRect>()
+  let lagenAlt = true
+  let gemessenAm = 0
+  /** Höchstens ~30-mal je Sekunde rechnen: für einen Lichtschein reicht das. */
+  let gerechnetAm = 0
+  const TAKT = 33
+  const NEU_MESSEN = 500
 
   const pruefeLook = () => {
     aktiv = getComputedStyle(document.documentElement).getPropertyValue('--hoku-licht').trim() === '1'
+      && !('lichtAus' in document.documentElement.dataset)
     if (aktiv) { dirty = true; schedule() } else loeschen()
   }
   const loeschen = () => {
@@ -84,9 +99,11 @@ export function installHokuLicht(): () => void {
     beleuchtet.clear()
   }
 
-  const draw = () => {
+  const draw = (jetzt: number) => {
     frame = 0
     if (!aktiv || document.hidden) return
+    if (!dirty && jetzt - gerechnetAm < TAKT) { schedule(); return }
+    gerechnetAm = jetzt
     const hoku = quelle?.() ?? null
     if (!hoku) {
       if (beleuchtet.size) loeschen()
@@ -98,8 +115,14 @@ export function installHokuLicht(): () => void {
     if (bewegt || dirty) {
       dirty = false
       zuletzt = hoku
-      // Erst alles messen, dann schreiben: kein erzwungenes Neu-Layout dazwischen
-      const lagen = [...sichtbar].map(el => [el, el.getBoundingClientRect()] as const)
+      // Erst alles messen (nur wenn nötig), dann schreiben: kein erzwungenes
+      // Neu-Layout dazwischen
+      if (lagenAlt || jetzt - gemessenAm > NEU_MESSEN) {
+        lagen.clear()
+        for (const el of sichtbar) lagen.set(el, el.getBoundingClientRect())
+        lagenAlt = false
+        gemessenAm = jetzt
+      }
       for (const [el, r] of lagen) {
         if (r.width === 0) continue
         const s = hokuSchein(r, hoku)
@@ -127,7 +150,7 @@ export function installHokuLicht(): () => void {
   const schedule = () => {
     if (!frame && aktiv) frame = requestAnimationFrame(draw)
   }
-  const touch = () => { dirty = true; schedule() }
+  const touch = () => { dirty = true; lagenAlt = true; schedule() }
 
   const io = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(entries => {
     for (const e of entries) {
