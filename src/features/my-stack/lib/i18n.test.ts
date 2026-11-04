@@ -1452,9 +1452,10 @@ const EXPECTED_MY_STACK_KEYS = [
 // Bewusst ergaenzt (November 2026): Code aus der Mail und Passwort vergessen (`login_code_*`,
 // `login_vergessen*`, `login_neues_pw_*`, `login_pw_gleich`, `login_unbestaetigt`, `login_email_aendern`;
 // de/en, sonst englischer Platzhalter); `account_created` nennt den Code (nur de/en).
+// Danach: `login_code_info` nennt die Gültigkeit (nur de/en).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: '2637a7493ed41f6c110f365f63e6d1e914e77f4a01e71c251625131df06c9934',
-  en: '9542352a20efee412da90f9f71556e118a93d1a31c5617a9e515097bbf46cd03',
+  de: '9a0bb868846d26a49565b6a7c3ca402ecad8096cf999cddf8fd561646f065866',
+  en: '51605f0b8a5d5e3a2a617ee09a809ea96b85540bc32b47cf59bacd3ebcad762e',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung

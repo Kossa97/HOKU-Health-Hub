@@ -180,17 +180,33 @@ const HINWEIS_TEXTE: Record<Sprache, Record<HinweisArt, (anbieter: string) => { 
   },
 }
 
-const RAHMEN: Record<Sprache, { code: string; gilt: (min: number, bis: string | null) => string; fuss: string; impressum: string; datenschutz: string }> = {
+interface Rahmen {
+  code: string
+  /** Kopieren: Mail-Apps führen kein JavaScript aus, ein echter Knopf geht nicht — gedrückt halten markiert den Code */
+  kopieren: string
+  /** Gültigkeit, groß im Codefeld */
+  gilt: (min: number, bis: string | null) => string
+  einmal: string
+  fuss: string
+  impressum: string
+  datenschutz: string
+}
+
+const RAHMEN: Record<Sprache, Rahmen> = {
   de: {
     code: 'Dein Code',
-    gilt: (min, bis) => `Der Code gilt ${min} Minuten${bis ? ` (bis ${bis} Uhr)` : ''} und nur einmal.`,
+    kopieren: 'Tippen und halten zum Kopieren',
+    gilt: (min, bis) => `Gültig für ${min} Minuten${bis ? ` · bis ${bis} Uhr` : ''}`,
+    einmal: 'Der Code lässt sich nur einmal verwenden.',
     fuss: 'Diese Mail wurde automatisch von Hoku verschickt.',
     impressum: 'Impressum',
     datenschutz: 'Datenschutz',
   },
   en: {
     code: 'Your code',
-    gilt: (min, bis) => `The code is valid for ${min} minutes${bis ? ` (until ${bis})` : ''} and only once.`,
+    kopieren: 'Tap and hold to copy',
+    gilt: (min, bis) => `Valid for ${min} minutes${bis ? ` · until ${bis}` : ''}`,
+    einmal: 'The code can only be used once.',
     fuss: 'This email was sent automatically by Hoku.',
     impressum: 'Legal notice',
     datenschutz: 'Privacy',
@@ -278,13 +294,19 @@ export function codeMail(e: CodeEingabe): Mail {
   const r = RAHMEN[e.sprache]
   const code = e.code
   const gilt = r.gilt(e.minuten, e.bis)
-  const codeBox = `<div style="margin:24px 0 0;padding:20px 12px 22px;background:${FARBE.codeGrund};border:1px solid ${FARBE.codeRand};border-radius:16px;text-align:center;">
-<div style="font-family:${MONO};font-size:11px;font-weight:500;letter-spacing:0.3em;text-transform:uppercase;color:${FARBE.cyan};">${escape(r.code)}</div>
-<div style="margin-top:10px;font-family:${MONO};font-size:40px;font-weight:500;letter-spacing:10px;padding-left:10px;color:${FARBE.text};-webkit-user-select:all;user-select:all;">${escape(code)}</div>
+  // Großes Codefeld: Beschriftung, Code (ein Tipp markiert ihn ganz), Hinweis zum Kopieren,
+  // darunter abgesetzt die Gültigkeit
+  const codeBox = `<div style="margin:24px 0 0;background:${FARBE.codeGrund};border:1px solid ${FARBE.codeRand};border-radius:20px;text-align:center;">
+<div style="padding:24px 12px 20px;">
+<div style="font-family:${MONO};font-size:12px;font-weight:500;letter-spacing:0.3em;text-transform:uppercase;color:${FARBE.cyan};">${escape(r.code)}</div>
+<div style="margin-top:12px;font-family:${MONO};font-size:52px;line-height:1.1;font-weight:500;letter-spacing:12px;padding-left:12px;color:${FARBE.text};-webkit-user-select:all;user-select:all;">${escape(code)}</div>
+<div style="margin-top:12px;font-family:${SCHRIFT};font-size:13px;color:${FARBE.leise};">${escape(r.kopieren)}</div>
+</div>
+<div style="padding:14px 12px;border-top:1px solid ${FARBE.codeRand};font-family:${SCHRIFT};font-size:15px;font-weight:600;color:${FARBE.text};">⏱ ${escape(gilt)}</div>
 </div>`
   const html = seite(e.sprache, e.appUrl, `${r.code}: ${code}`, t.titel,
-    absatz(t.einleitung) + codeBox + leise(gilt) + leise(t.ignorieren))
-  const text = [t.titel, '', t.einleitung, '', `${r.code}: ${code}`, '', gilt, '', t.ignorieren, '', '—', r.fuss].join('\n')
+    absatz(t.einleitung) + codeBox + leise(r.einmal) + leise(t.ignorieren))
+  const text = [t.titel, '', t.einleitung, '', `${r.code}: ${code}`, gilt, r.einmal, '', t.ignorieren, '', '—', r.fuss].join('\n')
   return { betreff: t.betreff(code), html, text }
 }
 

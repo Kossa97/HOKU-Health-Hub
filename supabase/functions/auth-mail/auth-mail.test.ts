@@ -52,7 +52,8 @@ describe('auth-mail: Vorlagen', () => {
     const m = codeMail({ ...basis, art: 'signup', sprache: 'de' })
     expect(m.betreff).toBe('305805 ist dein Hoku-Code')
     expect(m.text).toContain('Dein Code: 305805')
-    expect(m.text).toContain('15 Minuten (bis 11:35 Uhr)')
+    expect(m.text).toContain('Gültig für 15 Minuten · bis 11:35 Uhr')
+    expect(m.html).toContain('Tippen und halten zum Kopieren')
     expect(m.html).toContain('user-select:all;">305805</div>')
     expect(m.html).toMatch(/display:none[^>]*>Dein Code: 305805</)
     expect(m.html).toContain('https://hokuhealth.app/impressum')
@@ -73,7 +74,7 @@ describe('auth-mail: Vorlagen', () => {
       expect(de.betreff).not.toBe(en.betreff)
       expect(en.html).toContain('<html lang="en">')
     }
-    expect(codeMail({ ...basis, bis: null, art: 'recovery', sprache: 'en' }).text).toContain('valid for 15 minutes and only once')
+    expect(codeMail({ ...basis, bis: null, art: 'recovery', sprache: 'en' }).text).toContain('Valid for 15 minutes\nThe code can only be used once.')
   })
 
   it('Hinweise ohne Code, Anbieter wird genannt und escaped', () => {

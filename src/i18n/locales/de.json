@@ -2827,7 +2827,7 @@
   "login_err_birth_young": "Hoku ist erst ab 18 Jahren.",
   "consent_birth_hint": "Hoku ist ab 18. Dein Geburtsdatum hilft auch bei den Referenzwerten deiner Blutwerte.",
   "login_code_titel": "Code eingeben",
-  "login_code_info": "Wir haben dir einen 6-stelligen Code an {{email}} geschickt.",
+  "login_code_info": "Wir haben dir einen 6-stelligen Code an {{email}} geschickt. Er gilt {{minuten}} Minuten.",
   "login_code_feld": "6-stelliger Code",
   "login_code_einfuegen": "Einfügen",
   "login_code_leer": "Gib den 6-stelligen Code aus der Mail ein.",

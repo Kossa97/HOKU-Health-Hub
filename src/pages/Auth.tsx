@@ -15,7 +15,7 @@ import { MedicalNotice } from '../features/compliance/components/MedicalNotice'
 import { LegalLinks } from '../features/compliance/components/LegalLinks'
 import { KEINE_ZUSTIMMUNG, geburtsdatumZeile, heuteLokal, vollstaendig, zustimmungsZeile } from '../features/compliance/lib/consent'
 import { BENUTZERNAME, istEmail, pruefeEmail, pruefeLogin, pruefeNeuesPasswort, pruefeRegistrierung, serverFehler, type LoginFeld, type RegFeld } from '../features/auth/lib/pruefung'
-import { CODE_LAENGE, NEU_SPERRE_MS, alsUhr, codePruefen, codeSenden, istUnbestaetigt, kontoVorhanden, nurZiffern, passwortSetzen, restSekunden, type CodeArt } from '../features/auth/lib/code'
+import { CODE_GUELTIG_MIN, CODE_LAENGE, NEU_SPERRE_MS, alsUhr, codePruefen, codeSenden, istUnbestaetigt, kontoVorhanden, nurZiffern, passwortSetzen, restSekunden, type CodeArt } from '../features/auth/lib/code'
 import { erstesLeeres, faellig, type HinweisSchritt, type HinweisZiel, type Stille } from '../features/auth/lib/hinweise'
 import { anmeldenMitName, benutzernameFrei, type NamensFehler } from '../features/auth/lib/anmelden'
 import { merkeAngemeldetBleiben } from '../features/auth/lib/sitzung'
@@ -891,7 +891,7 @@ export function Auth() {
         {ansicht === 'code' && codeFuer && (
           <form key="code" className="tyd-auth-ansicht" data-von={von} onSubmit={codeAbsenden} noValidate data-auth-code-ansicht>
             {kopf(t('login_code_titel'), () => wechsle(codeFuer.art === 'signup' ? 'register' : 'vergessen'))}
-            <p className="tyd-auth-text">{t('login_code_info', { email: codeFuer.email })}</p>
+            <p className="tyd-auth-text">{t('login_code_info', { email: codeFuer.email, minuten: CODE_GUELTIG_MIN })}</p>
             <div className="tyd-auth-feld tyd-auth-code">
               <label className="tyd-auth-sr" htmlFor="auth-code">{t('login_code_feld')}</label>
               <input id="auth-code" type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="one-time-code"

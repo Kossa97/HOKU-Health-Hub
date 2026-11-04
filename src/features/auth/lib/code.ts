@@ -10,6 +10,8 @@ import { serverFehler } from './pruefung'
 
 /** Wie viele Ziffern der Code hat (Supabase: „Email OTP Length"). */
 export const CODE_LAENGE = 6
+/** So lange gilt ein Code (Supabase: „Email OTP Expiration" 900 s, auth-mail: OTP_MINUTEN). */
+export const CODE_GUELTIG_MIN = 15
 /** So lange ist „Neuen Code senden" nach dem Senden gesperrt. */
 export const NEU_SPERRE_MS = 60_000
 

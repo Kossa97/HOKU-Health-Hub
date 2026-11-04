@@ -2827,7 +2827,7 @@
   "login_err_birth_young": "Hoku is for ages 18 and up.",
   "consent_birth_hint": "Hoku is for ages 18 and up. Your date of birth also helps pick the right reference ranges for your blood values.",
   "login_code_titel": "Enter code",
-  "login_code_info": "We sent a 6-digit code to {{email}}.",
+  "login_code_info": "We sent a 6-digit code to {{email}}. It's valid for {{minuten}} minutes.",
   "login_code_feld": "6-digit code",
   "login_code_einfuegen": "Paste",
   "login_code_leer": "Enter the 6-digit code from the email.",
