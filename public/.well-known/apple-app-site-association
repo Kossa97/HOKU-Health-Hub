@@ -2,7 +2,7 @@
   "applinks": {
     "details": [
       {
-        "appIDs": ["TEAM_ID.com.kossa97.tyd"],
+        "appIDs": ["5K69NY3K6F.com.kossa97.tyd"],
         "components": [
           { "/": "/auth", "?": { "bestaetigen": "?*" }, "comment": "Knopf „In Hoku öffnen“ in den Mails" }
         ]

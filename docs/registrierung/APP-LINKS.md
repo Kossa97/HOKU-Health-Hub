@@ -19,14 +19,13 @@ Gebaut (Claude, 04.11.2026):
 
 ## Was nur der Nutzer kann
 
-Zwei Angaben aus den Entwicklerkonten fehlen noch; bis dahin öffnet der Knopf die Web-App
+Bis beide Angaben eingetragen sind und die App neu gebaut ist, öffnet der Knopf die Web-App
 statt der App (funktioniert, nur eben im Browser).
 
-1. **Apple Team-ID** — developer.apple.com → Account → Membership details → *Team ID*
-   (10 Zeichen, z. B. `A1B2C3D4E5`). Claude trägt sie in
-   `public/.well-known/apple-app-site-association` ein (statt `TEAM_ID`).
-   Außerdem in Xcode beim Ziel *App* → *Signing & Capabilities* das Team wählen; die
-   Fähigkeit *Associated Domains* ist über die Entitlements-Datei schon gesetzt.
+1. **Apple Team-ID** — erledigt: `5K69NY3K6F` (Nutzer 04.11.2026), eingetragen in
+   `public/.well-known/apple-app-site-association` und als `DEVELOPMENT_TEAM` im Xcode-Projekt.
+   Die Fähigkeit *Associated Domains* ist über die Entitlements-Datei gesetzt; beim ersten Start
+   in Xcode legt die automatische Signierung sie im Apple-Konto an.
 2. **Android-Fingerabdruck** — Google Play Console → App → *Testen und veröffentlichen* →
    *App-Integrität* → *App-Signaturschlüssel-Zertifikat* → *SHA-256-Fingerabdruck*.
    Claude trägt ihn in `public/.well-known/assetlinks.json` ein.
