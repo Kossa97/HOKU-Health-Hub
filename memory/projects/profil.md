@@ -275,3 +275,8 @@ Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/ar
   Trockenlauf frisch, zwei Läufe gleich (9/8/8/7, 2 Spalten, 1 Prüfung, 11 Funktionen), Proben W1–W21 bestanden.
 - 04.11.: Fortschrittskarte „positive Veränderung **seit Start**“ (en „since start“) statt „seit März“ — kein Datum im Web.
   Eintragszähler: Blutbefunde nur bei Feld `markers` („Marker erfasst“) auf „Alle“, Einnahmen nur bei `adherence` auf „Alle“ (bestätigt).
+- 2c Server-Teil (04.11.): `api/u.js` + `api/og.js` + `api/_lib/profileViewWeb.js`, vercel.json (functions.includeFiles, AASA-Route,
+  `/u/*`-Route). **Vor dem Deploy (Nutzer):** Migration 2a→2b→2c freigeben; `VITE_PUBLIC_SITE_URL` in Vercel prüfen;
+  `HOKU_PATTERN_FEATURE` erst mit Musterfunktion auf 1; Firewall-Rate-Limit 60/min je IP auf `/u/*` und `/api/og` im
+  Dashboard anlegen; nach Preview-Deploy: Fonts/resvg im Bundle, Avatar als anon, Link in WhatsApp testen.
+  Bild-URL trägt `lang` (Hash passt so zu HTML). App-Links: Team ID + 2 SHA-256 nachtragen (`docs/applinks/EINRICHTEN.md`).
