@@ -30,7 +30,7 @@ test('mit Pro und Schalter: Hoku trägt fällige Einnahmen ein, markiert und buc
   // Bestand wie nach dem Haken
   await expect.poll(() => mock.rpcCalls.filter(c => c.name === 'apply_inventory_confirmation').length).toBe(2)
   // Im Kalender als „automatisch" erkennbar
-  await page.getByRole('button', { name: /Bereits protokolliert/ }).click()
+  await page.getByRole('button', { name: /Eingenommen · Verpasst · Übersprungen/ }).click()
   await expect(page.locator('[data-auto-logged]').first()).toBeVisible()
   await expect(page.locator('[data-auto-logged]').first()).toHaveText('automatisch')
 })

@@ -1,6 +1,6 @@
 import { useId, useRef, useState } from 'react'
 import { format } from 'date-fns'
-import { Check, Clock, Pencil, RotateCcw, Syringe, X } from 'lucide-react'
+import { AlertTriangle, Check, Clock, Pencil, RotateCcw, Syringe, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { formatTrackedQuantity } from '../quantityPresentation'
 import { formatAmount } from '../../my-stack/lib/bestandLabels'
@@ -24,18 +24,26 @@ interface RoutineConfirmationSheetProps {
   group: RoutineGroupModel
   onClose: () => void
   /**
-   * `time` ist die abgefragte Uhrzeit (HH:mm), wenn `initialTime` gesetzt ist.
-   * Sie gilt fuer alle gewaehlten Einnahmen: was man zusammen nimmt, nimmt
-   * man zur selben Zeit. `heute`: die Zeit kam von „Jetzt" und gilt fuer
-   * heute, nicht fuer den Tag der Einnahme.
+   * `time` (HH:mm) und `date` (yyyy-MM-dd) sind der abgefragte Zeitpunkt, wenn
+   * `initialTime` gesetzt ist. Er gilt fuer alle gewaehlten Einnahmen: was man
+   * zusammen nimmt, nimmt man zur selben Zeit — mit Tag, damit eine Einnahme
+   * nach Mitternacht nicht auf dem falschen Tag landet.
    */
-  onConfirm: (entries: RoutineConfirmationEntry[], time?: string, heute?: boolean) => Promise<string[]>
+  onConfirm: (entries: RoutineConfirmationEntry[], time?: string, date?: string) => Promise<string[]>
   onAfterConfirm?: (entries: RoutineConfirmationEntry[], savedLogIds: string[]) => void | Promise<void>
   onAddInjection?: (entry: RoutineIntake, doseLogId: string) => void
   /** Gesetzt, fragt das Blatt die Uhrzeit ab, vorbelegt mit diesem Wert (HH:mm). */
   initialTime?: string
+  /** Der Tag (yyyy-MM-dd) zu `initialTime`; ohne Angabe heute. */
+  initialDate?: string
   /** Die geplante Uhrzeit (HH:mm) fuer den Knopf „Geplant" neben „Jetzt". */
   plannedTime?: string
+  /** Der Tag (yyyy-MM-dd) zur geplanten Uhrzeit. */
+  plannedDate?: string
+  /** Vorbelegt ist der geplante Zeitpunkt, weil ein Zyklus jetzt nicht mehr läuft. */
+  zyklusVorbei?: boolean
+  /** Die gewählten Einnahmen, deren Zyklus zu diesem Zeitpunkt nicht läuft — dort lässt sich nicht speichern. */
+  ausserhalbZyklus?: (entries: RoutineConfirmationEntry[], date: string, time: string) => RoutineConfirmationEntry[]
   /**
    * Bei einem angemischten Vial: wie viele Einheiten auf der Spritze die Menge
    * sind, sonst null. Gerechnet wird mit der tatsaechlichen Menge, also auch
@@ -59,7 +67,11 @@ export function RoutineConfirmationSheet({
   onAfterConfirm,
   onAddInjection,
   initialTime,
+  initialDate,
   plannedTime,
+  plannedDate,
+  zyklusVorbei = false,
+  ausserhalbZyklus,
   einheitenFuer,
 }: RoutineConfirmationSheetProps) {
   const { t, i18n } = useTranslation()
@@ -67,7 +79,7 @@ export function RoutineConfirmationSheet({
   const timeId = useId()
   const { requestClose, closingProps } = useSheetClose(onClose)
   const [time, setTime] = useState(initialTime ?? '')
-  const [heute, setHeute] = useState(false)
+  const [date, setDate] = useState(initialDate ?? format(new Date(), 'yyyy-MM-dd'))
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const [entries, setEntries] = useState<RoutineConfirmationEntry[]>(() => (
     group.items.map(buildConfirmationEntry)
@@ -97,8 +109,11 @@ export function RoutineConfirmationSheet({
       || entry.actualUnit !== entry.unit
     )
   ))
-  const timeMissing = initialTime !== undefined && !/^\d{2}:\d{2}$/.test(time)
-  const canConfirm = selectedEntries.length > 0 && !hasInvalidQuantity && !timeMissing && !saving
+  const timeMissing = initialTime !== undefined && (!/^\d{2}:\d{2}$/.test(time) || !/^\d{4}-\d{2}-\d{2}$/.test(date))
+  const draussen = initialTime !== undefined && !timeMissing && ausserhalbZyklus
+    ? ausserhalbZyklus(selectedEntries, date, time)
+    : []
+  const canConfirm = selectedEntries.length > 0 && !hasInvalidQuantity && !timeMissing && draussen.length === 0 && !saving
 
   const runAfterConfirm = async (
     confirmedEntries: RoutineConfirmationEntry[],
@@ -120,7 +135,7 @@ export function RoutineConfirmationSheet({
     setError(false)
     let savedLogIds: string[]
     try {
-      savedLogIds = initialTime !== undefined ? await onConfirm(entries, time, heute) : await onConfirm(entries)
+      savedLogIds = initialTime !== undefined ? await onConfirm(entries, time, date) : await onConfirm(entries)
     } catch {
       setError(true)
       setSaving(false)
@@ -227,13 +242,13 @@ export function RoutineConfirmationSheet({
             {initialTime !== undefined && (
               <div className="mb-3">
                 <div className="mb-1.5 flex items-center justify-between gap-2">
-                  <label htmlFor={timeId} className="text-xs font-extrabold uppercase tracking-[0.12em] text-slate-400">
-                    {t('confirm_sheet_time_label', { defaultValue: 'Uhrzeit' })}
+                  <label htmlFor={`${timeId}-datum`} className="text-xs font-extrabold uppercase tracking-[0.12em] text-slate-400">
+                    {t('confirm_sheet_datetime_label', { defaultValue: 'Datum und Uhrzeit' })}
                   </label>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => { setTime(format(new Date(), 'HH:mm')); setHeute(true) }}
+                      onClick={() => { setTime(format(new Date(), 'HH:mm')); setDate(format(new Date(), 'yyyy-MM-dd')) }}
                       className="tyd-press flex min-h-9 items-center gap-1.5 rounded-lg border border-sky-500/25 bg-sky-500/10 px-3 text-xs font-bold text-sky-300 transition-colors hover:bg-sky-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                     >
                       <Clock size={12} aria-hidden="true" />
@@ -242,7 +257,7 @@ export function RoutineConfirmationSheet({
                     {plannedTime && (
                       <button
                         type="button"
-                        onClick={() => { setTime(plannedTime); setHeute(false) }}
+                        onClick={() => { setTime(plannedTime); if (plannedDate) setDate(plannedDate) }}
                         className="tyd-press flex min-h-9 items-center rounded-lg border border-sky-500/25 bg-sky-500/10 px-3 text-xs font-bold text-sky-300 transition-colors hover:bg-sky-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                       >
                         {t('confirm_time_planned', { defaultValue: 'Geplant · {{time}}', time: plannedTime })}
@@ -250,13 +265,38 @@ export function RoutineConfirmationSheet({
                     )}
                   </div>
                 </div>
-                <input
-                  id={timeId}
-                  type="time"
-                  value={time}
-                  onChange={event => setTime(event.target.value)}
-                  className="input min-h-11 text-base font-bold"
-                />
+                <div className="flex gap-2">
+                  <input
+                    id={`${timeId}-datum`}
+                    type="date"
+                    aria-label={String(t('confirm_sheet_date_label', { defaultValue: 'Datum' }))}
+                    value={date}
+                    onChange={event => { if (event.target.value) setDate(event.target.value) }}
+                    className="input min-h-11 min-w-0 flex-1 text-base font-bold"
+                  />
+                  <input
+                    id={timeId}
+                    type="time"
+                    aria-label={String(t('confirm_sheet_time_label', { defaultValue: 'Uhrzeit' }))}
+                    value={time}
+                    onChange={event => setTime(event.target.value)}
+                    className="input min-h-11 w-[8.5rem] shrink-0 text-base font-bold"
+                  />
+                </div>
+                {draussen.length > 0 && (
+                  <p role="alert" data-confirm-ausserhalb className="mt-2 flex items-start gap-1.5 text-[13px] font-semibold leading-snug text-red-300">
+                    <AlertTriangle size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+                    {t('confirm_outside_cycle_items', {
+                      defaultValue: 'Zu diesem Zeitpunkt läuft der Zyklus nicht für: {{names}}. So lässt sich nicht speichern.',
+                      names: draussen.map(entry => entry.stackItemName).join(', '),
+                    })}
+                  </p>
+                )}
+                {draussen.length === 0 && zyklusVorbei && (
+                  <p data-confirm-zyklus-vorbei className="mt-2 text-[13px] font-semibold leading-snug text-slate-400">
+                    {t('confirm_cycle_ended_prefill', { defaultValue: 'Der Zyklus läuft jetzt nicht mehr. Vorbelegt ist der geplante Zeitpunkt.' })}
+                  </p>
+                )}
               </div>
             )}
             <ul className="space-y-2">

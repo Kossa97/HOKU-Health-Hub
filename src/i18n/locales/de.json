@@ -3022,5 +3022,12 @@
   "nutr_hoku_gap_one": "{{a}} fehlt dir heute noch.",
   "nutr_hoku_gap_two": "{{a}} und {{b}} fehlen dir heute noch.",
   "nutr_hoku_tip_one": "Für {{name}} gut: {{food}}.",
-  "nutr_hoku_tip_both": "{{food}} füllt beides gut auf."
+  "nutr_hoku_tip_both": "{{food}} füllt beides gut auf.",
+  "done_intakes_title": "Eingenommen · Verpasst · Übersprungen",
+  "confirm_sheet_datetime_label": "Datum und Uhrzeit",
+  "confirm_sheet_date_label": "Datum",
+  "confirm_time_other_day": "Eingetragen für {{day}}, nicht für den geöffneten Tag.",
+  "confirm_outside_cycle": "Zu diesem Zeitpunkt läuft der Zyklus nicht (beendet oder pausiert). So lässt sich die Einnahme nicht speichern.",
+  "confirm_outside_cycle_items": "Zu diesem Zeitpunkt läuft der Zyklus nicht für: {{names}}. So lässt sich nicht speichern.",
+  "confirm_cycle_ended_prefill": "Der Zyklus läuft jetzt nicht mehr. Vorbelegt ist der geplante Zeitpunkt."
 }
