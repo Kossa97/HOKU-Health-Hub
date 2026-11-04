@@ -105,11 +105,15 @@ export function ProfilTeilen({
     }
   }
 
-  const schliesseVollbild = () => {
-    setVollbild(false)
-    // Fokus zurück auf den Code, von dem das Vollbild kam
-    window.requestAnimationFrame(() => codeKnopf.current?.focus({ preventScroll: true }))
-  }
+  const schliesseVollbild = () => setVollbild(false)
+  // Fokus zurück auf den Code, von dem das Vollbild kam: direkt nach dem
+  // Ausblenden, nicht erst im nächsten Frame (sonst landet ein schnelles
+  // zweites Escape auf der Seite statt im Sheet)
+  const warVollbild = useRef(false)
+  useEffect(() => {
+    if (warVollbild.current && !vollbild) codeKnopf.current?.focus({ preventScroll: true })
+    warVollbild.current = vollbild
+  }, [vollbild])
 
   return (
     <>

@@ -67,7 +67,9 @@ test('Sheet: Code, Vollbild zum Vorzeigen, beide Codes lesbar', async ({ page, m
 
   // Bildschirmfoto des ganzen Vollbilds: die Kamera sieht dasselbe
   const gross = voll.locator('[data-hoku-code]')
-  expect((await gross.boundingBox())!.width).toBeGreaterThanOrEqual(280)
+  // 300 px, auf schmalen Geräten (320 px, iPhone SE) höchstens 78 % der Breite
+  const breite = page.viewportSize()!.width
+  expect((await gross.boundingBox())!.width).toBeGreaterThanOrEqual(Math.min(280, breite * 0.78 - 1))
   expect(await lies(await page.screenshot())).toEqual([ADRESSE])
 
   // Schließen: Vollbild weg, Sheet bleibt, Fokus zurück auf den Code
@@ -82,6 +84,7 @@ test('Sheet: Code, Vollbild zum Vorzeigen, beide Codes lesbar', async ({ page, m
   await page.keyboard.press('Escape')
   await expect(voll).toHaveCount(0)
   await expect(sheet).toBeVisible()
+  await expect(sheet.locator('[data-share-code-open]')).toBeFocused()
 
   // Noch einmal Escape schließt das Sheet; der Fokus geht zurück auf „Profil teilen“
   await page.keyboard.press('Escape')
