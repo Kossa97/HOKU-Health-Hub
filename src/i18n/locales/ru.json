@@ -2790,5 +2790,9 @@
   "nutr_hoku_gap_one": "You’re still short on {{a}} today.",
   "nutr_hoku_gap_two": "You’re still short on {{a}} and {{b}} today.",
   "nutr_hoku_tip_one": "Good for {{name}}: {{food}}.",
-  "nutr_hoku_tip_both": "{{food}} covers both nicely."
+  "nutr_hoku_tip_both": "{{food}} covers both nicely.",
+  "done_intakes_title": "Taken · Missed · Skipped",
+  "confirm_sheet_datetime_label": "Date and time",
+  "confirm_sheet_date_label": "Date",
+  "confirm_time_other_day": "Logged for {{day}}, not for the open day."
 }

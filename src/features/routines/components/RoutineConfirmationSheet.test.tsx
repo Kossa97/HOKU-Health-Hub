@@ -262,4 +262,21 @@ describe('RoutineConfirmationSheet', () => {
     expect(onConfirm).toHaveBeenCalledTimes(1)
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Bestand erneut versuchen' })).toBeNull())
   })
+
+  it('fragt Datum und Uhrzeit ab: vorbelegt mit jetzt, geplant per Knopf, beides geht an onConfirm', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 10, 4, 0, 30))
+    const onConfirm = vi.fn(async (_entries: RoutineConfirmationEntry[], _time?: string, _date?: string) => ['log-d3', 'log-zinc', 'log-testosterone'])
+    render(<RoutineConfirmationSheet group={group()} onClose={() => undefined} onConfirm={onConfirm}
+      initialTime="00:30" plannedTime="20:00" plannedDate="2026-11-03" />)
+
+    const datum = screen.getByLabelText('Datum') as HTMLInputElement
+    expect(datum.value).toBe('2026-11-04')
+    fireEvent.click(screen.getByRole('button', { name: 'Geplant · 20:00' }))
+    expect(datum.value).toBe('2026-11-03')
+    expect((screen.getByLabelText('Uhrzeit') as HTMLInputElement).value).toBe('20:00')
+    fireEvent.click(screen.getByRole('button', { name: 'Eingenommen' }))
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith(expect.any(Array), '20:00', '2026-11-03'))
+    vi.useRealTimers()
+  })
 })

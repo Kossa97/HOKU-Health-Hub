@@ -25,6 +25,12 @@ async function protokollZeileOeffnen() {
 }
 
 const BUENDEL_KNOPF = /^Alle Substanzen\s*\d+ bestätigen$/
+/** Die Liste „Eingenommen · Verpasst · Übersprungen" aufklappen (an vergangenen Tagen ist sie es schon). */
+async function erledigtOeffnen() {
+  const knopf = await screen.findByRole('button', { name: /Eingenommen · Verpasst · Übersprungen/ })
+  if (knopf.getAttribute('aria-expanded') !== 'true') fireEvent.click(knopf)
+}
+
 async function gruppenBestaetigungOeffnen() {
   fireEvent.click(await screen.findByRole('button', { name: BUENDEL_KNOPF }))
 }
@@ -386,7 +392,7 @@ describe('Dashboard normalized timeline path', () => {
     const fixtures = startFixFixture()
     fixtures.dose_logs = [{ ...pendingLog(), taken }]
     renderDashboard(createDashboardClient(fixtures))
-    fireEvent.click(await screen.findByRole('button', { name: taken ? /Bereits protokolliert/ : /Nicht protokolliert/ }))
+    await erledigtOeffnen()
     await screen.findByText('Vitamin D3')
     await waitFor(() => expect(screen.queryByText('Lädt…')).toBeNull())
 
@@ -412,11 +418,11 @@ describe('Dashboard normalized timeline path', () => {
       routine_slot_key: 'timeline-cycle@2026-09-18T17:30',
     }]
     renderDashboard(createDashboardClient(fixtures))
-    fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    await erledigtOeffnen()
     await waitFor(() => expect(screen.queryByText('Lädt…')).toBeNull())
 
     // Die Zeile steht im Protokoll — aber ohne Rückweg.
-    expect(screen.getByRole('button', { name: /Bereits protokolliert/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Eingenommen · Verpasst · Übersprungen/ })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Wieder öffnen' })).toBeNull()
     // Ohne Aktion ist die Zeile auch nicht antippbar.
     expect(document.querySelector('[data-log-row]')).toBeTruthy()
@@ -427,7 +433,7 @@ describe('Dashboard normalized timeline path', () => {
     const fixtures = startFixFixture()
     fixtures.dose_logs = [{ ...pendingLog(), taken: true, routine_slot_key: 'timeline-cycle@2026-09-18T17:30' }]
     renderDashboard(createDashboardClient(fixtures))
-    fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    await erledigtOeffnen()
     await waitFor(() => expect(screen.queryByText('Lädt…')).toBeNull())
     fireEvent.click(document.querySelector('[data-log-row] button')!)
     expect(screen.getByRole('button', { name: 'tagebuch_aus_einnahme' })).toBeTruthy()
@@ -439,7 +445,7 @@ describe('Dashboard normalized timeline path', () => {
     const fixtures = startFixFixture()
     fixtures.dose_logs = [{ ...pendingLog(), taken: false }]
     renderDashboard(createDashboardClient(fixtures))
-    fireEvent.click(await screen.findByRole('button', { name: /Nicht protokolliert/ }))
+    await erledigtOeffnen()
 
     const zeile = await waitFor(() => {
       const gefunden = document.querySelector('[data-log-row] button[aria-expanded]') as HTMLElement | null
@@ -465,7 +471,7 @@ describe('Dashboard normalized timeline path', () => {
     fixtures.dose_logs = [{ ...pendingLog(), taken: false, notes: 'auto-missed' }]
     const client = createDashboardClient(fixtures)
     renderDashboard(client)
-    fireEvent.click(await screen.findByRole('button', { name: /Nicht protokolliert/ }))
+    await erledigtOeffnen()
     await protokollZeileOeffnen()
     fireEvent.click(await screen.findByRole('button', { name: 'Wieder öffnen' }))
 
@@ -483,7 +489,7 @@ describe('Dashboard normalized timeline path', () => {
     fixtures.dose_logs = [{ ...pendingLog(), taken: true }]
     const client = createDashboardClient(fixtures)
     renderDashboard(client)
-    fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    await erledigtOeffnen()
     await protokollZeileOeffnen()
     fireEvent.click(await screen.findByRole('button', { name: 'Wieder öffnen' }))
 
@@ -588,7 +594,7 @@ describe('Dashboard normalized timeline path', () => {
     const client = createDashboardClient(fixtures, undefined, { filterLogs: true })
     renderDashboard(client)
     await waitFor(() => expect(screen.queryByRole('button', { name: BUENDEL_KNOPF })).toBeNull())
-    await screen.findByText(kind === 'keyed' ? 'Alle geplanten Einnahmen sind bestätigt.' : 'Bereits protokolliert')
+    await screen.findByText(kind === 'keyed' ? 'Alle geplanten Einnahmen sind bestätigt.' : 'Eingenommen · Verpasst · Übersprungen')
     const initialQueries = client.logQueries.length
     browseToNovember()
     await waitFor(() => expect(client.logQueries.length).toBeGreaterThan(initialQueries))
@@ -1111,7 +1117,7 @@ describe('Dashboard normalized timeline path', () => {
     expect(screen.getByText('1 genommen · 1 übersprungen')).toBeTruthy()
   })
 
-  it('zeigt einen Tag mit lauter ausgelassenen Einnahmen neutral, nicht grün und nicht rot', async () => {
+  it('zeigt einen Tag mit ausgelassenen Einnahmen: übersprungen grau, verpasst rot, nichts grün', async () => {
     // Ausgelassen ist entschieden, nicht falsch — und nicht „alles bestätigt".
     // Vorher stand hier ein grüner Haken mit „0 von 2 bestätigt" (heute) oder
     // ein rotes X „nicht vollständig protokolliert" (gestern), obwohl alles
@@ -1133,8 +1139,10 @@ describe('Dashboard normalized timeline path', () => {
     expect(card.textContent).toContain('0 genommen · 1 übersprungen · 1 verpasst')
     expect(card.querySelector('.lucide-check')).toBeNull()
     expect(card.getAttribute('data-tone')).toBeNull()
-    expect(screen.queryByRole('button', { name: /Bereits protokolliert/ })).toBeNull()
-    expect(screen.getByRole('button', { name: /Nicht protokolliert/ }).getAttribute('data-tone')).not.toBe('bad')
+    // Eine Liste, jede Zeile in ihrer Farbe.
+    await erledigtOeffnen()
+    expect([...document.querySelectorAll('[data-log-row]')].map(zeile => zeile.getAttribute('data-stand')))
+      .toEqual(['uebersprungen', 'verpasst'])
   })
 
   it('trägt eine gestern ausgelassene Einnahme mit „Doch eingenommen" direkt nach', async () => {
@@ -1146,16 +1154,20 @@ describe('Dashboard normalized timeline path', () => {
     const client = createDashboardClient(fixtures, undefined, { filterLogs: true })
     renderDashboard(client)
     fireEvent.click(document.querySelector('[data-calendar-date="2026-09-18"]') as HTMLElement)
-    fireEvent.click(await screen.findByRole('button', { name: /Nicht protokolliert/ }))
-    await protokollZeileOeffnen()
+    await erledigtOeffnen()
 
-    // Nur der direkte Weg; „Wieder öffnen" gibt es für gestern nicht mehr.
+    // Nur der direkte Weg, gleich an der Zeile; „Wieder öffnen" gibt es für gestern nicht.
     expect(screen.queryByRole('button', { name: 'Wieder öffnen' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Doch eingenommen' }))
 
-    // Abbrechen ändert nichts — die Einnahme bleibt ausgelassen.
+    // Vorbelegt ist jetzt, mit Tag (Berlin: 19.09., 14:00); geplant ist einen Tipp entfernt.
     const dialog = await screen.findByRole('dialog')
+    expect((within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement).value).toBe('14:00')
+    expect((within(dialog).getByLabelText('Datum') as HTMLInputElement).value).toBe('2026-09-19')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Geplant · 08:00' }))
     expect((within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement).value).toBe('08:00')
+    expect((within(dialog).getByLabelText('Datum') as HTMLInputElement).value).toBe('2026-09-18')
+    // Abbrechen ändert nichts — die Einnahme bleibt ausgelassen.
     fireEvent.click(within(dialog).getByRole('button', { name: 'Abbrechen' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(client.mutations.filter(m => m.table === 'dose_logs')).toHaveLength(0)
@@ -1188,10 +1200,10 @@ describe('Dashboard normalized timeline path', () => {
     // Heute (19.): nichts Protokolliertes.
     await waitFor(() => expect(screen.getAllByRole('status')
       .some(element => element.textContent?.includes('Lädt'))).toBe(false))
-    expect(screen.queryByRole('button', { name: /Bereits protokolliert/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Eingenommen · Verpasst · Übersprungen/ })).toBeNull()
 
     fireEvent.click(document.querySelector('[data-calendar-date="2026-09-18"]') as HTMLElement)
-    fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    await erledigtOeffnen()
     const zeile = await waitFor(() => {
       const row = document.querySelector('[data-log-row]')
       expect(row).toBeTruthy()
@@ -1212,8 +1224,7 @@ describe('Dashboard normalized timeline path', () => {
     ), { filterLogs: true })
     renderDashboard(client)
     fireEvent.click(document.querySelector('[data-calendar-date="2026-09-18"]') as HTMLElement)
-    fireEvent.click(await screen.findByRole('button', { name: /Nicht protokolliert/ }))
-    await protokollZeileOeffnen()
+    await erledigtOeffnen()
     fireEvent.click(screen.getByRole('button', { name: 'Doch eingenommen' }))
     fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Eingenommen' }))
 
@@ -1224,7 +1235,63 @@ describe('Dashboard normalized timeline path', () => {
     expect(zurueck.values).toEqual({ taken: false, notes: 'auto-missed' })
   })
 
-  it('trennt bestätigte und übersprungene Einnahmen in grüne und neutrale Bereiche', async () => {
+  it('zeigt an einem vergangenen Tag, was offen blieb, als verpasst unten — nicht mehr oben', async () => {
+    const fixtures = zweiSlotsFixture()
+    fixtures.dose_logs = [{ ...pendingLog(), taken: true, routine_slot_key: 'timeline-cycle@2026-09-18T08:00' }]
+    vi.setSystemTime(new Date('2026-09-19T12:00:00Z'))
+    renderDashboard(createDashboardClient(fixtures, undefined, { filterLogs: true }))
+    fireEvent.click(document.querySelector('[data-calendar-date="2026-09-18"]') as HTMLElement)
+
+    // Oben steht nichts mehr offen; die Bilanz sagt „verpasst" und trennt den Balken je Einnahme.
+    const bilanz = await waitFor(() => {
+      const karte = document.querySelector<HTMLElement>('[data-due-balance]')
+      expect(karte).toBeTruthy()
+      return karte!
+    })
+    expect(document.querySelectorAll('[data-periode-abschnitt]')).toHaveLength(0)
+    expect(bilanz.textContent).toContain('1 von 2 bestätigt')
+    expect(bilanz.textContent).toContain('1 verpasst')
+    expect([...bilanz.querySelectorAll('[data-segment]')].map(teil => teil.getAttribute('data-segment')))
+      .toEqual(['genommen', 'verpasst'])
+
+    // Unten: offen (vergangener Tag), grün und rot, und das Verpasste lässt sich nachtragen.
+    const liste = screen.getByRole('button', { name: /Eingenommen · Verpasst · Übersprungen/ })
+    expect(liste.getAttribute('aria-expanded')).toBe('true')
+    expect(document.querySelector('[data-log-row]')?.getAttribute('data-stand')).toBe('genommen')
+    const verpasst = document.querySelector<HTMLElement>('[data-verpasst-row]')!
+    expect(verpasst.textContent).toContain('Verpasst')
+    expect(verpasst.querySelector('[data-log-zeit]')?.textContent).toMatch(/18\.09\. · 20:00/)
+    fireEvent.click(within(verpasst).getByRole('button', { name: 'Doch eingenommen' }))
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByRole('button', { name: 'Geplant · 20:00' })).toBeTruthy()
+  })
+
+  it('führt ein Bündel auch in der Liste, in der Farbe seines Stands', async () => {
+    const fixtures: Record<string, unknown[]> = {
+      ...zweiMorgensFixture(),
+      intake_bundles: [{ id: 'bundle-m', name: 'Morgens', stack_item_ids: ['stack-1', 'stack-2'], sort_order: 0, created_at: '2026-01-01T00:00:00Z' }],
+    }
+    vi.setSystemTime(new Date('2026-09-19T12:00:00Z'))
+    renderDashboard(createDashboardClient(fixtures, undefined, { filterLogs: true }))
+    fireEvent.click(document.querySelector('[data-calendar-date="2026-09-18"]') as HTMLElement)
+
+    const karte = await waitFor(() => {
+      const element = document.querySelector<HTMLElement>('[data-erledigt-buendel]')
+      expect(element).toBeTruthy()
+      return element!
+    })
+    expect(karte.getAttribute('data-stand')).toBe('verpasst')
+    expect(karte.textContent).toContain('Bündel · 2 Einnahmen')
+    // Nichts mehr einzeln, und das Bündel lässt sich als Bündel nachtragen.
+    expect(document.querySelectorAll('[data-verpasst-row]')).toHaveLength(0)
+    fireEvent.click(within(karte).getByRole('button', { name: 'Doch eingenommen' }))
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText('Vitamin D3')).toBeTruthy()
+    expect(within(dialog).getByText('Magnesium')).toBeTruthy()
+    expect((within(dialog).getByLabelText('Datum') as HTMLInputElement).value).toBe('2026-09-19')
+  })
+
+  it('führt bestätigte und übersprungene Einnahmen in einer Liste, grün und grau', async () => {
     const fixtures = zweiSlotsFixture()
     fixtures.dose_logs = [
       { ...pendingLog(), taken: true, routine_slot_key: 'timeline-cycle@2026-09-18T08:00' },
@@ -1233,20 +1300,19 @@ describe('Dashboard normalized timeline path', () => {
     ]
     renderDashboard(createDashboardClient(fixtures, undefined, { filterLogs: true }))
 
-    const logged = await screen.findByRole('button', { name: /Bereits protokolliert/ })
-    const unlogged = screen.getByRole('button', { name: /Nicht protokolliert/ })
-    expect(logged.getAttribute('data-tone')).toBe('good')
-    expect(unlogged.getAttribute('data-tone')).not.toBe('bad')
-    expect(logged.textContent).toContain('1')
-    expect(unlogged.textContent).toContain('1')
+    const liste = await screen.findByRole('button', { name: /Eingenommen · Verpasst · Übersprungen/ })
+    // Heute ist sie zu; die Zahlen stehen schon im Kopf.
+    expect(liste.getAttribute('aria-expanded')).toBe('false')
+    expect(liste.querySelector('[data-erledigt-zahlen]')?.textContent).toBe('1 genommen · 1 übersprungen')
 
-    fireEvent.click(logged)
-    expect(within(logged.parentElement!).getByText('eingenommen')).toBeTruthy()
-    expect(within(logged.parentElement!).queryByText('uebersprungen')).toBeNull()
-
-    fireEvent.click(unlogged)
-    expect(within(unlogged.parentElement!).getByText('uebersprungen')).toBeTruthy()
-    expect(within(unlogged.parentElement!).queryByText('eingenommen')).toBeNull()
+    fireEvent.click(liste)
+    const zeilen = [...document.querySelectorAll<HTMLElement>('[data-log-row]')]
+    expect(zeilen.map(zeile => zeile.getAttribute('data-stand'))).toEqual(['genommen', 'uebersprungen'])
+    expect(zeilen[0].querySelector('[data-stand]')?.getAttribute('style')).toContain('var(--lg-good)')
+    expect(zeilen[1].querySelector('[data-stand]')?.getAttribute('style')).toContain('rgb(99, 99, 102)')
+    // Nachtragen nur an der übersprungenen.
+    expect(within(zeilen[0]).queryByRole('button', { name: 'Doch eingenommen' })).toBeNull()
+    expect(within(zeilen[1]).getByRole('button', { name: 'Doch eingenommen' })).toBeTruthy()
   })
 
   it('beantwortet einen geladenen Tag sofort und wartet nur auf einen ungeladenen', async () => {
@@ -1407,17 +1473,19 @@ describe('Dashboard normalized timeline path', () => {
     const client = createDashboardClient(fixtures, undefined, { filterLogs: true })
     renderDashboard(client)
     fireEvent.click(document.querySelector('[data-calendar-date="2026-09-18"]') as HTMLElement)
-    fireEvent.click(await screen.findByRole('button', { name: /Nicht protokolliert/ }))
-    await protokollZeileOeffnen()
+    await erledigtOeffnen()
     fireEvent.click(screen.getByRole('button', { name: 'Doch eingenommen' }))
 
+    // Vorbelegt ist jetzt — mit dem Tag: der 19., nicht der geöffnete 18.
     const dialog = await screen.findByRole('dialog')
     const feld = within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement
+    expect(feld.value).toBe('00:30')
+    expect((within(dialog).getByLabelText('Datum') as HTMLInputElement).value).toBe('2026-09-19')
+    expect(dialog.querySelector('[data-confirm-time-today]')).not.toBeNull()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Geplant · 08:00' }))
     expect(feld.value).toBe('08:00')
     expect(dialog.querySelector('[data-confirm-time-today]')).toBeNull()
     fireEvent.click(within(dialog).getByRole('button', { name: 'Jetzt' }))
-    expect(feld.value).toBe('00:30')
-    expect(dialog.querySelector('[data-confirm-time-today]')).not.toBeNull()
     fireEvent.click(within(dialog).getByRole('button', { name: 'Eingenommen' }))
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('confirm_intake_group', expect.anything()))
     const params = client.rpc.mock.calls.find(call => call[0] === 'confirm_intake_group')![1] as {
@@ -1428,15 +1496,17 @@ describe('Dashboard normalized timeline path', () => {
     })])
   })
 
-  it('belegt „Doch eingenommen" auch heute mit der geplanten Uhrzeit vor', async () => {
+  it('belegt „Doch eingenommen" immer mit jetzt vor, die geplante Zeit per Knopf', async () => {
     const fixtures = startFixFixture()
     fixtures.dose_logs = [{ ...pendingLog(), taken: false }]
     renderDashboard(createDashboardClient(fixtures))
-    fireEvent.click(await screen.findByRole('button', { name: /Nicht protokolliert/ }))
-    await protokollZeileOeffnen()
+    await erledigtOeffnen()
     fireEvent.click(screen.getByRole('button', { name: 'Doch eingenommen' }))
     const dialog = await screen.findByRole('dialog')
-    expect((within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement).value).toBe('08:00')
+    // startFixFixture: 18.09., 14:00 UTC = 16:00 in Berlin
+    expect((within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement).value).toBe('16:00')
+    expect((within(dialog).getByLabelText('Datum') as HTMLInputElement).value).toBe('2026-09-18')
+    expect(within(dialog).getByRole('button', { name: 'Geplant · 08:00' })).toBeTruthy()
   })
 
   it('keeps the original pending occurrence in the injection deep link', async () => {
@@ -1573,7 +1643,7 @@ describe('Dashboard normalized timeline path', () => {
     await waitFor(() => expect(client.rpc).toHaveBeenCalledWith('confirm_intake_group', expect.anything()))
     await screen.findByText('Alle geplanten Einnahmen sind bestätigt.')
 
-    fireEvent.click(screen.getByRole('button', { name: /Bereits protokolliert/ }))
+    await erledigtOeffnen()
     expect(screen.getByText('Menge nicht getrackt')).toBeTruthy()
     expect(screen.queryByText('25 mg')).toBeNull()
   })
@@ -1724,7 +1794,7 @@ describe('Dashboard normalized timeline path', () => {
     fixtures.dose_logs = [{ ...pendingLog(false), taken: true, logged_at: '2026-08-31T22:30:00.000Z' }]
     const client = createDashboardClient(fixtures, undefined, { filterLogs: true })
     renderDashboard(client)
-    expect(await screen.findByText('Bereits protokolliert')).toBeTruthy()
+    expect(await screen.findByText('Eingenommen · Verpasst · Übersprungen')).toBeTruthy()
     expect(screen.queryByRole('button', { name: BUENDEL_KNOPF })).toBeNull()
     expect(client.logQueries[0].gte).toHaveBeenCalledWith('logged_at', '2026-08-30T22:00:00.000Z')
     // Einen Tag ueber das Raster hinaus: der letzte Abend kann nach Mitternacht bestaetigt sein.
@@ -2058,7 +2128,7 @@ describe('Dashboard intake confirmation actions', () => {
     })
     renderDashboard(client)
 
-    fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    await erledigtOeffnen()
     await protokollZeileOeffnen()
     fireEvent.click(await screen.findByRole('button', { name: 'Wieder öffnen' }))
 
@@ -2100,7 +2170,7 @@ describe('Dashboard intake confirmation actions', () => {
     }, async () => ({ data: 42, error: null }))
     renderDashboard(client)
 
-    fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    await erledigtOeffnen()
     await protokollZeileOeffnen()
     fireEvent.click(await screen.findByRole('button', { name: 'Wieder öffnen' }))
 
@@ -2138,7 +2208,7 @@ describe('Dashboard intake confirmation actions', () => {
     }, async () => ({ data: 42, error: null }))
     renderDashboard(client)
 
-    fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    await erledigtOeffnen()
     await protokollZeileOeffnen()
     fireEvent.click(await screen.findByRole('button', { name: 'eintrag_loeschen' }))
 
@@ -2185,7 +2255,7 @@ describe('Dashboard intake confirmation actions', () => {
     }, async () => ({ data: 0.1, error: null }))
     renderDashboard(client)
 
-    fireEvent.click(await screen.findByRole('button', { name: /Bereits protokolliert/ }))
+    await erledigtOeffnen()
     await protokollZeileOeffnen()
     fireEvent.click(await screen.findByRole('button', { name: 'Wieder öffnen' }))
 
@@ -2390,7 +2460,7 @@ describe('Dashboard intake confirmation actions', () => {
     expect(source).toContain('slot.key === offenerSlot')
     expect(source).toContain('className="tyd-collapse"')
     expect(source).not.toContain('data-due-hero')
-    expect(source).toContain('completedExpanded')
+    expect(source).toContain('erledigtAuf')
     expect(source).toContain('renderLogRow')
   })
 
