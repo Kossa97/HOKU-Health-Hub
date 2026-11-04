@@ -60,7 +60,7 @@ export const LINSE_STANDARD: LinsenWerte = {
   zoom: 1.08, heben: 0, wachsen: 36, hoehe: 40, farbe: 0.1, tempo: 0.6, schwingen: 0.3,
   klar: 1, ruhe: 1, fuellung: 1, rand: 1, art: 1,
   saumAussenBreite: 3.5, saumAussen: 0.5, saumInnenBreite: 8, saumInnen: 0.22,
-  glasUnschaerfe: 8, glasDeckkraft: 0.38, glasSaum: 7,
+  glasUnschaerfe: 10, glasDeckkraft: 0.5, glasSaum: 6,
 }
 
 /** Früherer Name des Standards. */
