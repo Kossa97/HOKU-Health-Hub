@@ -1008,9 +1008,9 @@
     "semantic_hash": ""
   },
   "src/pages/Profil.tsx": {
-    "mtime": 1793749353.8353953,
-    "seen": 1793749621.0642855,
-    "ast_hash": "41c2119cb39df7d18cd6d05724b918b7",
+    "mtime": 1793750838.0922103,
+    "seen": 1793751275.1782038,
+    "ast_hash": "2a6bfe1d2748bb2d5a27da2e2ec82926",
     "semantic_hash": ""
   },
   "src/pages/Progress.tsx": {
@@ -2796,9 +2796,9 @@
     "semantic_hash": ""
   },
   "src/components/navigation/LiquidGlassTabBar.tsx": {
-    "mtime": 1793749385.0937943,
-    "seen": 1793749621.0627913,
-    "ast_hash": "f902c71b445deee392d840ae57078f59",
+    "mtime": 1793750910.1314957,
+    "seen": 1793751275.1766534,
+    "ast_hash": "c27718b2730c61d1018db40dbaa65b52",
     "semantic_hash": ""
   },
   "src/components/navigation/bottomNavMetrics.test.ts": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793749482.4781113,
-    "seen": 1793749621.0644841,
+    "mtime": 1793751125.9140818,
+    "seen": 1793751275.1783514,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7722,9 +7722,9 @@
     "semantic_hash": ""
   },
   "memory/projects/erscheinungsbild.md": {
-    "mtime": 1793749599.7070417,
-    "seen": 1793749621.064962,
-    "ast_hash": "08d6001f8851be7b73828be1bbd19624",
+    "mtime": 1793751253.106076,
+    "seen": 1793751275.1787324,
+    "ast_hash": "0f4b80901931be3256f8a8f3ec734f9b",
     "semantic_hash": ""
   },
   "src/features/my-stack/components/FormUndFarbe.tsx": {
@@ -21690,9 +21690,9 @@
     "semantic_hash": ""
   },
   "src/lib/linse.ts": {
-    "mtime": 1793749353.8348074,
-    "seen": 1793749621.0641518,
-    "ast_hash": "cf6bfca01461d9abd536dfb042678426",
+    "mtime": 1793750838.0916522,
+    "seen": 1793751275.1781018,
+    "ast_hash": "a459fce8deb25def4d8592682fdd37e3",
     "semantic_hash": ""
   },
   "src/components/navigation/linsenFeder.test.ts": {
@@ -21705,6 +21705,18 @@
     "mtime": 1793749385.0932937,
     "seen": 1793749621.0627995,
     "ast_hash": "f4a5a0b0c9a7146140d6b1f9004b76c0",
+    "semantic_hash": ""
+  },
+  "src/lib/glasBrechung.test.ts": {
+    "mtime": 1793750894.0469046,
+    "seen": 1793751275.178029,
+    "ast_hash": "03d455d49c77e69f00b5311c3df43382",
+    "semantic_hash": ""
+  },
+  "src/lib/glasBrechung.ts": {
+    "mtime": 1793750805.9500961,
+    "seen": 1793751275.1780307,
+    "ast_hash": "2801ee221c0337258949f39f90afabd4",
     "semantic_hash": ""
   }
 }
