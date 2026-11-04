@@ -62,8 +62,9 @@ Story, Freunde, die Bereiche Blut und Einnahmen, die Aufschlüsselung je Wert.
 
 Weitere Regeln:
 
-- **Bio fällt im Web weg.** 2a zeigte sie als Zwischenstand bei „Alle“; die Liste
-  im Gesamtbild und das Mockup („Zeigt nie: … Bio“) enthalten sie nicht.
+- **Bio im Web bei „Alle“, nach Textprüfung** **[Nutzer 04.11.]**: dieselbe Prüfung wie beim
+  Anzeigenamen aus 2a (`oeffentlicher_text_fehler`: keine Links, Kontaktdaten, Beleidigungen); fällt
+  sie durch, erscheint im Web keine Bio (in der App unverändert).
   **[Claude, ungeprüft]** (Frage 3)
 - **Geschlecht-Zeichen und „Mitglied seit“** erscheinen im Web nicht (nicht in der
   Liste des Gesamtbilds). **[Claude, ungeprüft]**
@@ -163,7 +164,7 @@ was sicherheitsrelevant wäre.
 
 1. `erlaubt` in der Stufe `web` = Schlüssel mit Wert `all` **∩**
    `profile_web_fields()` = `cover, country, goals, streak, progress, badges, reviews`.
-   (Bio entfällt, Frage 3.)
+   (Bio bei „Alle“ nach Textprüfung, Frage 3.)
 2. Der Zweig `if stufe <> 'web'` entfällt für diese Felder: `cover`, `country`,
    `goals` kommen auch im Web aus `profiles`, `streak`, `progress`, `badges`,
    `reviews` aus dem bereinigten Schnappschuss (`profile_snapshot_clean`).
@@ -444,9 +445,9 @@ Gesundheitsbezug. Ab Werk **aus** mit dem Hinweis „verrät Gesundheitsdaten“
 | Einnahmen | `intake_all_30` |
 | Körperwerte | `body_fat_5`, `body_fat_10`, `body_fat_20`, `weight_5`, `resting_hr_5` |
 
-Grenzfälle, im Mockup **an** **[Claude, ungeprüft]** (Frage 7): `weighed_weeks_8`
+Grenzfälle, ab Werk **aus** **[Nutzer 04.11.]** (Frage 7): `weighed_weeks_8`
 (sagt „wiegt sich“, keinen Wert), `first_measurement`, `first_progress_photo`,
-`wearable_connected`, `steps_week_10k`, `progress_10/25/50`.
+`wearable_connected`, `steps_week_10k`, `progress_10/25/50`. Einzeln einschaltbar.
 
 ### 6.2 Bildschirm (Mockup Abschnitt 3) **[Nutzer]**
 
@@ -485,9 +486,12 @@ Profil › ⚙︎ › Web-Link › **Abzeichen im Web** (`/profil/web-abzeichen`
 
 ### 7.2 Suchmaschinen, Caching, Abfragen in Masse
 
-- `<meta name="robots" content="noindex, nofollow">` und `X-Robots-Tag: noindex`
+- **Standard `noindex`**: `<meta name="robots" content="noindex, nofollow">` und `X-Robots-Tag: noindex`
   auf `/u/*` und `/api/og`. Messenger-Vorschauen funktionieren trotzdem.
-  **[Claude, ungeprüft]**
+- **Eigener Schalter „In Suchmaschinen auffindbar“** **[Nutzer 04.11.]**: neue Spalte
+  `profiles.web_indexable boolean not null default false`, nur wirksam bei Web-Link an und nicht privat.
+  Ist er an, fällt `noindex` auf `/u/<name>` weg (die Karte `/api/og` bleibt `noindex`). Platz: Einstellungen
+  › Web-Link, mit Hinweis „Name, Bild und alles auf ‚Alle‘ können bei Google erscheinen“.
 - Kurze CDN-Zeiten (3.5).
 - **Enumeration:** `profile_view` ist schon heute ohne Anmeldung über die
   Supabase-API aufrufbar; die Funktionen öffnen also keinen neuen Weg, sondern
@@ -561,14 +565,15 @@ Ergebnis berichten.
 
 ## Offene Fragen
 
-Alles mit **[Claude, ungeprüft]**, nummeriert, je mit Empfehlung:
+**Stand 04.11.: alle entschieden.** Übernommen wie empfohlen: 2, 4, 5, 6, 8, 9, 10, 11, 12, 13,
+14, 15, 16, 17, 19, 20, 21, 23 (TERMS_VERSION wird angehoben; Rate-Limit und Firewall nur mit dem Nutzer).
+Abweichend entschieden: 3, 7, 18 (siehe dort). 1 und 22 nach den Link-Karten angepasst.
 
 1. **Domain: entschieden** — `hokuhealth.app` (Vercel; `meethoku.com` leitet weiter). Offen bleibt nur
    die Passkey-RP-ID (heute `tyd-track-your-dose.vercel.app`, `memory/projects/login.md`).
 2. **Ohne Store-Einträge:** Solange die Apps nicht in den Stores sind, führt
    „In Hoku öffnen“ zu `/auth`. Empfehlung: so lassen.
-3. **Bio im Web:** wegfallen lassen (Gesamtbild-Liste, Mockup) statt wie im
-   2a-Zwischenstand zeigen. Empfehlung: weglassen.
+3. **Bio im Web: entschieden** — bei „Alle“ zeigen, nach Textprüfung wie beim Anzeigenamen (1.1).
 4. **„Bild und Name auf ‚Alle‘“** = Web-Link an; ohne geprüftes Bild Initiale statt
    neutraler Karte. Empfehlung: so.
 5. **Schutzregel:** Gesamtfortschritt nicht im Web, wenn nur Blut/Einnahmen ihn
@@ -576,7 +581,7 @@ Alles mit **[Claude, ungeprüft]**, nummeriert, je mit Empfehlung:
 6. **Negativer Gesamtfortschritt** → Karte C. Empfehlung: so.
 7. **Grenzfälle der Abzeichen** (`weighed_weeks_8`, `first_measurement`,
    `first_progress_photo`, `wearable_connected`, `steps_week_10k`, `progress_*`)
-   ab Werk an. Empfehlung: so, wie im Mockup.
+   **entschieden: ab Werk aus**, einzeln einschaltbar.
 8. **„Profil melden“ ohne Konto:** einfaches Formular mit Grund und optionaler
    E-Mail, landet in der bestehenden Moderation. Empfehlung: Formular.
 9. **Sprache der Karte:** `Accept-Language`, sonst Englisch. Alternative: Sprache
@@ -594,7 +599,7 @@ Alles mit **[Claude, ungeprüft]**, nummeriert, je mit Empfehlung:
 16. **Datenmodell:** `profiles.web_badges` als Abweichungen vom Standard.
     Empfehlung: so.
 17. **Cache-Zeiten:** HTML 60 s, Bild 10 min, kein aktives Löschen. Empfehlung: so.
-18. **`noindex`** für alle Profilseiten. Empfehlung: so.
+18. **Suchmaschinen: entschieden** — Standard `noindex`, eigener Schalter „In Suchmaschinen auffindbar“ (7.2).
 19. **Adresse = echter Nickname** (`/u/mara`, kein Zufallskürzel). Empfehlung: so;
     ein Zufallskürzel wäre schwerer zu erraten, aber nicht merkbar.
 20. **Berichte-Hinweis** nur bei Feld Erfahrungsberichte auf „Alle“ und Anzahl > 0,

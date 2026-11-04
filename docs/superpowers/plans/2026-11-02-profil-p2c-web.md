@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** `/u/<name>` zeigt ohne Anmeldung eine feste Seite mit den Feldern auf „Alle“ (ohne Blut, Einnahmen, Bio, Berichte), geteilte Links erscheinen im Chat als Karte A/C/neutral, das Profil lässt sich über ein Sheet mit lesbarem Hoku-Code teilen, Abzeichen sind je Abzeichen fürs Web schaltbar, und installierte Apps öffnen den Link direkt.
+**Goal:** `/u/<name>` zeigt ohne Anmeldung eine feste Seite mit den Feldern auf „Alle“ (ohne Blut, Einnahmen, Berichte; Bio nur nach Textprüfung), geteilte Links erscheinen im Chat als Karte A/C/neutral, das Profil lässt sich über ein Sheet mit lesbarem Hoku-Code teilen, Abzeichen sind je Abzeichen fürs Web schaltbar, und installierte Apps öffnen den Link direkt.
 
 **Architecture:** Filter nur auf dem Server: `profile_view` bekommt in der Stufe `web` eine feste Feldliste, beschnittene Bereiche, gefilterte Abzeichen (`profiles.web_badges`, Abweichungen vom Standard) und nur die Berichtezahl. Zwei Vercel-Funktionen (`api/u.js` für HTML mit Meta-Tags, `api/og.js` für das 1200×630-Bild) rufen `profile_view` mit dem anon-Schlüssel auf, nie mit der Dienstrolle. Der Hoku-Code ist ein selbst gezeichnetes SVG aus einer QR-Matrix (`qrcode-generator`, Fehlerkorrektur H), gelesen in Tests mit `zxing-wasm`. Deep Links über Universal Links / App Links und `@capacitor/app`.
 
@@ -14,7 +14,7 @@
 
 - Migration als Datei `supabase-profil-p2c-web.sql`, additiv und idempotent; Trockenlauf mit Postgres 16 unter `/var/tmp/…` als `postgres`, Ist-Zustand nach 2a + 2b nachgebaut, **zweimal** laufen lassen, nachzählen. Produktivlauf **nur nach ausdrücklichem Ja**, Reihenfolge 2a → 2b → 2c. Kein `drop`, `truncate`, `delete`/`update` ohne `where`.
 - Sichtbarkeit ist eine Sicherheitsgrenze: Web-Inhalte kommen **nur** aus `profile_view` (Stufe `web`). Vercel-Funktionen benutzen nur den anon-Schlüssel; kein `SUPABASE_SERVICE_ROLE_KEY` in `api/u.js`/`api/og.js`.
-- Nie im Web, auch nicht in Bild oder Meta-Tags: Gesundheitswerte, Bereiche Blut/Einnahmen, Substanzen, Berichte-Inhalte, Bio, Story, Freunde.
+- Nie im Web, auch nicht in Bild oder Meta-Tags: Gesundheitswerte, Bereiche Blut/Einnahmen, Substanzen, Berichte-Inhalte, Story, Freunde. Bio nur bei „Alle“ und bestandener Textprüfung (`oeffentlicher_text_fehler`).
 - 404 identisch für Web-Link aus / privat / unbekannt / ausgeblendet (Status, HTML, Kopfzeilen, Karte).
 - Texte nur de/en, übrige zwölf Locales englischer Platzhalter, `i18n.test.ts` grün.
 - Nichts deployen, keine Domain-/DNS-/Firewall-Änderung, keine Store-Einreichung ohne den Nutzer.
@@ -35,7 +35,8 @@
 ### Task 1: Migration und Trockenlauf (`supabase-profil-p2c-web.sql`)
 
 - [ ] Kopf wie 2b: Zweck, „setzt 2a + 2b voraus“, „2a/2b danach nicht erneut laufen lassen“, Zählungen vor/nach (nur Zahlen).
-- [ ] `profiles.web_badges jsonb not null default '{}'` (`add column if not exists`); `profile_badge_web_sensitive()` (10 IDs aus Spec 6.1); `profile_web_badges_ok(v)` + Constraint `profiles_web_badges_check` nur wenn nicht vorhanden; `profile_web_fields()`.
+- [ ] `profiles.web_indexable boolean not null default false` (Spec 7.2, Entscheidung 04.11.).
+- [ ] `profiles.web_badges jsonb not null default '{}'` (`add column if not exists`); Grenzfall-Abzeichen (Spec 6.1) ab Werk aus; `profile_badge_web_sensitive()` (10 IDs aus Spec 6.1); `profile_web_badges_ok(v)` + Constraint `profiles_web_badges_check` nur wenn nicht vorhanden; `profile_web_fields()`.
 - [ ] `profile_view` neu: Stufe `web` mit fester Feldliste, `cover/country/goals` aus `profiles`, `streak/progress/badges/reviews` aus dem bereinigten Schnappschuss; `progress.areas` auf `koerper/training/erholung` beschnitten, leer → kein `progress`; `badges` nach `web_badges`/Standard; `reviews` nur `count`; Eigentümer erhält `web_badges`.
 - [ ] `profile_media_visible`: Titelbild für `anon` bei Web-Link an, nicht privat, `cover = all`, geprüft, Objekt-ID passt.
 - [ ] Trockenlauf: Postgres 16 als `postgres` unter `/var/tmp/p2c-…`; Schema aus Basis + P1 + 2a + 2b nachbauen; Probezeilen (Web-Link aus, privat, unbekannt, an mit allem auf „Alle“, an mit allem auf „Freunde“, nur Blut-Bereich, heikle Abzeichen mit und ohne Abweichung); Datei **zweimal** laufen lassen; Proben als `anon` (`set role anon`, leere JWT-Claims) zu Review Focus 1; Zählungen gleich nach beiden Läufen; ungültige `web_badges` (fremde ID, Nicht-Bool) werden abgewiesen.
@@ -60,7 +61,7 @@
 - [ ] 404-Seite: „Seite nicht gefunden“ + „Was ist Hoku?“, gleich für alle drei Fälle; angemeldet bleibt die bisherige App-Meldung.
 - [ ] „Ansehen als › Web-Link“ zeigt dieselbe Seite.
 - [ ] „Profil melden“ ohne Konto nach Entscheidung zu Spec-Frage 8 (Empfehlung: kleines Formular in die bestehende Moderation); bis dahin Link auf die Kontaktadresse im Impressum.
-- [ ] e2e (`profil-web.spec.ts`, Supabase-Mock): nur Web-Felder, keine Bio, keine Bereiche Blut/Einnahmen, Abzeichen folgen `web_badges`, 404 gleich.
+- [ ] e2e (`profil-web.spec.ts`, Supabase-Mock): nur Web-Felder, Bio nur nach Textprüfung, keine Bereiche Blut/Einnahmen, Abzeichen folgen `web_badges`, 404 gleich.
 
 ### Task 5: Hoku-Code und Sheet „Profil teilen“
 
@@ -75,7 +76,7 @@
 
 - [ ] `api/_lib/profileCard.js` (+ `.test.js`): Kartenwahl Fortschritt / Rückfall / neutral nach Spec 3.3 (nicht positiv → Rückfall, kein geprüftes Bild → Initiale), „Seit … dabei“ (Tage/Monate/Jahre, abgerundet), Einträge mit Tausenderpunkt, Fortschrittsstufe abgerundet, Texte de/en für Titel/Beschreibung/Bild, Rückfall-Text per Schalter: Musterfunktion live → „kann Muster finden“, sonst Ersatztext; Fassungs-Hash, Escape, Zeichensatz-Prüfung für `name`, SVG 1200×630 der drei Karten wie im freigegebenen Mockup (Logos weiß neben großem Hoku).
 - [ ] `profile_view` Stufe `web` liefert dafür zusätzlich: Mitglied seit (Datum), Zahl aller Einträge (ohne Aufschlüsselung), Zahl der Werte in den Web-Bereichen. In Task 2 (Migration) ergänzen, Trockenlauf wie dort.
-- [ ] `api/u.js`: anon-`profile_view`, gebautes `index.html` (über `functions.includeFiles`) mit Titel, `og:*`, `twitter:card`, `robots noindex`; 200/404; `Cache-Control: public, max-age=0, s-maxage=60, stale-while-revalidate=60`, `Vary: Accept-Language`, `X-Robots-Tag: noindex`.
+- [ ] `api/u.js`: anon-`profile_view`, gebautes `index.html` (über `functions.includeFiles`) mit Titel, `og:*`, `twitter:card`, `robots noindex` außer bei `web_indexable` (dann ohne); 200/404; `Cache-Control: public, max-age=0, s-maxage=60, stale-while-revalidate=60`, `Vary: Accept-Language`, `X-Robots-Tag: noindex`.
 - [ ] `api/og.js`: anon-`profile_view` + Profilbild über Storage (anon), SVG → PNG mit `@resvg/resvg-js` (Schriften im Paket, Lizenz geprüft), `v` veraltet → neutrale Karte, `s-maxage=600`.
 - [ ] `vercel.json`: Route `/u/([^/]+)/?` → `/api/u?name=$1` vor dem Rückfall; `functions`-Eintrag für `includeFiles`. `@resvg/resvg-js` nach `dependencies`.
 - [ ] Tests der Funktionen mit gemocktem Supabase: byte-gleiche 404 für die vier Fälle (Review Focus 2), „alles auf Freunde“ → C ohne Zahl (Review Focus 3), PNG-Maße, Escape.

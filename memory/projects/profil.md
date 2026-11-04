@@ -242,3 +242,8 @@ Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/ar
   60 Tage Wearable-Vorgeschichte aus P1 könnten erste Muster am ersten Tag liefern.
 - **Canva-Vorlagen nur noch bei Bedarf** (Nutzer 04.11.): nicht mehr von selbst nachziehen. Maßgeblich sind Mockup,
   Spec und Code; Link-Karten erzeugt später `api/og.js`. Letzter Stand: `docs/profil/canva/hoku-link-karten.pptx` (9 Folien).
+- **2c offene Fragen entschieden (Nutzer 04.11.)**: Empfehlungen übernommen für 2, 4–6, 8–17, 19–21, 23
+  (TERMS_VERSION anheben, Profil melden per Formular, Rate-Limit 60/min, Cache 60 s/10 min, resvg, qrcode-generator,
+  web_badges, @capacitor/app, Lesetest macht der Nutzer). Abweichend: **Bio im Web bei „Alle“ nach Textprüfung**
+  (wie Anzeigename); **Grenzfall-Abzeichen ab Werk aus**; **Suchmaschinen: Standard noindex + Schalter
+  „In Suchmaschinen auffindbar“** (`profiles.web_indexable`). 2c wird jetzt gestapelt auf 2b gebaut.
