@@ -34,6 +34,8 @@ export interface LinsenMasse {
   rand?: number
   /** Größe eines Gerätepixels in CSS-px: in Ruhe rastet die Pille darauf ein */
   raster?: number
+  /** Die Ringe der Randbrechung (sonst SAEUME) */
+  saeume?: readonly { breite: number; faktor: number }[]
 }
 
 /**
@@ -118,7 +120,7 @@ export function linsenBild(s: LinsenStand, m: LinsenMasse) {
     ? `translateX(${px(bx)})`
     : `translate(${px(bx)}, ${px(by)}) scale(${zahl(z / sx)}, ${zahl(z / sy)})`
   const rand = m.rand ?? 0
-  const saeume = SAEUME.map(({ faktor }) => {
+  const saeume = (m.saeume ?? SAEUME).map(({ faktor }) => {
     const zs = 1 + (m.zoom * (1 - faktor * rand) - 1) * t
     const sbx = m.w0 / 2 - (zs / sx) * cx
     const sby = m.h0 / 2 + m.einzug - (zs / sy) * (m.einzug + m.h0 / 2 + ty)

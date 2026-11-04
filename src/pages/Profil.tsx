@@ -604,7 +604,7 @@ function LinsenTest() {
           aria-label={name}
         />
         <span style={{ fontSize: 14, textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: 'var(--lg-text-2)' }}>
-          {key === 'zoom' || key === 'farbe' || key === 'schwingen' || key === 'klar' || key === 'ruhe' || key === 'fuellung' || key === 'rand'
+          {key === 'zoom' || key === 'farbe' || key === 'schwingen' || key === 'klar' || key === 'ruhe' || key === 'fuellung' || key === 'rand' || key === 'saumAussen' || key === 'saumInnen'
             ? `${Math.round(werte[key] * 100)} %`
             : key === 'tempo' ? `${werte[key].toFixed(2)} s` : `${werte[key]} ${einheit}`}
         </span>
@@ -646,6 +646,17 @@ function LinsenTest() {
             ))}
           </div>
         </div>
+        {werte.art === 1 && (
+          <>
+            <p style={{ margin: '10px 0 0', fontSize: 13, color: 'var(--lg-text-3)' }}>
+              Ringe am Rand: Breite und wie stark sie den Inhalt zusammendrücken (mal Randbrechung).
+            </p>
+            {regler('saumAussenBreite', 'Außen breit', 'px')}
+            {regler('saumAussen', 'Außen stark', '')}
+            {regler('saumInnenBreite', 'Innen breit', 'px')}
+            {regler('saumInnen', 'Innen stark', '')}
+          </>
+        )}
         <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
           <button type="button" className="lg-btn lg-btn-glass lg-btn-compact" onClick={() => setze({ ...LINSE_STANDARD })}>
             Zurücksetzen (Apple)

@@ -269,10 +269,15 @@ export function LiquidGlassTabBar({
     }
     // Rundung der Linse (--linse-rund; im eckigen Labor klein), am Ring gemessen
     const rund = ringRef.current ? parseFloat(getComputedStyle(ringRef.current).borderTopLeftRadius) || el.offsetHeight / 2 : el.offsetHeight / 2
-    // Die Ringe der Randbrechung: Maske in der Größe der ungewachsenen Pille
+    // Die Ringe der Randbrechung (innen, außen; Regler --linse-saum-*)
+    const saeume = [
+      { breite: zahl('--linse-saum-innen-breite', SAEUME[0].breite), faktor: zahl('--linse-saum-innen', SAEUME[0].faktor) },
+      { breite: zahl('--linse-saum-aussen-breite', SAEUME[1].breite), faktor: zahl('--linse-saum-aussen', SAEUME[1].faktor) },
+    ]
+    // Maske in der Größe der ungewachsenen Pille
     saumRefs.current.forEach((saum, i) => {
       if (!saum || !w0 || !el.offsetHeight) return
-      const maske = saumMaske(w0, el.offsetHeight, SAEUME[i].breite, rund)
+      const maske = saumMaske(w0, el.offsetHeight, saeume[i].breite, rund)
       saum.style.maskImage = maske
       saum.style.setProperty('-webkit-mask-image', maske)
     })
@@ -302,6 +307,7 @@ export function LiquidGlassTabBar({
       heben: zahl('--linse-heben', 0), zoom: zahl('--linse-zoom', 1),
       rand: zahl('--linse-rand', 0),
       raster: 1 / (window.devicePixelRatio || 1),
+      saeume,
     }
   }
 
