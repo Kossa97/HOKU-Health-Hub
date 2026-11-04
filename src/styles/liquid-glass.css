@@ -862,10 +862,7 @@ html[data-look='instrument'] .tyd-tabbar {
 }
 html[data-look='instrument'] .tyd-tabbar::before,
 html[data-look='instrument'] .tyd-tabbar::after { display: none; }
-html[data-look='instrument'] .tyd-tabbar-pill {
-  background: rgb(var(--ink-rgb) / 0.08);
-  box-shadow: none;
-}
+html[data-look='instrument'] { --tabbar-kapsel: rgb(var(--ink-rgb) / 0.08); --tabbar-kapsel-kante: none; --tabbar-aktiv: #f2f2f2; }
 html[data-look='instrument'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #f2f2f2; }
 
 /* ── Erscheinungsbild „Soft Dark" ───────────────────────────────────────
@@ -991,12 +988,10 @@ html[data-look='softdark'] .tyd-tabbar {
 }
 html[data-look='softdark'] .tyd-tabbar::before,
 html[data-look='softdark'] .tyd-tabbar::after { display: none; }
-html[data-look='softdark'] .tyd-tabbar-pill {
-  background: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.07) 0%, rgb(var(--ink-rgb) / 0.03) 100%);
-  box-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.08), 0 4px 10px -4px rgba(0,0,0,0.6);
-}
-html[data-look='softdark'] .tyd-tabbar-pill[data-gehalten='true'] {
-  background: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.12) 0%, rgb(var(--ink-rgb) / 0.05) 100%);
+html[data-look='softdark'] {
+  --tabbar-kapsel: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.12) 0%, rgb(var(--ink-rgb) / 0.06) 100%);
+  --tabbar-kapsel-kante: inset 0 1px 0 rgb(var(--ink-rgb) / 0.08), 0 4px 10px -4px rgba(0,0,0,0.6);
+  --tabbar-aktiv: #6cbcff;
 }
 html[data-look='softdark'] .tyd-tabbar-item svg { transition: filter 240ms ease; }
 html[data-look='softdark'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #6cbcff; }
@@ -1084,7 +1079,7 @@ html[data-look='frost'] :is(.lg-surface, .card, .lg-group)::after {
   background: radial-gradient(70% 70% at var(--hl-x) var(--hl-y), rgb(var(--frost-cyan) / calc(var(--hl-i) * 0.13)), transparent 70%);
 }
 /* Knöpfe in Hokus Nähe glimmen (Stufe 2): Schein wächst mit --hl-i */
-html[data-look='frost'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+html[data-look='frost'] :is(.lg-btn-primary, .btn-primary) {
   box-shadow: var(--shadow-btn-primary), 0 0 calc(var(--hl-i) * 30px) rgb(var(--frost-cyan) / calc(var(--hl-i) * 0.65));
 }
 html[data-look='frost'] :is(.lg-btn-tint, .lg-btn-glass, .lg-chip, .lg-icon-btn.lg-glass) {
@@ -1102,7 +1097,7 @@ html[data-look='frost'] .tyd-tabbar {
   box-shadow: 0 12px 32px -12px rgba(0,0,0,0.85), 0 0 calc(var(--hl-i) * 26px) rgb(var(--frost-cyan) / calc(var(--hl-i) * 0.30));
 }
 html[data-look='frost'] .tyd-tabbar::after { display: none; }
-html[data-look='frost'] .tyd-tabbar-pill { background: linear-gradient(180deg, rgba(95,220,255,0.20), rgba(95,220,255,0.08)); box-shadow: inset 0 1px 0 rgba(200,245,255,0.20); }
+html[data-look='frost'] { --tabbar-kapsel: linear-gradient(180deg, rgba(95,220,255,0.20), rgba(95,220,255,0.08)); --tabbar-kapsel-kante: inset 0 1px 0 rgba(200,245,255,0.20); --tabbar-aktiv: #8eeaff; }
 html[data-look='frost'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #8eeaff; }
 @media (prefers-reduced-transparency: reduce) {
   html[data-look='frost'] { --lg-glass-filter: none; --lg-glass-fill: #0c1a20; --lg-sheet-blur: none; --lg-sheet-bg: #0a161c; }
@@ -1178,9 +1173,16 @@ html[data-look='labor'] :is(.lg-btn, .lg-chip, .stack-tab) { border-radius: 6px;
 html[data-look='labor'] .lg-icon-btn { border-radius: 8px; }
 html[data-look='labor'] .tyd-tabbar { border-radius: 10px; background: rgba(3,10,13,0.94); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 0 calc(var(--hl-i) * 24px) rgb(var(--lab-cyan) / calc(var(--hl-i) * 0.35)); }
 html[data-look='labor'] .tyd-tabbar::after { display: none; }
-html[data-look='labor'] .tyd-tabbar-pill { border-radius: 7px; background: rgba(95,220,255,0.10); box-shadow: inset 0 0 0 1px rgba(95,220,255,0.30); }
+/* Labor ist eckig: Leiste, Kapsel, Linse und Plus mit kleiner Rundung, parallel zueinander */
+html[data-look='labor'] {
+  --tabbar-rund: 10px;
+  --linse-rund: 14px;
+  --tabbar-kapsel: rgba(95,220,255,0.10);
+  --tabbar-kapsel-kante: inset 0 0 0 1px rgba(95,220,255,0.30);
+  --tabbar-aktiv: #7fe6ff;
+}
 html[data-look='labor'] .lg-sheet { border-radius: 14px; box-shadow: 0 -12px 40px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(95,220,255,0.18); }
-html[data-look='labor'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+html[data-look='labor'] :is(.lg-btn-primary, .btn-primary) {
   color: #7fe6ff;
   font-family: var(--lab-mono);
   letter-spacing: 0.08em;
@@ -1241,7 +1243,7 @@ html[data-look='neon'] :is(.lg-surface, .card, .lg-group, .lg-glass) {
 }
 html[data-look='neon'] :is(.lg-surface, .card, .lg-group, .lg-glass)::before,
 html[data-look='neon'] :is(.lg-surface, .card, .lg-group, .lg-glass)::after { display: none; }
-html[data-look='neon'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+html[data-look='neon'] :is(.lg-btn-primary, .btn-primary) {
   color: #8eeaff;
   text-shadow: 0 0 10px rgba(95,220,255,0.7);
   box-shadow:
@@ -1249,8 +1251,8 @@ html[data-look='neon'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
     0 0 calc(10px + var(--hl-i) * 30px) rgb(var(--neon) / calc(0.25 + var(--hl-i) * 0.5)),
     inset 0 0 calc(8px + var(--hl-i) * 16px) rgb(var(--neon) / calc(0.12 + var(--hl-i) * 0.3));
 }
-html[data-look='neon'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action)::before,
-html[data-look='neon'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action)::after { display: none; }
+html[data-look='neon'] :is(.lg-btn-primary, .btn-primary)::before,
+html[data-look='neon'] :is(.lg-btn-primary, .btn-primary)::after { display: none; }
 html[data-look='neon'] .lg-btn-tint { color: #8eeaff; background: #04070a; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 0 0 1px rgba(95,220,255,0.5), 0 0 14px rgba(95,220,255,0.25); animation: none; }
 html[data-look='neon'] .lg-large-title { text-shadow: 0 0 18px rgba(95,220,255,0.35); }
 html[data-look='neon'] .lg-sheet { box-shadow: 0 -12px 40px rgba(0,0,0,0.8), 0 0 0 1px rgba(95,220,255,0.35), 0 0 24px rgba(95,220,255,0.15); }
@@ -1261,7 +1263,7 @@ html[data-look='neon'] .tyd-tabbar {
   box-shadow: 0 0 0 1px rgb(var(--neon) / calc(0.35 + var(--hl-i) * 0.6)), 0 0 calc(8px + var(--hl-i) * 26px) rgb(var(--neon) / calc(0.15 + var(--hl-i) * 0.45));
 }
 html[data-look='neon'] .tyd-tabbar::before, html[data-look='neon'] .tyd-tabbar::after { display: none; }
-html[data-look='neon'] .tyd-tabbar-pill { background: rgba(95,220,255,0.10); box-shadow: inset 0 0 0 1px rgba(95,220,255,0.45), 0 0 10px rgba(95,220,255,0.25); }
+html[data-look='neon'] { --tabbar-kapsel: rgba(95,220,255,0.10); --tabbar-kapsel-kante: inset 0 0 0 1px rgba(95,220,255,0.45), 0 0 10px rgba(95,220,255,0.25); --tabbar-aktiv: #8eeaff; }
 html[data-look='neon'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #8eeaff; filter: drop-shadow(0 0 6px rgba(95,220,255,0.6)); }
 
 /* ── Erscheinungsbild „Tiefsee" ─────────────────────────────────────────
@@ -1325,13 +1327,13 @@ html[data-look='tiefsee'] :is(.lg-surface, .card, .lg-group, .lg-glass, .tyd-tab
 html[data-look='tiefsee'] :is(.lg-surface, .card, .lg-group)::after {
   background: radial-gradient(50% 50% at var(--hl-x) var(--hl-y), rgb(var(--see) / calc(var(--hl-i) * 0.22)), transparent 70%);
 }
-html[data-look='tiefsee'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+html[data-look='tiefsee'] :is(.lg-btn-primary, .btn-primary) {
   box-shadow: var(--shadow-btn-primary), 0 0 calc(var(--hl-i) * 30px) rgb(var(--see) / calc(var(--hl-i) * 0.6));
 }
 html[data-look='tiefsee'] .lg-btn-tint { color: #b5fbef; background: linear-gradient(180deg, rgba(70,242,214,0.24), rgba(70,242,214,0.08)); animation: none; }
 html[data-look='tiefsee'] .tyd-tabbar { background: linear-gradient(180deg, rgba(70,242,214,0.10), rgba(70,242,214,0.04)), rgba(2,16,18,0.6); }
 html[data-look='tiefsee'] .tyd-tabbar::after { display: none; }
-html[data-look='tiefsee'] .tyd-tabbar-pill { background: linear-gradient(180deg, rgba(70,242,214,0.22), rgba(70,242,214,0.08)); box-shadow: inset 0 1px 0 rgba(220,255,248,0.18); }
+html[data-look='tiefsee'] { --tabbar-kapsel: linear-gradient(180deg, rgba(70,242,214,0.22), rgba(70,242,214,0.08)); --tabbar-kapsel-kante: inset 0 1px 0 rgba(220,255,248,0.18); --tabbar-aktiv: #8ff7e5; }
 html[data-look='tiefsee'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #8ff7e5; }
 
 /* ── Erscheinungsbild „Obsidian" ────────────────────────────────────────
@@ -1374,7 +1376,7 @@ html[data-look='obsidian'] :is(.lg-surface, .card, .lg-group, .lg-glass)::after 
     radial-gradient(38% 22% at var(--hl-x) var(--hl-y), rgba(210,248,255, calc(var(--hl-i) * 0.30)), transparent 70%),
     radial-gradient(80% 60% at var(--hl-x) var(--hl-y), rgb(var(--obs) / calc(var(--hl-i) * 0.10)), transparent 70%);
 }
-html[data-look='obsidian'] :is(.lg-btn-primary, .btn-primary, .tyd-tabdock-action) {
+html[data-look='obsidian'] :is(.lg-btn-primary, .btn-primary) {
   color: #8eeaff;
   box-shadow: var(--shadow-btn-primary), 0 0 calc(var(--hl-i) * 24px) rgb(var(--obs) / calc(var(--hl-i) * 0.45));
 }
@@ -1385,6 +1387,7 @@ html[data-look='obsidian'] .tyd-tabbar::after {
   background: radial-gradient(30% 120% at var(--hl-x) var(--hl-y), rgba(210,248,255, calc(var(--hl-i) * 0.22)), transparent 70%);
 }
 html[data-look='obsidian'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #8eeaff; }
+html[data-look='obsidian'] { --tabbar-aktiv: #8eeaff; }
 
 /* ── Erscheinungsbild „Papier" (Vorschau) ──────────────────────────────
    Hell, nur Schwarz und Weiß wie das Logo. Der erste Look, der alle Farbrollen
@@ -1477,7 +1480,7 @@ html[data-look='papier'] .tyd-tabbar {
 }
 html[data-look='papier'] .tyd-tabbar::before,
 html[data-look='papier'] .tyd-tabbar::after { display: none; }
-html[data-look='papier'] .tyd-tabbar-pill { background: rgba(0,0,0,0.06); box-shadow: none; }
+html[data-look='papier'] { --tabbar-kapsel: rgba(0,0,0,0.07); --tabbar-kapsel-kante: none; --tabbar-aktiv: #0b0b0c; }
 html[data-look='papier'] :is(.tyd-tabbar-item[aria-current='page'], .tyd-tabbar-item[data-tyd-nah='true']) { color: #0b0b0c; }
 /* Hoku schwarz auf Weiß wie im Logo: die Engine zeichnet ihn hell und leuchtend
    (additiv); umgekehrt wird daraus schwarze Tinte, die Leere bleibt durchsichtig. */

@@ -184,3 +184,20 @@ Frost war davon betroffen und ist korrigiert; im Browser nachgemessen
   Profil→Home: ohne Brechung max. 17 ms Lücke, Ringe 32 ms, Glisse bis 124 ms
   (Filter rechnet jedes Bild neu). drop-shadow an den Symbolen der Kopien halbierte
   die Bildrate → entfernt.
+
+## Navbar im Apple-Stil (Branch claude/glas-linse)
+
+- Grundform für alle Looks; ein Look pflegt nur Werte: `--tabbar-kapsel`,
+  `--tabbar-kapsel-kante`, `--tabbar-aktiv`, `--tabbar-rund`, `--linse-rund`
+  (liquid-glass.css). Labor eckig (10px/14px), Papier hell.
+- Ruhende Kapsel füllt den Reiter; die Leiste hat seitlich denselben Einzug wie
+  oben/unten → am äußeren Reiter parallel zur Rundung. In Ruhe auf Gerätepixel
+  gerastet, graues Original unter der Kapsel ausgeblendet (`data-ruhig`) gegen
+  Zucken beim Scrollen (nur auf dem Branch, auf main nicht).
+- „+“ ist ein Glasknopf: übernimmt das Glas der Leiste je Look (BottomNavigation),
+  Plus in `--tabbar-aktiv`.
+- Hokus Tor: Spalt und Torbild (Canvas `.tyd-dot-torbild`) liegen IN der Leiste unter
+  der Linse; die Engine malt dorthin (`torBild` in DotLeiste) und kopiert in die
+  Linsen-Kopien. In e2e bleibt Hoku im Haus (`tyd.e2e.dot-im-haus`), zum Prüfen auf 0.
+- Glisse archiviert (Schalter nur im Test-Menü), schlank: eine Verschiebung, nur
+  solange ein Finger liegt.

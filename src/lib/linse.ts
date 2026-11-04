@@ -39,21 +39,20 @@ export interface LinsenWerte {
   art: number
 }
 
+/**
+ * Der Standard ist Apples Leiste aus iOS 26 (Bildschirmaufnahme vom iPhone):
+ * in Ruhe eine gefüllte Kapsel so breit wie der Reiter; gedrückt eine KLARE
+ * Linse, die oben und unten über die Leiste ragt, die Leiste samt Rand darin
+ * leicht vergrößert, eine helle Kante mit Regenbogen an den Enden und
+ * Randbrechung in Ringen. Glisse (art 2) ist archiviert, nicht Standard.
+ */
 export const LINSE_STANDARD: LinsenWerte = {
-  zoom: 1.32, heben: 0, wachsen: 30, hoehe: 12, farbe: 0.5, tempo: 0.75, schwingen: 0.3,
-  klar: 0, ruhe: 0, fuellung: 0, rand: 0, art: 1,
+  zoom: 1.08, heben: 0, wachsen: 36, hoehe: 26, farbe: 0.9, tempo: 0.5, schwingen: 0.24,
+  klar: 1, ruhe: 1, fuellung: 1, rand: 0.8, art: 1,
 }
 
-/**
- * Nach Apples Leiste aus iOS 26 (Bildschirmaufnahme vom iPhone): in Ruhe eine
- * graue, gefüllte Kapsel so breit wie der Reiter; gedrückt eine KLARE Linse,
- * die oben und unten über die Leiste ragt, die Leiste samt Rand darin leicht
- * vergrößert, eine helle Kante mit Regenbogen an den Enden.
- */
-export const LINSE_APPLE: LinsenWerte = {
-  zoom: 1.08, heben: 0, wachsen: 36, hoehe: 26, farbe: 0.9, tempo: 0.5, schwingen: 0.24,
-  klar: 1, ruhe: 1, fuellung: 1, rand: 0.8, art: 2,
-}
+/** Früherer Name des Standards. */
+export const LINSE_APPLE = LINSE_STANDARD
 export const LINSE_GRENZEN: Record<keyof LinsenWerte, { min: number; max: number; schritt: number }> = {
   zoom: { min: 1, max: 1.8, schritt: 0.02 },
   heben: { min: 0, max: 30, schritt: 1 },
@@ -69,7 +68,7 @@ export const LINSE_GRENZEN: Record<keyof LinsenWerte, { min: number; max: number
   art: { min: 1, max: 2, schritt: 1 },
 }
 
-const SCHLUESSEL = 'tyd_linse_2'
+const SCHLUESSEL = 'tyd_linse_3'
 
 const begrenzt = (v: unknown, g: { min: number; max: number }, ersatz: number) =>
   typeof v === 'number' && Number.isFinite(v) ? Math.min(g.max, Math.max(g.min, v)) : ersatz

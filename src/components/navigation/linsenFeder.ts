@@ -32,6 +32,8 @@ export interface LinsenMasse {
   wachsen: number; hoehe: number; heben: number; zoom: number
   /** Brechung am Rand, 0–1 (--linse-rand) */
   rand?: number
+  /** Größe eines Gerätepixels in CSS-px: in Ruhe rastet die Pille darauf ein */
+  raster?: number
 }
 
 /**
@@ -100,11 +102,15 @@ export function linsenBild(s: LinsenStand, m: LinsenMasse) {
   const dehnen = Math.min(0.22, Math.abs(s.vx) / 2200)
   const sx = (m.w0 > 0 ? (s.w + m.wachsen * t) / m.w0 : 1) * (1 + dehnen)
   const sy = (m.h0 > 0 ? (m.h0 + m.hoehe * t) / m.h0 : 1) * (1 - dehnen * 0.5)
-  const cx = s.x + s.w / 2
-  const tx = cx - m.w0 / 2
+  const mitte = s.x + s.w / 2
   const ty = -m.heben * t
   const z = 1 + (m.zoom - 1) * t
   const glatt = Math.abs(sx - 1) < 1e-4 && Math.abs(sy - 1) < 1e-4 && Math.abs(ty) < 1e-3
+  // In Ruhe genau auf Gerätepixel: sonst rundet der Browser Pille, Kopie und
+  // echte Symbole verschieden, und beim Scrollen zucken die Symbole.
+  let tx = mitte - m.w0 / 2
+  if (glatt && m.raster) tx = Math.round(tx / m.raster) * m.raster
+  const cx = tx + m.w0 / 2
   const pille = glatt ? `translateX(${px(tx)})` : `translateX(${px(tx)}) translateY(${px(ty)}) scale(${zahl(sx)}, ${zahl(sy)})`
   const bx = m.w0 / 2 - (z / sx) * cx
   const by = m.h0 / 2 + m.einzug - (z / sy) * (m.einzug + m.h0 / 2 + ty)
@@ -127,18 +133,18 @@ const masken = new Map<string, string>()
  * Maske eines Rings an der Innenkante einer Kapsel (w × h), `breite` px
  * breit, weich auslaufend. Als SVG-Bild, einmal je Größe gerechnet.
  */
-export function saumMaske(w: number, h: number, breite: number): string {
-  const key = `${Math.round(w)}|${Math.round(h)}|${breite}`
+export function saumMaske(w: number, h: number, breite: number, rund = h / 2): string {
+  const key = `${Math.round(w)}|${Math.round(h)}|${breite}|${Math.round(rund)}`
   const fertig = masken.get(key)
   if (fertig) return fertig
   const b = breite
-  const kapsel = (x: number, y: number, kw: number, kh: number) => {
-    const kr = Math.max(0, kh / 2)
+  const kapsel = (x: number, y: number, kw: number, kh: number, kr0: number) => {
+    const kr = Math.max(0, Math.min(kh / 2, kw / 2, kr0))
     return `M${x + kr},${y}H${x + kw - kr}A${kr},${kr} 0 0 1 ${x + kw - kr},${y + kh}H${x + kr}A${kr},${kr} 0 0 1 ${x + kr},${y}Z`
   }
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}' viewBox='0 0 ${w} ${h}'>`
     + `<defs><filter id='f' x='-10%' y='-10%' width='120%' height='120%'><feGaussianBlur stdDeviation='${Math.max(0.6, b / 4)}'/></filter></defs>`
-    + `<path fill-rule='evenodd' fill='#000' filter='url(#f)' d='${kapsel(-2, -2, w + 4, h + 4)}${kapsel(b, b, Math.max(0, w - 2 * b), Math.max(0, h - 2 * b))}'/>`
+    + `<path fill-rule='evenodd' fill='#000' filter='url(#f)' d='${kapsel(-2, -2, w + 4, h + 4, rund + 2)}${kapsel(b, b, Math.max(0, w - 2 * b), Math.max(0, h - 2 * b), Math.max(0, rund - b))}'/>`
     + `</svg>`
   const url = `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
   masken.set(key, url)

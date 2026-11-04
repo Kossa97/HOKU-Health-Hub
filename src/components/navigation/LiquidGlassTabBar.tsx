@@ -233,8 +233,11 @@ export function LiquidGlassTabBar({
   /** Breite der Pille auf einem Platz: schmal (pillenBreite) bis fast so breit wie der Reiter. */
   function breiteFuer(platzBreite: number) {
     const schmal = pillenBreite(platzBreite)
-    const breit = Math.max(schmal, platzBreite - 4)
-    return schmal + (breit - schmal) * ruheRef.current
+    // Breit füllt sie den ganzen Reiter: die Leiste hat seitlich denselben
+    // Einzug wie oben und unten, so läuft die Kapsel am äußeren Reiter parallel
+    // zur Rundung der Leiste.
+    const breit = Math.max(schmal, platzBreite)
+    return Math.round(schmal + (breit - schmal) * ruheRef.current)
   }
 
   /** Wo die Pille steht, wenn sie auf einem Platz eingerastet ist. */
@@ -242,7 +245,7 @@ export function LiquidGlassTabBar({
     const platz = id ? plaetzeRef.current.find(p => p.id === id) : undefined
     if (!platz || !kapselBreite) return null
     const breite = breiteFuer(platz.breite)
-    return { links: platz.links + (platz.breite - breite) / 2, breite, kapselBreite, frei: false }
+    return { links: Math.round(platz.links + (platz.breite - breite) / 2), breite, kapselBreite, frei: false }
   }
 
   /** Liest Größe und Stärke der Linse (die --linse-* Variablen, src/lib/linse.ts). */
@@ -260,12 +263,16 @@ export function LiquidGlassTabBar({
         abbild.style.backgroundImage = k.backgroundImage
         abbild.style.backgroundColor = k.backgroundColor
         abbild.style.boxShadow = k.boxShadow
+        abbild.style.borderRadius = k.borderTopLeftRadius
+        if (abbild.parentElement) abbild.parentElement.style.borderRadius = k.borderTopLeftRadius
       }
     }
+    // Rundung der Linse (--linse-rund; im eckigen Labor klein), am Ring gemessen
+    const rund = ringRef.current ? parseFloat(getComputedStyle(ringRef.current).borderTopLeftRadius) || el.offsetHeight / 2 : el.offsetHeight / 2
     // Die Ringe der Randbrechung: Maske in der Größe der ungewachsenen Pille
     saumRefs.current.forEach((saum, i) => {
       if (!saum || !w0 || !el.offsetHeight) return
-      const maske = saumMaske(w0, el.offsetHeight, SAEUME[i].breite)
+      const maske = saumMaske(w0, el.offsetHeight, SAEUME[i].breite, rund)
       saum.style.maskImage = maske
       saum.style.setProperty('-webkit-mask-image', maske)
     })
@@ -277,7 +284,9 @@ export function LiquidGlassTabBar({
       filterRef.current.id = brechungsFilter(w0, h0, {
         tiefe: Math.round(4 + 8 * rand),
         weite: rand * 0.3 * h0,
-        farbe: 1.5 * zahl('--linse-farbe', 0),
+        // schlank: ohne Farbsaum je Kanal (den trägt der Glasrand)
+        farbe: 0,
+        rund,
         alt: filterRef.current.id,
       })
       filterRef.current.an = false
@@ -292,6 +301,7 @@ export function LiquidGlassTabBar({
       wachsen: zahl('--linse-wachsen', 0), hoehe: zahl('--linse-hoehe', 0),
       heben: zahl('--linse-heben', 0), zoom: zahl('--linse-zoom', 1),
       rand: zahl('--linse-rand', 0),
+      raster: 1 / (window.devicePixelRatio || 1),
     }
   }
 
@@ -309,7 +319,12 @@ export function LiquidGlassTabBar({
     for (const saum of saumRefs.current) if (saum) saum.style.opacity = String(b.glas)
     if (b.linse) el.setAttribute('data-linse', 'true')
     else el.removeAttribute('data-linse')
-    setzeFilter(b.linse)
+    // Glisse nur, solange ein Finger liegt (beim Gleiten allein zu teuer)
+    setzeFilter(b.linse && (zielRef.current.gehalten || zielRef.current.frei))
+    // In Ruhe deckt die farbige Kopie das aktive Symbol ganz: das graue
+    // Original darunter wird ausgeblendet, damit nichts doppelt flimmert.
+    const ruht = !b.linse && s.vx === 0 && s.vw === 0 && !zielRef.current.frei && !fahrtRef.current
+    kapselRef.current?.toggleAttribute('data-ruhig', ruht)
   }
 
   /** Hängt den Glisse-Filter an die Kopie, solange die Linse groß ist. */
@@ -353,9 +368,10 @@ export function LiquidGlassTabBar({
     const optionen: KeyframeAnimationOptions = { duration: dauer, easing: 'linear', fill: 'forwards' }
     const anim: Animation[] = []
     const el = pilleRef.current!
+    kapselRef.current?.removeAttribute('data-ruhig')
     if (bilder.some(b => b.linse)) {
       el.setAttribute('data-linse', 'true')
-      setzeFilter(true)
+      setzeFilter(z.gehalten)
     }
     anim.push(el.animate(bilder.map(b => ({ transform: b.pille })), optionen))
     if (kopieRef.current) anim.push(kopieRef.current.animate(bilder.map(b => ({ transform: b.kopie })), optionen))
@@ -598,6 +614,7 @@ export function LiquidGlassTabBar({
               <div ref={abbildRef} className="tyd-tabbar-linse-abbild">
                 <div ref={abbildGlasRef} className="tyd-tabbar-linse-abbild-glas" />
                 <span className="tyd-tabbar-linse-tor" />
+                    <canvas className="tyd-dot-torbild tyd-tabbar-linse-torbild" />
               </div>
               {symbolKopie()}
             </div>
@@ -609,6 +626,7 @@ export function LiquidGlassTabBar({
                   <div className="tyd-tabbar-linse-abbild">
                     <div className="tyd-tabbar-linse-abbild-glas" />
                     <span className="tyd-tabbar-linse-tor" />
+                    <canvas className="tyd-dot-torbild tyd-tabbar-linse-torbild" />
                   </div>
                   {symbolKopie()}
                 </div>

@@ -67,7 +67,17 @@ export interface DotLeiste {
   spalt: HTMLElement | null
   /** Das Tor in den Abbildern der Leiste in der Glaslinse; bewegt sich mit dem echten. */
   spaltKopie?: () => Iterable<HTMLElement>
+  /**
+   * Die Zeichenfläche für Torschein und Torkanten IN der Leiste (unter der
+   * Glaslinse) und ihre Kopien in der Linse. Gibt es sie, malt Hoku das Tor
+   * dort statt auf seiner eigenen Ebene — so verzerrt die Linse es mit.
+   */
+  torBild?: () => { haupt: HTMLCanvasElement | null; kopien: Iterable<HTMLCanvasElement> }
 }
+
+/** Platz der Tor-Zeichenfläche über und unter der Oberkante der Leiste (px). */
+export const TOR_OBEN = 56
+export const TOR_UNTEN = 6
 
 export interface DotHost {
   canvas: HTMLCanvasElement
@@ -290,6 +300,8 @@ export function createDot(host: DotHost): DotApi {
 
   /* ── Geometrie der Umgebung ───────────────────────────────────────────── */
   let W = 0, H = 0, dpr = 1, CR = 0, TAB = 0, CAPX = 0, OBEN = 0
+  /** Ist die Tor-Zeichenfläche in der Leiste gerade leer (Tor zu)? */
+  let torLeer = false
   let ENT = { x: window.innerWidth / 2, w: 44 }
   let CAP: Kapsel = { l: 0, r: 0, t: 0, b: 0 }
   let PLUS: Knopf | null = null
@@ -1412,27 +1424,55 @@ export function createDot(host: DotHost): DotApi {
     // Der Strahl gehört zur Leiste: über dem Chat (Bühne) und unter einem Blatt
     // oder Dialog (er tritt zurück) liegt die Zeichenfläche über dem Fenster
     const frei = B.mode === 'stage' ? 0 : 1 - B.recede
-    if (open < 0.01 || !navOn() || frei < 0.02) return
+    const zu = open < 0.01 || !navOn() || frei < 0.02
+    // Hat die Leiste eine eigene Tor-Zeichenfläche, malt Hoku dorthin
+    const tor = leiste?.torBild?.()
+    const haupt = tor?.haupt ?? null
+    let c: CanvasRenderingContext2D = ctx
+    if (haupt) {
+      if (zu && torLeer) return
+      const cw = Math.max(1, Math.round((CAP.r - CAP.l) * dpr)), ch = Math.round((TOR_OBEN + TOR_UNTEN) * dpr)
+      if (haupt.width !== cw || haupt.height !== ch) { haupt.width = cw; haupt.height = ch }
+      const hc = haupt.getContext('2d')
+      if (!hc) return
+      hc.setTransform(1, 0, 0, 1, 0, 0)
+      hc.clearRect(0, 0, cw, ch)
+      if (zu) { torLeer = true; kopiereTor(haupt, tor!.kopien); return }
+      torLeer = false
+      hc.setTransform(dpr, 0, 0, dpr, -CAPX * dpr, (TOR_OBEN - TAB) * dpr)
+      c = hc
+    } else if (zu) return
     const a = frei * clamp01(open * (0.75 + 0.08 * Math.sin(t * 2.1) + 0.3 * B.near) + B.doorFlash * 0.35)
     const ex = ENT.x, bh = (26 + 14 * B.near + 10 * B.doorFlash) * open
-    ctx.globalCompositeOperation = 'lighter'
-    ctx.save(); ctx.translate(ex, TAB); ctx.scale(ow * 0.62 + 4, bh)
-    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1)
+    c.globalCompositeOperation = 'lighter'
+    c.save(); c.translate(ex, TAB); c.scale(ow * 0.62 + 4, bh)
+    const g = c.createRadialGradient(0, 0, 0, 0, 0, 1)
     g.addColorStop(0, `rgba(110,220,255,${(0.16 * a).toFixed(3)})`); g.addColorStop(1, 'rgba(110,220,255,0)')
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 1, Math.PI, TAU); ctx.fill(); ctx.restore()
+    c.fillStyle = g; c.beginPath(); c.arc(0, 0, 1, Math.PI, TAU); c.fill(); c.restore()
     if (ow > 4) for (let i = 0; i < 5; i++) {
       const u = (i + 0.5) / 5 - 0.5, x = ex + u * ow * 0.8 + Math.sin(t * 0.9 + i * 2.3) * 1.5
       const len = bh * (0.9 + 0.5 * Math.sin(t * 1.3 + i * 1.7)), lean = u * 6
-      const gr = ctx.createLinearGradient(0, TAB, 0, TAB - len)
+      const gr = c.createLinearGradient(0, TAB, 0, TAB - len)
       gr.addColorStop(0, `rgba(170,240,255,${(0.2 * a).toFixed(3)})`); gr.addColorStop(1, 'rgba(170,240,255,0)')
-      ctx.strokeStyle = gr; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, TAB - 0.5); ctx.lineTo(x + lean, TAB - len); ctx.stroke()
+      c.strokeStyle = gr; c.lineWidth = 1; c.beginPath(); c.moveTo(x, TAB - 0.5); c.lineTo(x + lean, TAB - len); c.stroke()
     }
-    ctx.lineWidth = 1.2; ctx.lineCap = 'round'; ctx.strokeStyle = `rgba(200,245,255,${(0.55 * a).toFixed(3)})`
+    c.lineWidth = 1.2; c.lineCap = 'round'; c.strokeStyle = `rgba(200,245,255,${(0.55 * a).toFixed(3)})`
     for (const sd of [-1, 1]) {
       const x0 = ex + (sd * ow) / 2
-      ctx.beginPath(); ctx.moveTo(x0 + sd * 7, TAB + 0.3); ctx.quadraticCurveTo(x0 + sd * 1.5, TAB + 0.3, x0, TAB - 2.2 * open); ctx.stroke()
+      c.beginPath(); c.moveTo(x0 + sd * 7, TAB + 0.3); c.quadraticCurveTo(x0 + sd * 1.5, TAB + 0.3, x0, TAB - 2.2 * open); c.stroke()
     }
-    ctx.globalCompositeOperation = 'source-over'
+    c.globalCompositeOperation = 'source-over'
+    if (haupt) kopiereTor(haupt, tor!.kopien)
+  }
+  /** Das Torbild in die Kopien der Leiste in der Glaslinse übertragen. */
+  function kopiereTor(quelle: HTMLCanvasElement, kopien: Iterable<HTMLCanvasElement>) {
+    for (const k of kopien) {
+      if (k.width !== quelle.width || k.height !== quelle.height) { k.width = quelle.width; k.height = quelle.height }
+      const kc = k.getContext('2d')
+      if (!kc) continue
+      kc.clearRect(0, 0, k.width, k.height)
+      kc.drawImage(quelle, 0, 0)
+    }
   }
   // Die Mitte der Statusleiste leuchtet an der Berührstelle, wie die Leiste unten
   function drawInselGlow() {

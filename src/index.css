@@ -1070,6 +1070,13 @@ main.flex-1 {
    steigt darüber, damit das X sichtbar und drückbar bleibt. */
 .tyd-tabdock[data-open='true'] { z-index: 47; }
 .tyd-tabdock-action {
+  /* Ein runder Glasknopf wie bei Apple: dasselbe Glas wie die Leiste (das
+     überträgt BottomNavigation je Look), das Plus in der Akzentfarbe. */
+  position: relative;
+  color: var(--tabbar-aktiv);
+  background: var(--glass-bg, rgb(var(--ink-rgb) / 0.08));
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  backdrop-filter: blur(20px) saturate(1.6);
   flex: none;
   width: var(--bottom-nav-capsule);
   height: var(--bottom-nav-capsule);
@@ -1266,7 +1273,22 @@ main.flex-1 {
    bei echter Brechung.
    Kante: `--glas-kante` ist ein gerechnetes Bild (src/lib/glasKante.ts) —
    gewölbte Fase, die oben links glänzt. Nur in den Glas-Looks. */
-:root { --linse-zoom: 1.32; --linse-heben: 0px; --linse-wachsen: 30px; --linse-hoehe: 12px; --linse-farbe: 0.5; --linse-klar: 0; --linse-ruhe: 0; --linse-fuellung: 0; --linse-rand: 0; }
+:root { --linse-zoom: 1.08; --linse-heben: 0px; --linse-wachsen: 36px; --linse-hoehe: 26px; --linse-farbe: 0.9; --linse-klar: 1; --linse-ruhe: 1; --linse-fuellung: 1; --linse-rand: 0.8; --linse-art: 1;
+  /* Navbar im Apple-Stil, für alle Looks gleich; ein Look pflegt nur diese
+     Werte, wenn er abweichen will (liquid-glass.css):
+     --tabbar-kapsel / -kante  Füllung und Kante der ruhenden Kapsel
+     --tabbar-aktiv            Farbe des aktiven Symbols und des Plus
+     --tabbar-rund             Rundung der Leiste (Kapsel: halbe Höhe)
+     --linse-rund              Rundung der Linse */
+  --tabbar-kapsel: rgb(var(--ink-rgb) / 0.15);
+  --tabbar-kapsel-kante: inset 0 0.5px 0 rgb(var(--ink-rgb) / 0.12);
+  --tabbar-aktiv: var(--accent);
+  --tabbar-rund: calc(var(--bottom-nav-capsule) / 2);
+  --linse-rund: 999px;
+}
+/* Seitlich derselbe Einzug wie oben und unten: so liegt die Kapsel am
+   äußeren Reiter parallel zur Rundung der Leiste. */
+.tyd-tabdock .tyd-tabbar { padding-inline: var(--bottom-nav-pill-inset); }
 .tyd-tabbar .tyd-tabbar-pill.tyd-tabbar-pill {
   /* Über den echten Symbolen (die liegen auf z-index 1); fängt keine Finger */
   z-index: 2;
@@ -1278,13 +1300,18 @@ main.flex-1 {
   transform-origin: 50% 50%;
   scale: none;
   will-change: transform;
+  /* Aussehen kommt aus den Navbar-Werten (::before), nicht aus alten Pillen-Regeln */
+  background: none;
+  box-shadow: none;
+  /* konzentrisch zur Leiste: deren Rundung minus Einzug */
+  border-radius: max(3px, calc(var(--tabbar-rund) - var(--bottom-nav-pill-inset)));
 }
 /* Das deckende Glas der Linse; blendet mit ihrer Größe ein (opacity). */
 .tyd-tabbar-linse-glas,
 .tyd-tabbar-linse-ring {
   position: absolute;
   inset: 0;
-  border-radius: 999px;
+  border-radius: var(--linse-rund);
   pointer-events: none;
   opacity: 0;
 }
@@ -1375,7 +1402,7 @@ main.flex-1 {
   bottom: 0;
   display: grid;
   place-items: center;
-  color: var(--accent);
+  color: var(--tabbar-aktiv);
 }
 /* Die echten Symbole bleiben grau, solange die Pille die Farbe trägt — auch in
    Looks, die den aktiven Reiter einfärben oder leuchten lassen. */
@@ -1386,15 +1413,18 @@ main.flex-1 {
 .tyd-tabbar[data-farbe-in-pille='true'] .tyd-tabbar-item:is([aria-current='page'], [data-tyd-nah='true']) svg { filter: none !important; }
 /* Als Linse (groß, solange ein Finger liegt oder sie noch gleitet): rund wie
    eine Kapsel, auch in Looks mit eckiger Pille. */
-.tyd-tabbar .tyd-tabbar-pill.tyd-tabbar-pill[data-linse='true'] { border-radius: 999px; }
+.tyd-tabbar .tyd-tabbar-pill.tyd-tabbar-pill[data-linse='true'] { border-radius: var(--linse-rund); }
+/* In Ruhe deckt die farbige Kopie das aktive Symbol ganz; das graue Original
+   darunter wird ausgeblendet, sonst flimmern beide beim Scrollen gegeneinander. */
+.tyd-tabbar[data-ruhig] .tyd-tabbar-item[aria-current='page'] > svg { opacity: 0; }
 /* Ruhend als graue, gefüllte Kapsel wie bei Apple (--linse-fuellung). */
 .tyd-tabbar .tyd-tabbar-pill.tyd-tabbar-pill::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: rgb(var(--ink-rgb) / 0.15);
-  box-shadow: inset 0 0.5px 0 rgb(var(--ink-rgb) / 0.12);
+  background: var(--tabbar-kapsel);
+  box-shadow: var(--tabbar-kapsel-kante);
   opacity: var(--linse-fuellung);
   pointer-events: none;
 }

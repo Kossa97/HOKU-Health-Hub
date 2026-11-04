@@ -10,7 +10,7 @@ import { LANGUAGES, setLanguage, type LanguageCode } from '../i18n'
 import { useLook, type Look } from '../lib/look'
 import { HokuEintrag } from '../features/dot/HokuEintrag'
 import { requestTilt, setTiltWanted, tiltWanted } from '../lib/flashlight'
-import { LINSE_APPLE, LINSE_GRENZEN, LINSE_STANDARD, useLinse, type LinsenWerte } from '../lib/linse'
+import { LINSE_GRENZEN, LINSE_STANDARD, useLinse, type LinsenWerte } from '../lib/linse'
 import { GlassSegmented, type SegmentOption } from '../components/ui/GlassSegmented'
 import { Schalter } from '../components/ui/Schalter'
 import { usePushNotifications } from '../lib/usePushNotifications'
@@ -632,7 +632,7 @@ function LinsenTest() {
         <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', alignItems: 'center', gap: 10, minHeight: 44 }}>
           <span style={{ fontSize: 15 }}>Brechung als</span>
           <div style={{ display: 'flex', gap: 8 }} role="radiogroup" aria-label="Brechung als">
-            {([[1, 'Ringe'], [2, 'Glisse']] as const).map(([art, name]) => (
+            {([[1, 'Ringe'], [2, 'Glisse (Archiv)']] as const).map(([art, name]) => (
               <button
                 key={art}
                 type="button"
@@ -647,11 +647,8 @@ function LinsenTest() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-          <button type="button" className="lg-btn lg-btn-glass lg-btn-compact" onClick={() => setze({ ...LINSE_APPLE })}>
-            Apple
-          </button>
           <button type="button" className="lg-btn lg-btn-glass lg-btn-compact" onClick={() => setze({ ...LINSE_STANDARD })}>
-            HOKU (Standard)
+            Zurücksetzen (Apple)
           </button>
         </div>
       </div>

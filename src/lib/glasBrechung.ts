@@ -127,14 +127,20 @@ let gebaut = 0
  * heranzieht (px), `farbe` wie weit die Farbkanäle auseinanderlaufen.
  * Jeder Aufruf mit neuen Werten baut einen neuen Filter (WebKit merkt sich
  * sonst das alte Ergebnis); der vorige wird entfernt.
+ *
+ * ARCHIV: in der App ausgeschaltet (Schalter nur auf dem Test-Zweig). Auf dem
+ * iPhone ruckelte es beim Halten und Wischen — der Filter rechnet jedes Bild
+ * neu. Die schlanke Fassung (farbe 0) und „nur solange der Finger hält“ sind
+ * die Optimierungen, die zuletzt versucht wurden.
  */
 export function brechungsFilter(
-  w: number, h: number, o: { tiefe: number; weite: number; farbe: number; alt?: string | null },
+  w: number, h: number, o: { tiefe: number; weite: number; farbe: number; rund?: number; alt?: string | null },
 ): string | null {
   if (!w || !h) return null
   const dichte = Math.min(window.devicePixelRatio || 1, 2)
-  const bilder = alsBilder(`${Math.round(w)}|${Math.round(h)}|${o.tiefe}|${dichte}`,
-    () => brechungsPixel(w, h, h / 2, o.tiefe, dichte))
+  const rund = Math.min(h / 2, o.rund ?? h / 2)
+  const bilder = alsBilder(`${Math.round(w)}|${Math.round(h)}|${Math.round(rund)}|${o.tiefe}|${dichte}`,
+    () => brechungsPixel(w, h, rund, o.tiefe, dichte))
   if (!bilder) return null
   const box = inBox()
   const einheit = box ? 'objectBoundingBox' : 'userSpaceOnUse'
@@ -152,6 +158,20 @@ export function brechungsFilter(
     const halb = el('feComponentTransfer', { in: `${r}-grau`, result: `${r}-zug` })
     halb.append(el('feFuncA', { type: 'linear', slope: 0, intercept: 0.5 }))
     f.append(halb)
+  }
+  // Schlank (ohne Farbsaum): eine Verschiebung statt drei je Farbkanal —
+  // ein Drittel der Arbeit je Bild. Den Farbsaum trägt dann der Glasrand.
+  if (o.farbe <= 0.01) {
+    f.append(
+      el('feDisplacementMap', { in: 'SourceGraphic', in2: 'quer-zug', scale: box ? o.weite / w : o.weite, xChannelSelector: 'R', yChannelSelector: 'A', result: 'strahl-q' }),
+      el('feDisplacementMap', { in: 'strahl-q', in2: 'hoch-zug', scale: box ? o.weite / h : o.weite, xChannelSelector: 'A', yChannelSelector: 'R', result: 'gebrochen' }),
+      el('feComposite', { in: 'gebrochen', in2: 'bereich', operator: 'in', result: 'innen' }),
+      el('feComposite', { in: 'SourceGraphic', in2: 'bereich', operator: 'out', result: 'aussen' }),
+      el('feComposite', { in: 'innen', in2: 'aussen', operator: 'arithmetic', k2: 1, k3: 1 }),
+    )
+    if (o.alt) document.getElementById(o.alt)?.remove()
+    defs().append(f)
+    return id
   }
   const spektrum = [1 + 0.2 * o.farbe, 1 + 0.1 * o.farbe, 1]
   KANAELE.forEach((kanal, i) => {
