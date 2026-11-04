@@ -2782,5 +2782,11 @@
   "nutr_gain_fills": "fills {{name}}",
   "nutr_gain_pct": "+{{pct}} % {{name}}",
   "nutr_nut_goals_title": "Nutrient goals",
-  "nutr_nut_goals_hint": "Reference values for your age and sex apply. To set your own goal, go to “Today”, tap a nutrient, then “Your goal”."
+  "nutr_nut_goals_hint": "Reference values for your age and sex apply. To set your own goal, go to “Today”, tap a nutrient, then “Your goal”.",
+  "nutr_nut_from_stack": "{{value}} {{unit}} from your stack",
+  "nutr_nut_stack_row": "from your stack",
+  "nutr_hoku_gap_one": "You’re still short on {{a}} today.",
+  "nutr_hoku_gap_two": "You’re still short on {{a}} and {{b}} today.",
+  "nutr_hoku_tip_one": "Good for {{name}}: {{food}}.",
+  "nutr_hoku_tip_both": "{{food}} covers both nicely."
 }

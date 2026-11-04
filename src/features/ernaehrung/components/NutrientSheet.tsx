@@ -7,6 +7,7 @@ import { NutrientBar } from './NutrientList'
 import { type NutrientId, type NutrientStatus, type OwnGoals, formatAmount, referenceValue, type TargetContext } from '../lib/nutrientTargets'
 import type { LogEntry } from '../lib/nutrition'
 import { topSources } from '../services/foodCatalog'
+import type { StackPart } from '../lib/stackMicros'
 import { DIM, MUTED } from '../styles'
 
 /** Wert eines Nährstoffs in einem Eintrag (Makro-Spalte oder Mikronährstoff). */
@@ -28,11 +29,13 @@ function stepFor(ref: number): number {
  * Ein Nährstoff im Detail: heute, woher, gute Quellen, Richtwert, Obergrenze, eigenes Ziel.
  * Das eigene Ziel wird mit „Speichern“ zu den Zielen gelegt; „Auf Richtwert“ entfernt es.
  */
-export function NutrientSheet({ status, ctx, own, entries, busy, onSaveOwn, onBack, onClose }: {
+export function NutrientSheet({ status, ctx, own, entries, stackParts, busy, onSaveOwn, onBack, onClose }: {
   status: NutrientStatus
   ctx: TargetContext
   own: OwnGoals
   entries: readonly LogEntry[]
+  /** Supplements aus My Stack, die heute genommen wurden. */
+  stackParts: readonly StackPart[]
   busy: boolean
   onSaveOwn: (goals: OwnGoals) => Promise<boolean> | void
   onBack: () => void
@@ -59,6 +62,7 @@ export function NutrientSheet({ status, ctx, own, entries, busy, onSaveOwn, onBa
     .filter((x): x is { e: LogEntry; v: number } => x.v != null && x.v > 0)
     .sort((a, b) => b.v - a.v)
     .slice(0, 6)
+  const fromStack = stackParts.filter(p => p.key === id && p.amount > 0)
   const fmt = (v: number) => formatAmount(v, i18n.language)
   const changed = Math.abs(goal - status.target) > 1e-9
   const isOwn = own[id] != null
@@ -95,8 +99,17 @@ export function NutrientSheet({ status, ctx, own, entries, busy, onSaveOwn, onBa
 
       <section aria-labelledby="nutr-nut-from" className="mt-4">
         <h3 id="nutr-nut-from" className="px-1 pb-1.5 text-[13px] font-semibold text-[var(--lg-text-2)]">{t('nutr_nut_from')}</h3>
-        {from.length ? (
+        {from.length || fromStack.length ? (
           <ul className="rounded-[18px] bg-[var(--lg-surface-2)] px-4">
+            {fromStack.map((p, i) => (
+              <li key={`stack-${i}-${p.item}`} className="flex min-h-12 items-center gap-3 border-b border-[var(--lg-separator)] py-2 last:border-0">
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[15px] text-[var(--lg-text)]">{p.item}</span>
+                  <span className="block text-[12px] text-[var(--lg-accent-text)]">{t('nutr_nut_stack_row')}</span>
+                </span>
+                <span className="shrink-0 text-[15px] font-semibold tabular-nums text-[var(--lg-text)]">{fmt(p.amount)} {unit}</span>
+              </li>
+            ))}
             {from.map(({ e, v }) => (
               <li key={e.id} className="flex min-h-12 items-center gap-3 border-b border-[var(--lg-separator)] py-2 last:border-0">
                 <span className="min-w-0 flex-1">

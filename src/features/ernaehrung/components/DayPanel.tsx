@@ -17,7 +17,7 @@ export type DayTab = 'today' | 'goals'
  * will — beide in derselben Reihenfolge, damit man jeden Wert an derselben
  * Stelle wiederfindet.
  */
-export function DayPanel({ tab, onTab, dayLabel, total, waterMl, goals, activity, nutrients, dayDone, userId, today, busy, onSaveGoals, onOpenActivity, onOpenNutrient, onClose }: {
+export function DayPanel({ tab, onTab, dayLabel, total, waterMl, goals, activity, nutrients, dayDone, hokuLine, userId, today, busy, onSaveGoals, onOpenActivity, onOpenNutrient, onClose }: {
   tab: DayTab
   onTab: (tab: DayTab) => void
   /** „Heute, 3. Nov.“ — der Tag, der gerade oben steht. */
@@ -28,6 +28,8 @@ export function DayPanel({ tab, onTab, dayLabel, total, waterMl, goals, activity
   activity: { active: number; bonus: number }
   nutrients: readonly NutrientStatus[]
   dayDone: boolean
+  /** Hokus Satz zu den Lücken (leer = keiner). */
+  hokuLine: string
   userId: string
   today: string
   busy: boolean
@@ -65,7 +67,7 @@ export function DayPanel({ tab, onTab, dayLabel, total, waterMl, goals, activity
       {/* Beide Reiter bleiben stehen (der inaktive verborgen): ungespeicherte Ziele gehen beim Umschalten nicht verloren. */}
       <div role="tabpanel" id="nutr-day-panel-today" aria-labelledby="nutr-day-tab-today" hidden={tab !== 'today'}>
         <TodayView total={total} waterMl={waterMl} goals={goals} activity={activity} onEditGoals={() => onTab('goals')} onOpenActivity={onOpenActivity} />
-        <div className="mt-4"><NutrientList list={nutrients} dayDone={dayDone} onOpen={onOpenNutrient} /></div>
+        <div className="mt-4"><NutrientList list={nutrients} dayDone={dayDone} hokuLine={hokuLine} onOpen={onOpenNutrient} /></div>
       </div>
       <div role="tabpanel" id="nutr-day-panel-goals" aria-labelledby="nutr-day-tab-goals" hidden={tab !== 'goals'}>
         <GoalsForm key={goalsKey} userId={userId} today={today} current={goals} busy={busy} onSave={onSaveGoals} onCancel={() => { setGoalsKey(k => k + 1); onTab('today') }} />

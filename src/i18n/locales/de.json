@@ -3016,5 +3016,11 @@
   "nutr_gain_fills": "füllt {{name}}",
   "nutr_gain_pct": "+{{pct}} % {{name}}",
   "nutr_nut_goals_title": "Nährstoff-Ziele",
-  "nutr_nut_goals_hint": "Es gelten die Richtwerte für dein Alter und Geschlecht. Ein eigenes Ziel setzt du unter „Heute“: Nährstoff antippen, dann „Dein Ziel“."
+  "nutr_nut_goals_hint": "Es gelten die Richtwerte für dein Alter und Geschlecht. Ein eigenes Ziel setzt du unter „Heute“: Nährstoff antippen, dann „Dein Ziel“.",
+  "nutr_nut_from_stack": "davon {{value}} {{unit}} aus deinem Stack",
+  "nutr_nut_stack_row": "aus deinem Stack",
+  "nutr_hoku_gap_one": "{{a}} fehlt dir heute noch.",
+  "nutr_hoku_gap_two": "{{a}} und {{b}} fehlen dir heute noch.",
+  "nutr_hoku_tip_one": "Für {{name}} gut: {{food}}.",
+  "nutr_hoku_tip_both": "{{food}} füllt beides gut auf."
 }

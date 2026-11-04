@@ -8,10 +8,11 @@ import { MUTED } from '../styles'
  * Nährstoffe des Tages in „Dein Tag → Heute“: Lücken zuerst, darunter die Gruppen
  * (zugeklappt, damit das Blatt kurz bleibt). Eine Zeile antippen öffnet den Wert.
  */
-export function NutrientList({ list, dayDone, onOpen }: {
+export function NutrientList({ list, dayDone, hokuLine, onOpen }: {
   list: readonly NutrientStatus[]
   /** Tag weit genug für Lücken (vergangener Tag oder 70 % des Ziels gegessen). */
   dayDone: boolean
+  hokuLine: string
   onOpen: (id: NutrientId) => void
 }) {
   const { t } = useTranslation()
@@ -32,6 +33,14 @@ export function NutrientList({ list, dayDone, onOpen }: {
 
       {!dayDone && known.length > 0 && (
         <p className={`rounded-[14px] bg-[var(--lg-surface-2)] px-4 py-3 text-[13px] leading-snug ${MUTED}`}>{t('nutr_nut_wait')}</p>
+      )}
+
+      {hokuLine && (
+        <div className="flex items-start gap-3 rounded-[18px] bg-[var(--lg-surface-2)] p-3.5">
+          <span aria-hidden="true" className="h-8 w-8 shrink-0 rounded-full"
+            style={{ background: 'radial-gradient(circle at 40% 35%, #9ff0ff, #00b8e6 55%, #5a3bd6)', boxShadow: '0 0 14px rgba(0,204,245,0.4)' }} />
+          <p className="min-w-0 flex-1 text-[14px] leading-snug text-[var(--lg-text)]"><span className="sr-only">Hoku: </span>{hokuLine}</p>
+        </div>
       )}
 
       {gaps.length > 0 && (
@@ -73,6 +82,7 @@ export function NutrientRow({ s, onOpen }: { s: NutrientStatus; onOpen: (id: Nut
   const { t, i18n } = useTranslation()
   const note = s.lowData && s.entries > 0
     ? t('nutr_nut_low_data', { known: s.known, count: s.entries })
+    : s.stack > 0 ? t('nutr_nut_from_stack', { value: formatAmount(s.stack, i18n.language), unit: s.def.unit })
     : s.own ? t('nutr_nut_own') : ''
   return (
     <li className="border-b border-[var(--lg-separator)] last:border-0">
@@ -80,7 +90,7 @@ export function NutrientRow({ s, onOpen }: { s: NutrientStatus; onOpen: (id: Nut
         className={`grid min-h-[52px] w-full grid-cols-[minmax(0,7.5rem)_minmax(0,1fr)_auto] items-center gap-3 py-1.5 text-left ${s.lowData ? 'opacity-60' : ''}`}>
         <span className="min-w-0">
           <span className="block truncate text-[15px] font-medium text-[var(--lg-text)]">{t(`nutr_n_${s.def.id}`)}</span>
-          {note && <span className={`block truncate text-[11px] ${s.own && !s.lowData ? 'text-[var(--lg-accent-text)]' : MUTED}`}>{note}</span>}
+          {note && <span className={`block truncate text-[11px] ${!s.lowData && (s.own || s.stack > 0) ? 'text-[var(--lg-accent-text)]' : MUTED}`}>{note}</span>}
         </span>
         <NutrientBar s={s} />
         <span className="whitespace-nowrap text-right text-[13px] tabular-nums text-[var(--lg-text-2)]">
