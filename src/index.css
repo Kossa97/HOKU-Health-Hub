@@ -1273,7 +1273,7 @@ main.flex-1 {
    bei echter Brechung.
    Kante: `--glas-kante` ist ein gerechnetes Bild (src/lib/glasKante.ts) —
    gewölbte Fase, die oben links glänzt. Nur in den Glas-Looks. */
-:root { --linse-zoom: 1.08; --linse-heben: 0px; --linse-wachsen: 36px; --linse-hoehe: 26px; --linse-farbe: 0.9; --linse-klar: 1; --linse-ruhe: 1; --linse-fuellung: 1; --linse-rand: 0.8; --linse-art: 1;
+:root { --linse-zoom: 1.08; --linse-heben: 0px; --linse-wachsen: 36px; --linse-hoehe: 40px; --linse-farbe: 0.1; --linse-klar: 1; --linse-ruhe: 1; --linse-fuellung: 1; --linse-rand: 1; --linse-art: 1;
   /* Navbar im Apple-Stil, für alle Looks gleich; ein Look pflegt nur diese
      Werte, wenn er abweichen will (liquid-glass.css):
      --tabbar-kapsel / -kante  Füllung und Kante der ruhenden Kapsel

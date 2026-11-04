@@ -50,10 +50,11 @@ export interface LinsenWerte {
  * Linse, die oben und unten über die Leiste ragt, die Leiste samt Rand darin
  * leicht vergrößert, eine helle Kante mit Regenbogen an den Enden und
  * Randbrechung in Ringen. Glisse (art 2) ist archiviert, nicht Standard.
+ * Werte vom Nutzer am iPhone eingestellt (2026-11-04).
  */
 export const LINSE_STANDARD: LinsenWerte = {
-  zoom: 1.08, heben: 0, wachsen: 36, hoehe: 26, farbe: 0.9, tempo: 0.5, schwingen: 0.24,
-  klar: 1, ruhe: 1, fuellung: 1, rand: 0.8, art: 1,
+  zoom: 1.08, heben: 0, wachsen: 36, hoehe: 40, farbe: 0.1, tempo: 0.6, schwingen: 0.3,
+  klar: 1, ruhe: 1, fuellung: 1, rand: 1, art: 1,
   saumAussenBreite: 3.5, saumAussen: 0.5, saumInnenBreite: 8, saumInnen: 0.22,
 }
 
