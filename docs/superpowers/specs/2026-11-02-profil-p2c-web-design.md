@@ -22,7 +22,7 @@ der App. **[Nutzer]**
 
 Erfolg: Mara teilt ihr Profil in WhatsApp. Die Karte zeigt ihr Bild, ihren Namen,
 „trackt 9 Werte“ und „über 30 %“ (Fortschrittskarte, 3.3). Ihr Freund ohne Hoku tippt, sieht die Seite mit
-Streak, Ziel-Tags, Gesamtfortschritt (Körper, Training, Erholung & Fitness) und
+Streak, Ziel-Tags, Gesamtfortschritt als Stufe („über 20 %“) und
 den fürs Web freigegebenen Abzeichen, liest „Was ist Hoku?“ und lädt die App.
 Ein Freund mit Hoku landet direkt in der App auf Maras Profil. Schaltet Mara den
 Web-Link aus, sieht dieselbe Adresse aus wie jede unbekannte.
@@ -49,7 +49,8 @@ Profil nicht privat ist:
 | Flagge mit Kürzel | Feld `country` | |
 | Ziel-Tags | Feld `goals` | feste Liste (`profiles_goals_values`), kein Freitext |
 | Streak | Feld `streak` | „🔥 41 Tage in Folge dabei“ |
-| Gesamtfortschritt | Feld `progress` | Leitzahl und nur die Bereiche **Körper, Training, Erholung & Fitness**; **Blut und Einnahmen nie im Web** **[Nutzer]** |
+| Gesamtfortschritt | Feld `progress` | **nur die Stufe** „über 10/20/30/50/75/100 %“ (abgerundet), keine genaue Zahl, keine Bereiche, kein Startdatum **[Nutzer 04.11.]**; **Blut und Einnahmen nie im Web** **[Nutzer]** |
+| „Seit … dabei“, „trackt N Werte“ | Konto, Schnappschuss | immer bei Web-Link an und nicht privat, ohne Feld-Stufe; Mitgliedschaft nur als Dauer, nie als Datum **[Nutzer 04.11.]** |
 | Abzeichen | Feld `badges` **und** je Abzeichen fürs Web freigegeben (Abschnitt 6) | nur verdiente |
 | Hinweis auf Berichte | Feld `reviews` auf „Alle“ | nur die Anzahl, ohne Inhalt, Titel oder Substanz **[Claude, ungeprüft]** |
 | „In Hoku öffnen“ | immer | Abschnitt 5 |
@@ -66,16 +67,17 @@ Weitere Regeln:
   Anzeigenamen aus 2a (`oeffentlicher_text_fehler`: keine Links, Kontaktdaten, Beleidigungen); fällt
   sie durch, erscheint im Web keine Bio (in der App unverändert).
   **[Claude, ungeprüft]** (Frage 3)
-- **Geschlecht-Zeichen und „Mitglied seit“** erscheinen im Web nicht (nicht in der
-  Liste des Gesamtbilds). **[Claude, ungeprüft]**
-- **Gesamtfortschritt** im Web wie die 2b-Karte (Variante 1: Leitzahl + Balken um
-  die Nulllinie), **ohne Ring** (2b: „Kein Ring“ **[Nutzer]**). Das Mockup zeigt
-  noch einen Ring; gebaut wird nach 2b. Die Leitzahl ist dieselbe wie in der App
-  (Mittel über alle Bereiche); gezeigt werden darunter nur die drei Web-Bereiche,
-  ohne „Mittel aus 5 von 5 Bereichen“. **[Claude, ungeprüft]**
+- **Geschlecht-Zeichen** erscheint im Web nicht. **„Seit … dabei“** (Mitgliedschaft) erscheint
+  im Web und auf der Karte (Frage 22), immer bei Web-Link an und nicht privat, nur als Dauer
+  (Tage/Monate/Jahre, abgerundet), nie als Beitrittsdatum **[Nutzer 04.11.]**.
+- **Gesamtfortschritt** im Web **nur als Stufe** „über X %“ (größte Stufe 10/20/30/50/75/100 ≤
+  Leitzahl; unter 10 % oder nicht positiv: kein Gesamtfortschritt), ohne Ring, ohne Balken je
+  Bereich, ohne genaue Zahl und ohne Startdatum **[Nutzer 04.11.]**. Grund: Genaue Leitzahl plus
+  die drei Web-Bereiche ließen den Blut- und Einnahmeanteil ausrechnen. Die Stufe rechnet über
+  alle Bereiche wie in der App (Nutzer 03.11.).
 - **Schutzregel Gesamtfortschritt:** Zählt keiner der drei Web-Bereiche (die Zahl
-  besteht nur aus Blut und/oder Einnahmen), erscheint der Gesamtfortschritt im Web
-  nicht; sonst verriete die Leitzahl den Blut- oder Einnahmeverlauf.
+  besteht nur aus Blut und/oder Einnahmen), erscheint auch die Stufe im Web
+  nicht; sonst verriete sie den Blut- oder Einnahmeverlauf.
   **[Claude, ungeprüft]** (Frage 5)
 - Berichte-Hinweis: „12 Erfahrungsberichte und weitere Werte nur in der App.“ Steht
   `reviews` nicht auf „Alle“ oder ist die Anzahl 0, gibt es keinen Satz über
@@ -163,18 +165,31 @@ was sicherheitsrelevant wäre.
 Änderungen gegenüber 2b:
 
 1. `erlaubt` in der Stufe `web` = Schlüssel mit Wert `all` **∩**
-   `profile_web_fields()` = `cover, country, goals, streak, progress, badges, reviews`.
-   (Bio bei „Alle“ nach Textprüfung, Frage 3.)
+   `profile_web_fields()` = `cover, country, goals, bio, streak, progress, badges, reviews`
+   (8; `bio` nur nach `oeffentlicher_text_fehler`, Frage 3).
 2. Der Zweig `if stufe <> 'web'` entfällt für diese Felder: `cover`, `country`,
    `goals` kommen auch im Web aus `profiles`, `streak`, `progress`, `badges`,
    `reviews` aus dem bereinigten Schnappschuss (`profile_snapshot_clean`).
-   `gender`, `member_since` und alle übrigen Schnappschuss-Felder bleiben in `web` aus.
-3. **`progress` im Web:** `areas` nur `koerper`, `training`, `erholung`;
-   `total` und `since` bleiben. Hat `areas` danach keinen Eintrag, fällt `progress`
-   ganz weg (Schutzregel 1.1).
+   `gender`, das Feld `member_since` und alle übrigen Schnappschuss-Felder bleiben in `fields` aus.
+3. **`progress` im Web:** nur `{"tier": 10|20|30|50|75|100}` (größte Stufe ≤ `total`, aus der
+   ungerundeten Zahl des Geräts). Kein `total`, keine `areas`, kein `since`. Unter 10 % oder
+   nicht positiv, oder zählt keiner der Bereiche `koerper`/`training`/`erholung`: kein `progress`
+   (Schutzregel 1.1). **[Nutzer 04.11.]**
 4. **`badges` im Web:** nur IDs, für die die Web-Freigabe (2.1) gilt.
 5. **`reviews` im Web:** nur `{count}`, kein `avgRating`.
-6. Für den Eigentümer in eigener Sicht zusätzlich `'web_badges'` (für die Einstellung).
+6. Für den Eigentümer in eigener Sicht zusätzlich `'web_badges'` und `'web_indexable'` (für die Einstellungen).
+7. **`card`** (nur Stufe `web`, Schlüssel fehlt, wenn kein Wert) **[Nutzer 04.11.]**:
+   - `member_since`: `{"unit": "days"|"months"|"years", "n": int}`, abgerundet, in UTC: unter 31
+     Tagen Tage, bis 365 Tage Monate (Tage / 30,44), sonst Jahre (Tage / 365,25; ab 366 Tagen, damit
+     es kein „0 Jahre“ gibt). Immer bei Web-Link an und nicht privat. Nie das Datum.
+   - `web_value_count`: Summe aus `progress.counts` des Schnappschusses für `koerper`, `training`,
+     `erholung` (je ganze Zahl 0..1000; ein ungültiger Eintrag → keine Zahl). Immer, unabhängig
+     von `progress`. Das Gerät muss `progress.counts` schreiben (Plan Task 2).
+   - `entry_count`: nur wenn `progress` (die Stufe) im Web steht; Zeilen aus Tagebuch, Gewicht,
+     Körpermaßen, Workouts, Mahlzeiten, Wasser (Tage mit Menge), Fortschrittsfotos; **Blutwerte**
+     (`bloodwork`) nur bei Feld `markers` auf „Alle“, **bestätigte Einnahmen** (`dose_logs`) nur bei
+     Feld `adherence` auf „Alle“. Nicht: `health_daily`, `injection_logs`, Berichte, Stack.
+8. `web_indexable` (Suchmaschinen-Schalter, 7.2) in der Stufe `web`.
 
 `profile_media_visible` wird erweitert: Titelbild auch ohne Anmeldung, wenn
 Web-Link an, nicht privat, `cover` auf „Alle“, geprüft und Objekt-ID passt (wie
@@ -235,8 +250,8 @@ für Zahlen und „Hoku verbindet.“.
 
 | Lage | Karte | Bild | `og:title` / `og:description` (de) |
 |---|---|---|---|
-| Web-Link an, Gesamtfortschritt positiv und auf „Alle“ | **Fortschritt** (Hauptlogo Cyan unten Mitte) | links mittig: Profilbild, Name, „Seit 7 Monaten dabei“, „1.240 Einträge“; rechts: „trackt **9** Werte“, Bereiche, „über **30 %**“ mit Trend-Symbol, „positive Veränderung seit März“ | „Mara K. auf Hoku: über 30 % positive Veränderung seit März“ / „Mara trackt 9 Werte mit Hoku: Körper, Training und Erholung & Fitness. Seit 7 Monaten dabei, 1.240 Einträge. Sieh dir Maras Profil an.“ |
-| Web-Link an, Fortschritt nicht positiv oder nicht auf „Alle“ | **Rückfall** (B1: Hoku unten rechts angeschnitten, Kompaktlogo weiß oben rechts) | links mittig: Profilbild, Name, „Seit 7 Monaten dabei“, „trackt **9** Werte“; rechts: „ÜBER HOKU“, „Mehr als nur Tracking.“, „Du trackst. / **Hoku verbindet.**“, kursiv „Hokus intelligente Engine legt deine Werte übereinander und kann Muster finden, die du allein nicht gesehen hättest.“, Knopf „Profil ansehen“ | „Mara K. auf Hoku · Mehr als nur Tracking.“ / „Mara trackt 9 Werte mit Hoku. Du trackst. Hoku verbindet. Hokus intelligente Engine …“ |
+| Web-Link an, Gesamtfortschritt auf „Alle“ und mindestens „über 10 %“ (`progress.tier` vorhanden) | **Fortschritt** (Hauptlogo Cyan unten Mitte) | links mittig: Profilbild, Name, „Seit 7 Monaten dabei“, „1.240 Einträge“; rechts: „trackt **9** Werte“, Bereiche, „über **30 %**“ mit Trend-Symbol, „positive Veränderung“ (ohne Startmonat, 04.11.) | „Mara K. auf Hoku: über 30 % positive Veränderung“ / „Mara trackt 9 Werte mit Hoku: Körper, Training und Erholung & Fitness. Seit 7 Monaten dabei, 1.240 Einträge. Sieh dir Maras Profil an.“ |
+| Web-Link an, kein `progress.tier` (Fortschritt nicht auf „Alle“, unter 10 %, nicht positiv oder nur aus Blut/Einnahmen) | **Rückfall** (B1: Hoku unten rechts angeschnitten, Kompaktlogo weiß oben rechts) | links mittig: Profilbild, Name, „Seit 7 Monaten dabei“, „trackt **9** Werte“; rechts: „ÜBER HOKU“, „Mehr als nur Tracking.“, „Du trackst. / **Hoku verbindet.**“, kursiv „Hokus intelligente Engine legt deine Werte übereinander und kann Muster finden, die du allein nicht gesehen hättest.“, Knopf „Profil ansehen“ | „Mara K. auf Hoku · Mehr als nur Tracking.“ / „Mara trackt 9 Werte mit Hoku. Du trackst. Hoku verbindet. Hokus intelligente Engine …“ |
 | Web-Link aus, privat, unbekannt, ausgeblendet | **Neutral** (B3: Hoku links angeschnitten, Hauptlogo weiß) | Hauptlogo 480 px und Slogan „Sieh, wer du wirst.“ mittig auf Höhe der Pupille, Adresse darunter | „Hoku Health Hub“ / „Sieh, wer du wirst. Du trackst. Hoku verbindet. …“ |
 
 EN: „More than just tracking.“ / „You track. Hoku connects.“ / „Hoku’s smart engine layers your
@@ -248,12 +263,18 @@ Regeln **[Nutzer]**:
   eigene Stufe für Bild und Name). Nur das geprüfte Bild aus dem Bild-Check; sonst die Initiale
   im Kreis, keine neutrale Karte.
 - **Fortschritt** rechnet über alle Bereiche wie im Profil (auch Blut und Einnahmen), gezeigt nur
-  grob in Stufen (über 10/20/30/50/75/100 %, abgerundet) und nie je Bereich.
+  grob in Stufen (über 10/20/30/50/75/100 %, abgerundet) und nie je Bereich. Die Stufe bildet
+  `profile_view` selbst; Web-Seite und Karte bekommen nichts Genaueres **[Nutzer 04.11.]**.
 - **„trackt N Werte“** zählt einzelne Werte nur aus den fürs Web gewählten Bereichen
-  („Was du trackst“: Körper, Training, Erholung & Fitness; Blut und Einnahmen nie).
+  („Was du trackst“: Körper, Training, Erholung & Fitness; Blut und Einnahmen nie). Steht immer
+  bei Web-Link an, auch wenn der Fortschritt nicht auf „Alle“ steht (dann Rückfallkarte)
+  **[Nutzer 04.11.]**.
 - **„Seit … dabei“** = Mitgliedschaft: unter einem Monat in Tagen, unter einem Jahr in Monaten,
-  danach in Jahren, immer abgerundet.
-- **Einträge** = Zahl aller Einträge, ohne Aufschlüsselung nach Bereichen. Varianten für später:
+  danach in Jahren, immer abgerundet; `profile_view` liefert nur die Dauer, nie das Datum
+  **[Nutzer 04.11.]**.
+- **Einträge** = Zahl aller Einträge, ohne Aufschlüsselung nach Bereichen; Blutwerte und Einnahmen
+  zählen nur mit, wenn die Felder „Marker erfasst“ (`markers`) bzw. „Adherence“ (`adherence`) auf
+  „Alle“ stehen **[Nutzer 04.11.]**. Nur auf der Fortschrittskarte. Varianten für später:
   Abzeichen statt Einträge; ein **Titel**, den man sich verdienen muss (eigenes Vorhaben, noch ohne Spec).
 - **Rückfall-Text nur mit Musterfunktion:** „kann Muster finden“ geht erst zusammen mit der
   Musterfunktion live (eigenes Vorhaben, zum Start geplant; Muster über Training, Ernährung, Schlaf,
@@ -297,7 +318,7 @@ Konkrete Preise beim Bau in der Vercel-Doku nachsehen **[Bauende]**.
   stale-while-revalidate=60`. Nach „Web-Link aus“ ist die Seite spätestens nach
   rund 2 Minuten überall 404.
 - **Bild:** URL `/api/og?name=<name>&v=<fassung>`; `fassung` = kurzer Hash über
-  Kartenart, Anzeigename, Bild-Objekt-ID, gerundete Leitzahl, Zahl der
+  Kartenart, Anzeigename, Bild-Objekt-ID, Fortschrittsstufe, Zahl der
   Web-Abzeichen, Sprache. Ändert sich etwas, zeigt das HTML auf eine neue URL;
   Messenger laden die neue Karte beim nächsten Einfügen. Das Bild selbst:
   `s-maxage=600`. Passt `v` nicht mehr zum aktuellen Stand, liefert die Funktion die
@@ -479,7 +500,8 @@ Profil › ⚙︎ › Web-Link › **Abzeichen im Web** (`/profil/web-abzeichen`
 - **Kein Leck über Bild und Meta-Tags:** Beide werden ausschließlich aus der
   `profile_view`-Antwort der Web-Stufe gebaut (anon-Schlüssel, keine Dienstrolle in
   `api/u.js`/`api/og.js`). Ein Test prüft: Ein Profil mit allen Feldern auf
-  „Freunde“ ergibt die neutrale bzw. Einladungskarte, ohne Zahl.
+  „Freunde“ ergibt die Rückfallkarte ohne Fortschritt und ohne Einträge; „Seit … dabei“ und
+  „trackt N Werte“ stehen dort trotzdem (gehören zu Web-Link an, Nutzer 04.11.).
 - Anzeigename nur nach Textfilter (2a); Ziel-Tags sind eine feste Liste.
 - Nutzername in HTML und SVG immer maskiert (Escape wie im Peptipedia-Prerender);
   `name`-Parameter auf das Nutzernamen-Zeichenset begrenzt, sonst sofort 404.
@@ -545,15 +567,16 @@ denselben Wortlauten.
   Schutzregel; Meta-Texte ohne verbotene Inhalte; Fassungs-Hash; Escape von Namen;
   Hoku-Code-Matrix und Lesetest (4.3).
 - **e2e (Playwright, Supabase-Mock wie die bestehenden `profil-*.spec.ts`):**
-  Web-Seite zeigt nur Web-Felder, keine Bereiche Blut/Einnahmen, keine Bio; 404
+  Web-Seite zeigt nur Web-Felder, Fortschritt nur als Stufe, Bio nur nach Textprüfung; 404
   gleich für aus/privat/unbekannt; „Abzeichen im Web“ schaltet und wirkt auf die
   Seite; Teilen-Sheet mit Code, Vollbild, Web-Link-aus-Hinweis und Schalter;
   Lesetest im Browser.
 - **Funktionen:** `api/u.js` und `api/og.js` mit gemocktem `profile_view`: Status,
   Kopfzeilen, Tags, PNG 1200×630.
 - **SQL (Trockenlauf):** Proben als `anon` (aus/privat/unbekannt → `null`; an →
-  nur Web-Schlüssel; `progress.areas` ohne `blut`/`einnahmen`; Schutzregel; heikle
-  Abzeichen ab Werk weg, Abweichung wirkt; `reviews` nur `count`; Titelbild-Policy).
+  nur Web-Schlüssel; `progress` nur `tier`; Schutzregel; heikle Abzeichen ab Werk weg,
+  Abweichung wirkt; `reviews` nur `count`; `card` mit Dauer statt Datum; Einträge ohne
+  Blut/Einnahmen ohne Freigabe; Titelbild-Policy). Stand: `docs/profil/profil-p2c-trockenlauf.md`.
 
 ### 8.3 Migration und Reihenfolge **[Nutzer: CLAUDE.md]**
 

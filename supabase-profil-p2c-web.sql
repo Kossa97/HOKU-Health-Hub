@@ -25,23 +25,33 @@
 --     cover, country, goals    aus profiles (cover nur gepruefte Datei)
 --     bio                      nur wenn sie oeffentlicher_text_fehler besteht (Nutzer 04.11.)
 --     streak                   aus dem bereinigten Schnappschuss
---     progress                 total und since wie in der App; areas nur koerper,
---                              training, erholung; ohne einen davon kein progress
+--     progress                 NUR {"tier": 10|20|30|50|75|100} = groesste Stufe <= total
+--                              (Nutzer 04.11.: "ueber X %", abgerundet). Kein total,
+--                              keine areas, kein since: sonst liesse sich der Blut- und
+--                              Einnahmeanteil aus total minus Web-Bereichen ausrechnen.
+--                              Fehlt, wenn total < 10 (oder nicht positiv) oder wenn
+--                              keiner der Bereiche koerper/training/erholung zaehlt
+--                              (Schutzregel Spec 1.1).
 --     badges                   nur die mit Web-Freigabe (web_badges bzw. Standard)
 --     reviews                  nur {count}, nur wenn > 0
---   card (fuer die Link-Karte, je Angabe nur wenn erlaubt, sonst fehlt der Schluessel):
---     member_since    'YYYY-MM-DD', nur bei Feld member_since auf "Alle"
---     entry_count     Zahl aller Eintraege (ohne Aufschluesselung), nur wenn progress
---                     im Web steht; gezaehlt: profile_entry_count unten
+--   card (fuer die Link-Karte und die Web-Seite; fehlt ein Wert, fehlt der Schluessel):
+--     member_since    nur als Dauer {"unit": "days"|"months"|"years", "n": ganze Zahl},
+--                     abgerundet, nie das Datum: unter 31 Tagen Tage, bis 365 Tage Monate
+--                     (Tage / 30.44), sonst Jahre (Tage / 365.25), gezaehlt in UTC.
+--                     Immer in der Stufe web (Nutzer 04.11.: kein Feld-Gate).
 --     web_value_count Zahl der Werte in Koerper/Training/Erholung aus progress.counts
---                     des Schnappschusses, nur wenn progress im Web steht und alle
---                     vorhandenen der drei Zahlen gueltig sind
+--                     des Schnappschusses, immer in der Stufe web (unabhaengig von
+--                     progress), wenn alle vorhandenen der drei Zahlen gueltig sind
+--     entry_count     Zahl aller Eintraege (ohne Aufschluesselung), nur wenn progress
+--                     (die Stufe) im Web steht; Blutwerte nur bei Feld markers auf
+--                     "Alle", Einnahmen nur bei Feld adherence auf "Alle"
+--                     (Nutzer 04.11.); gezaehlt: profile_entry_count unten
 --   web_indexable  true/false
---   Die Fortschrittsstufe der Karte (ueber 10/20/30/50/75/100 %, abgerundet) bildet
---   api/_lib/profileCard.js aus progress.total (Plan Task 6), nicht diese Datei.
---   Nie in web: gender, Gesundheitswerte, Blut/Einnahmen (auch nicht als Bereich),
---   Substanzen, Routine, Uebungen, e1RM, Berichte-Inhalte oder avgRating, Freunde,
---   visibility, web_badges.
+--   Kartenwahl in api/_lib/profileCard.js: progress.tier da -> Fortschrittskarte,
+--   sonst Rueckfallkarte ("trackt N Werte" aus card.web_value_count).
+--   Nie in web: gender, Gesundheitswerte, genaue Fortschrittszahlen, Bereiche,
+--   Blut/Einnahmen (auch nicht als Bereich), Substanzen, Routine, Uebungen, e1RM,
+--   Berichte-Inhalte oder avgRating, Freunde, visibility, web_badges, Beitrittsdatum.
 -- - profile_view, Eigentuemer in eigener Sicht: zusaetzlich web_badges und web_indexable.
 -- - profile_media_visible: Titelbild auch ohne Anmeldung bei Web-Link an, nicht privat,
 --   cover auf "Alle", geprueft, Objekt-ID passt (wie das Profilbild in 2a).
@@ -86,9 +96,10 @@
 --   select count(distinct p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
 --    where n.nspname = 'public' and p.proname in ('profile_badge_web_sensitive',
 --          'profile_badge_web_borderline','profile_web_badge_on','profile_web_badges_ok',
---          'profile_web_fields','profile_web_value_count','profile_entry_count',
---          'profile_view','profile_media_visible');                              -- 9
---   select has_function_privilege('anon', 'public.profile_entry_count(uuid)', 'execute'); -- false
+--          'profile_web_fields','profile_web_value_count','profile_web_progress_tier',
+--          'profile_web_member_for','profile_entry_count',
+--          'profile_view','profile_media_visible');                              -- 11
+--   select has_function_privilege('anon', 'public.profile_entry_count(uuid, boolean, boolean)', 'execute'); -- false
 --   select count(*) from pg_policies where schemaname = 'storage' and tablename = 'objects'
 --      and policyname = 'Visible profile media select';                         -- 1
 --   select public.profile_view('<ein Name>', null) is null;  -- als anon, Web-Link aus: true
@@ -183,6 +194,34 @@ as $$
 $$;
 
 -- 4. Angaben fuer die Link-Karte ----------------------------------------------
+-- Fortschrittsstufe: groesste Schwelle <= total, sonst nichts (auch bei total <= 0).
+create or replace function public.profile_web_progress_tier(v numeric)
+returns integer
+language sql
+immutable
+set search_path = ''
+as $$
+  select case when v >= 100 then 100 when v >= 75 then 75 when v >= 50 then 50
+              when v >= 30 then 30 when v >= 20 then 20 when v >= 10 then 10 end;
+$$;
+
+-- Mitgliedschaft als Dauer, abgerundet; das Datum selbst geht nie ins Web.
+create or replace function public.profile_web_member_for(p_since timestamptz, p_heute date)
+returns jsonb
+language sql
+immutable
+set search_path = ''
+as $$
+  select case
+    when p_since is null then null
+    when t.d < 31 then jsonb_build_object('unit', 'days', 'n', t.d)
+    -- 365 Tage ergaeben mit 365.25 noch "0 Jahre": Jahre erst ab einem vollen Jahr.
+    when t.d < 366 then jsonb_build_object('unit', 'months', 'n', floor(t.d / 30.44)::integer)
+    else jsonb_build_object('unit', 'years', 'n', floor(t.d / 365.25)::integer)
+  end
+  from (select greatest(p_heute - (p_since at time zone 'UTC')::date, 0) as d) t;
+$$;
+
 -- Zahl der Werte in den Web-Bereichen aus dem Schnappschuss des Geraets
 -- (progress.counts, siehe Kopf). Blut und Einnahmen werden nie gelesen. Ist einer
 -- der drei Eintraege da, aber keine ganze Zahl 0..1000, gibt es keine Zahl (keine
@@ -201,13 +240,15 @@ as $$
 $$;
 
 -- Zahl aller Eintraege eines Nutzers, ohne Aufschluesselung. Gezaehlt wird, was der
--- Nutzer selbst eintraegt (je Zeile): Tagebuch, Gewicht, Koerpermasse, Blutwerte,
--- Workouts, Mahlzeiten, Wasser (Tage mit Menge), bestaetigte Einnahmen, Fortschrittsfotos.
+-- Nutzer selbst eintraegt (je Zeile): Tagebuch, Gewicht, Koerpermasse, Workouts,
+-- Mahlzeiten, Wasser (Tage mit Menge), Fortschrittsfotos; Blutwerte nur mit
+-- p_blut, bestaetigte Einnahmen nur mit p_einnahmen (profile_view setzt beides nur,
+-- wenn das Feld markers bzw. adherence auf "Alle" steht).
 -- Nicht: health_daily (kommt automatisch aus Apple Health / Health Connect),
 -- injection_logs (Zusatz zu einer Einnahme), Erfahrungsberichte, Stack und Plaene.
 -- Jede Teilzaehlung laeuft ueber einen Index mit user_id vorne.
 -- Nur fuer profile_view; niemand sonst darf sie aufrufen (fremde IDs!).
-create or replace function public.profile_entry_count(p_user uuid)
+create or replace function public.profile_entry_count(p_user uuid, p_blut boolean, p_einnahmen boolean)
 returns integer
 language sql
 stable
@@ -218,16 +259,16 @@ as $$
       (select count(*) from public.daily_logs x where x.user_id = p_user)
     + (select count(*) from public.weight_logs x where x.user_id = p_user)
     + (select count(*) from public.body_measurements x where x.user_id = p_user)
-    + (select count(*) from public.bloodwork x where x.user_id = p_user)
+    + (select count(*) from public.bloodwork x where p_blut and x.user_id = p_user)
     + (select count(*) from public.training_sessions x where x.user_id = p_user)
     + (select count(*) from public.food_logs x where x.user_id = p_user)
     + (select count(*) from public.water_logs x where x.user_id = p_user and x.ml > 0)
-    + (select count(*) from public.dose_logs x where x.user_id = p_user and x.taken is true)
+    + (select count(*) from public.dose_logs x where p_einnahmen and x.user_id = p_user and x.taken is true)
     + (select count(*) from public.progress_photos x where x.user_id = p_user)
   )::integer, 0);
 $$;
 
-revoke all on function public.profile_entry_count(uuid) from public, anon, authenticated;
+revoke all on function public.profile_entry_count(uuid, boolean, boolean) from public, anon, authenticated;
 
 -- 5. Bilder anderer: Titelbild jetzt auch ohne Anmeldung ----------------------
 -- Wie 2a; neu ist nur die letzte Bedingung beim Titelbild.
@@ -390,18 +431,20 @@ begin
   end if;
 
   if stufe = 'web' then
-    -- Gesamtfortschritt: Bereiche nur Koerper, Training, Erholung & Fitness.
-    -- Zaehlt keiner davon, faellt progress ganz weg (sonst verriete die
-    -- Leitzahl allein den Blut- oder Einnahmeverlauf).
+    -- Gesamtfortschritt: nur die abgerundete Stufe (siehe Kopf). Zaehlt keiner
+    -- der Bereiche Koerper, Training, Erholung & Fitness, gibt es keine Stufe
+    -- (sonst verriete sie allein den Blut- oder Einnahmeverlauf). Die Stufe kommt
+    -- aus der ungerundeten Zahl des Geraets; dass sie gueltig ist, hat
+    -- profile_snapshot_clean schon geprueft (sonst fehlt progress).
     if werte ? 'progress' then
-      oben := (select jsonb_object_agg(a.key, a.value)
-                 from jsonb_each(werte #> '{progress,areas}') a
-                where a.key in ('koerper', 'training', 'erholung'));
+      oben := case when exists (select 1 from jsonb_object_keys(werte #> '{progress,areas}') a(k)
+                                 where a.k in ('koerper', 'training', 'erholung'))
+                   then to_jsonb(public.profile_web_progress_tier(
+                          (public.profile_snap_num(roh #> '{progress,total}') #>> '{}')::numeric)) end;
       if oben is null then
         werte := werte - 'progress';
       else
-        werte := jsonb_set(werte, '{progress}', jsonb_build_object(
-          'total', werte #> '{progress,total}', 'areas', oben, 'since', werte #> '{progress,since}'));
+        werte := jsonb_set(werte, '{progress}', jsonb_build_object('tier', oben));
       end if;
     end if;
     -- Abzeichen: nur mit Web-Freigabe, Reihenfolge des Geraets.
@@ -425,10 +468,11 @@ begin
     end if;
     -- Link-Karte: je Angabe nur, wenn erlaubt (siehe Kopf).
     karte := jsonb_strip_nulls(jsonb_build_object(
-      'member_since', case when p.field_visibility ->> 'member_since' = 'all' and p.created_at is not null
-                           then to_char(p.created_at at time zone 'UTC', 'YYYY-MM-DD') end,
-      'entry_count', case when werte ? 'progress' then public.profile_entry_count(p.id) end,
-      'web_value_count', case when werte ? 'progress' then public.profile_web_value_count(roh) end));
+      'member_since', public.profile_web_member_for(p.created_at, (now() at time zone 'UTC')::date),
+      'web_value_count', public.profile_web_value_count(roh),
+      'entry_count', case when werte ? 'progress' then public.profile_entry_count(p.id,
+                       coalesce(p.field_visibility ->> 'markers' = 'all', false),
+                       coalesce(p.field_visibility ->> 'adherence' = 'all', false)) end));
   end if;
 
   return jsonb_strip_nulls(jsonb_build_object(

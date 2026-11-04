@@ -1,8 +1,10 @@
 # Trockenlauf `supabase-profil-p2c-web.sql`
 
-Stand 04.11.2026, Postgres 16.15 im Container (`/var/tmp/p2c-web`, als `postgres`), frischer Cluster
-nach den Korrekturen aus dem Code-Review (Teilsummen bei `web_value_count`, `conrelid` in der Prüfung).
-Nicht gegen Produktion gelaufen. Produktivlauf nur nach ausdrücklichem Ja, Reihenfolge 2a → 2b → 2c.
+Stand 04.11.2026 (zweite Fassung, nach den Entscheidungen des Nutzers vom 04.11.: Fortschritt im Web nur
+als Stufe, Blut/Einnahmen in den Einträgen nur bei Freigabe, Mitgliedschaft und „trackt N Werte“ ohne
+Feld-Gate, Mitgliedschaft nur als Dauer). Postgres 16.15 im Container (`/var/tmp/p2c-web`, als `postgres`),
+frischer Cluster. Nicht gegen Produktion gelaufen. Produktivlauf nur nach ausdrücklichem Ja,
+Reihenfolge 2a → 2b → 2c.
 
 ## Aufbau
 
@@ -22,15 +24,15 @@ Nicht gegen Produktion gelaufen. Produktivlauf nur nach ausdrücklichem Ja, Reih
 
 | Profil | Lage | erwartet als `anon` |
 |---|---|---|
-| mara | Web-Link an, alle 32 Felder „Alle“, Bio besteht, Bild + Titelbild geprüft, voller Schnappschuss mit Blut/Einnahmen, heiklen und Grenzfall-Abzeichen, Einträge in allen Tabellen | nur Web-Felder, Karte mit 25 Einträgen und 9 Werten |
+| mara | Web-Link an, alle 32 Felder „Alle“, Bio besteht, Bild + Titelbild geprüft, voller Schnappschuss (total 28.35, alle fünf Bereiche, `counts`), heikle und Grenzfall-Abzeichen, Einträge in allen Tabellen, Konto 03.04. | Web-Felder, `progress {tier: 20}`, Karte 7 Monate / 9 Werte / 25 Einträge |
 | otto | alles „Alle“, Web-Link aus | `null` |
 | ben | alles „Alle“, Web-Link an, privat | `null` |
 | hanna | Web-Link an, von der Moderation ausgeblendet | `null` |
 | niemand | unbekannt | `null` |
-| frieda | alles „Freunde“, Web-Link an | nur Name + Bild, `fields` leer, keine Karte |
+| frieda | alles „Freunde“, Web-Link an, `counts` 4/3/2 | `fields` leer; Karte nur Dauer + 9 Werte |
 | dan | Alt-Profil `is_public` (2a schaltet Bio + Web-Link an); Bio fällt nach erweiterter Wortliste durch | keine Bio |
-| gustav | Fortschritt nur aus Blut/Einnahmen, nur heikle Abzeichen, `member_since` auf „Freunde“ | nur Streak |
-| ida | Fortschritt negativ, `progress.counts` kaputt (Text, Bruch, negativ), keine Einträge, `member_since` „Alle“ | Fortschritt, Karte nur mit Datum |
+| gustav | Fortschritt nur aus Blut/Einnahmen (total 40), nur heikle Abzeichen, `counts` Blut 12 / Einnahmen 1 / Körper 5 | kein `progress`; Karte Dauer + 5 Werte |
+| ida | Fortschritt negativ, `progress.counts` kaputt (Text, Bruch, negativ), keine Einträge, Konto 20.10. 23:30 UTC | kein `progress`; Karte nur 15 Tage |
 
 ## Zählungen (nur Zahlen)
 
@@ -42,33 +44,37 @@ Nicht gegen Produktion gelaufen. Produktivlauf nur nach ausdrücklichem Ja, Reih
 | Web-Link an | 7 | 7 | 7 | 7 |
 | Spalten `web_badges`, `web_indexable` | 0 | 2 | 2 | 2 |
 | Prüfung `profiles_web_badges_check` | – | 1 | 1 | 1 |
-| Funktionen (9 Namen) | – | 9 | 9 | 9 |
-| Policy „Visible profile media select“ | 1 | 1 | 1 | 1 |
+| Funktionen (11 Namen) | – | 11 | 11 | 11 |
+| Policy „Visible profile media select“ | – | 1 | 1 | 1 |
 | `web_badges <> '{}'` | – | 0 | 0 | 1 (Probe W11) |
 | `web_indexable` | – | 0 | 0 | 1 (Probe W11) |
 | ungültige `web_badges` | – | 0 | 0 | 0 |
 | heikel / Grenzfall / Web-Felder | – | 10 / 8 / 8 | 10 / 8 / 8 | 10 / 8 / 8 |
 | `anon` darf `profile_entry_count` | – | nein | nein | nein |
 
-„–“ = vor 2c nicht gezählt (Spalten und Funktionen gab es noch nicht bzw. nur `profile_view`/`profile_media_visible`).
-Lauf 2 meldet nur „column … already exists, skipping“. Lauf 3 lässt die Abweichungen aus W11 stehen.
+„–“ = vor 2c nicht gezählt. Lauf 2 meldet nur „column … already exists, skipping“. Lauf 3 lässt die
+Abweichungen aus W11 stehen. In den Proben genau 7 erwartete Fehler (W9 einmal, W12 sechsmal).
 
 ## Ergebnisse der Proben
 
 - **W1** aus / privat / unbekannt / ausgeblendet (auch `OTTO`, ` niemand `) → `null`, alle gleich.
 - **W2/W3** mara als `anon`: oben nur `username, display_name, own, blocked, private, avatar, fields,
   card, web_indexable`; `fields` nur `cover, country, goals, bio, streak, progress, badges, reviews`;
-  `progress.areas` nur `koerper, training, erholung` (total 28.4 und since bleiben); `reviews` nur
-  `{count: 12}`; Abzeichen ohne heikle und Grenzfälle; kein Text zu Blut, Einnahmen, Markern,
-  Substanzen, Routine, e1RM, avgRating, Berichte-Inhalt, Geschlecht, Sichtbarkeit, Freunde.
-  Gleiches Ergebnis für dan, frieda, gustav, ida.
+  `progress` nur `{tier: 20}` (kein `total`, keine `areas`, kein `since`); `reviews` nur `{count: 12}`;
+  `card.member_since` nur `{unit, n}`; Abzeichen ohne heikle und Grenzfälle; im ganzen Text kein
+  `total`/`areas`/`since`, kein Bereichsname, kein Datum, nichts zu Blut, Einnahmen, Markern, Substanzen,
+  Routine, e1RM, avgRating, Berichte-Inhalt, Geschlecht, Sichtbarkeit, Freunde. Gleiches für dan, frieda,
+  gustav, ida.
 - **W4** Bio: mara da, dan weg (Textfilter), frieda weg (Freunde).
-- **W5** frieda (alles „Freunde“): `fields: {}`, keine `card` (Review Focus 3).
-- **W6** gustav: kein `progress` (Schutzregel), keine `badges`, keine `card`.
-- **W7** ida: `progress` mit `training: -4.2`, `card` nur `member_since: 2026-10-20` (UTC-Tag);
-  kaputte `counts` ergeben keinen `web_value_count`, 0 Einträge keinen `entry_count`.
-- **W8** mara `card`: `entry_count 25` (ohne `health_daily`, ohne unbestätigte Einnahmen, ohne Wasser-Tag mit 0 ml),
-  `web_value_count 9` (4 + 3 + 2; Blut 31 und Einnahmen 4 nicht gezählt), `member_since 2026-04-03`.
+- **W5** frieda (alles „Freunde“): `fields: {}`, `card` = 6 Monate + 9 Werte, keine Einträge.
+- **W6** gustav: kein `progress` (Schutzregel), keine `badges`, keine Einträge; `card` = 5 Monate + 5 Werte
+  (nur Körper gezählt, Blut 12 und Einnahmen 1 nicht).
+- **W7** ida: kein `progress` (negativ), `card` nur 15 Tage; kaputte `counts` → keine Zahl.
+- **W8** mara `card`: 25 Einträge (markers und adherence auf „Alle“; ohne `health_daily`, unbestätigte
+  Einnahmen, 0-ml-Tag), 9 Werte, 7 Monate.
+- **W8b** dieselbe Mara: markers + adherence auf „Freunde“ → 17 (ohne 5 Blutwerte, 3 Einnahmen); nur markers
+  „Alle“ → 22; nur adherence „Alle“ → 20.
+- **W8c** progress auf „Freunde“: kein `progress`, keine Einträge; Dauer und 9 Werte bleiben (Rückfallkarte).
 - **W9** `profile_entry_count` als `anon`: permission denied.
 - **W10** Bilder als `anon`: mara Profil- und Titelbild, frieda nur Profilbild (Titelbild auf „Freunde“), otto
   nichts (Web-Link aus); `anon` sieht 3 Objekte.
@@ -83,6 +89,11 @@ Lauf 2 meldet nur „column … already exists, skipping“. Lauf 3 lässt die A
 - **W17** Web-Stufe 2b → 2c: dan verliert die Bio (2b gab sie ungeprüft heraus), mara bekommt die Web-Felder.
 - **W18** `profile_web_value_count`: 4+3+2 → 9; ein ungültiger Eintrag (1500, 2.5) → keine Zahl statt Teilsumme;
   nur Blut/Einnahmen, nur Nullen, fehlend, kein Objekt → keine Zahl; nur Körper 4 → 4.
+- **W19** Stufen: 9.99 → keine, 10 → 10, 29.9 → 20, 30 → 30, 74.9 → 50, 99 → 75, 250 → 100; 0, −5, null → keine.
+- **W20** Dauer: 0 und 30 Tage → Tage; 31 → 1 Monat; 364 und 365 → 11 Monate; 366 und 730 → 1 Jahr;
+  1095 → 2 Jahre; Datum in der Zukunft → 0 Tage; ohne Datum → nichts. (365 Tage wären mit 365,25 „0 Jahre“,
+  deshalb Jahre erst ab 366 Tagen.)
+- **W21** Tageswechsel in UTC: Konto 03.11. 23:30 UTC, heute 04.11. → 1 Tag.
 
 Nebenbefund zu 2a (nicht in dieser Datei): Der Bestands-`update` in 2a Abschnitt 4 schaltet bei
 `is_public`-Profilen die Bio auf „Alle“; der Trigger `check_public_profile_text` prüft sie dabei und bricht
@@ -98,33 +109,52 @@ die ganze 2a-Migration ab, wenn eine Alt-Bio den heutigen Filter nicht besteht (
 \echo '--- W1: anon, Stufe web: aus / privat / unbekannt / ausgeblendet -> null (alle vier gleich)'
 set role anon; set request.jwt.claim.sub = '';
 select n, public.profile_view(n) is null as ist_null from unnest(array['otto','ben','niemand','hanna','OTTO',' niemand ']) n;
-\echo '--- W2: anon, mara (alles auf Alle): volle Antwort'
+\echo '--- W2: anon, mara (alles auf Alle, total 28.35): volle Antwort, progress nur Stufe 20'
 select jsonb_pretty(public.profile_view('mara'));
 \echo '--- W3: anon, Schluessel nur aus der erlaubten Menge (erwartet: je leer)'
 with v as (select n, public.profile_view(n) j from unnest(array['mara','dan','frieda','gustav','ida','MARA']) n where public.profile_view(n) is not null)
 select n,
   (select array_agg(k) from jsonb_object_keys(j) k where k not in ('username','display_name','own','blocked','private','avatar','fields','card','web_indexable')) as fremd_oben,
   (select array_agg(k) from jsonb_object_keys(j -> 'fields') k where k <> all (public.profile_web_fields())) as fremd_felder,
-  (select array_agg(k) from jsonb_object_keys(coalesce(j #> '{fields,progress,areas}', '{}')) k where k not in ('koerper','training','erholung')) as fremde_bereiche,
-  (select array_agg(k) from jsonb_object_keys(coalesce(j #> '{fields,progress}', '{}')) k where k not in ('total','areas','since')) as fremd_progress,
+  (select array_agg(k) from jsonb_object_keys(coalesce(j #> '{fields,progress}', '{}')) k where k <> 'tier') as fremd_progress,
+  coalesce(j #>> '{fields,progress,tier}', '10') not in ('10','20','30','50','75','100') as stufe_ungueltig,
   (select array_agg(k) from jsonb_object_keys(coalesce(j #> '{fields,reviews}', '{}')) k where k <> 'count') as fremd_reviews,
   (select array_agg(k) from jsonb_object_keys(coalesce(j -> 'card', '{}')) k where k not in ('member_since','entry_count','web_value_count')) as fremd_karte,
+  (select array_agg(k) from jsonb_object_keys(coalesce(j #> '{card,member_since}', '{}')) k where k not in ('unit','n')) as fremd_dauer,
   (select array_agg(b) from jsonb_array_elements_text(coalesce(j #> '{fields,badges}', '[]')) b
      where b = any (public.profile_badge_web_sensitive() || public.profile_badge_web_borderline())) as heikle_abzeichen,
-  j::text ~* '(blut|einnahmen|markers|in_range|adherence|substan|routine|e1rm|avgRating|Geheim|Kreuzheben|Push Pull|counts|history|werte|gender|female|visibility|web_badges|friends|story|"bio": "Training)' as verbotener_text
+  j::text ~* '(blut|einnahmen|markers|in_range|adherence|substan|routine|e1rm|avgRating|Geheim|Kreuzheben|Push Pull|counts|history|werte|gender|female|visibility|web_badges|friends|story|"bio": "Training|"total"|"areas"|"since"|koerper|erholung|"training"|20[0-9][0-9]-[0-9][0-9])' as verbotener_text
 from v order by n;
 \echo '--- W4: Bio: mara besteht -> da; dan faellt durch (Wortliste erweitert) -> weg; frieda auf Freunde -> weg'
 select n, public.profile_view(n) #>> '{fields,bio}' as bio from unnest(array['mara','dan','frieda']) n;
-\echo '--- W5: frieda (alles auf Freunde): fields leer, keine Karte, nur Name/Bild (Review Focus 3)'
+\echo '--- W5: frieda (alles auf Freunde): fields leer; Karte nur Dauer + trackt-Zahl (Entscheidung 04.11.), keine Eintraege'
 select public.profile_view('frieda');
-\echo '--- W6: gustav (nur Blut/Einnahmen im Fortschritt, nur heikle Abzeichen, member_since Freunde): kein progress, keine badges, keine Karte'
+\echo '--- W6: gustav (Fortschritt nur aus Blut/Einnahmen, nur heikle Abzeichen): kein progress, keine badges, keine Eintraege; Karte Dauer + 5 Werte (nur koerper gezaehlt)'
 select public.profile_view('gustav');
-\echo '--- W7: ida (negativ, counts kaputt, keine Eintraege, member_since Alle, Konto 20.10. 23:30 UTC)'
+\echo '--- W7: ida (negativ, counts kaputt, Konto 20.10. 23:30 UTC): kein progress, Karte nur Dauer in Tagen'
 select public.profile_view('ida');
-\echo '--- W8: Eintraege mara = 25 (health_daily und unbestaetigte Einnahmen nicht), Werte = 4+3+2 = 9'
+\echo '--- W8: mara: Eintraege 25 (markers + adherence auf Alle; health_daily, unbestaetigte Einnahmen, 0-ml-Tag nicht), Werte 4+3+2 = 9, Dauer 7 Monate'
 select public.profile_view('mara') #> '{card}' as karte;
+reset role;
+\echo '--- W8b: dieselbe Mara mit markers/adherence auf Freunde: 25 - 5 Blutwerte - 3 Einnahmen = 17; nur markers auf Alle: 22; nur adherence: 20'
+begin;
+update public.profiles set field_visibility = field_visibility || '{"markers":"friends","adherence":"friends"}' where username = 'mara';
+set role anon; set request.jwt.claim.sub = '';
+select public.profile_view('mara') #> '{card,entry_count}' as ohne_blut_einnahmen; reset role;
+update public.profiles set field_visibility = field_visibility || '{"markers":"all"}' where username = 'mara';
+set role anon; set request.jwt.claim.sub = '';
+select public.profile_view('mara') #> '{card,entry_count}' as mit_blut; reset role;
+update public.profiles set field_visibility = field_visibility || '{"markers":"friends","adherence":"all"}' where username = 'mara';
+set role anon; set request.jwt.claim.sub = '';
+select public.profile_view('mara') #> '{card,entry_count}' as mit_einnahmen; reset role;
+\echo '--- W8c: progress nicht auf Alle -> keine Stufe, keine Eintraege, Dauer + Werte bleiben (Rueckfallkarte)'
+update public.profiles set field_visibility = field_visibility || '{"progress":"friends"}' where username = 'mara';
+set role anon; set request.jwt.claim.sub = '';
+select public.profile_view('mara') #> '{fields,progress}' as progress, public.profile_view('mara') -> 'card' as karte; reset role;
+rollback;
+set role anon; set request.jwt.claim.sub = '';
 \echo '--- W9: Hilfsfunktion fuer fremde IDs gesperrt (erwartet: Fehler permission denied)'
-select public.profile_entry_count('00000000-0000-0000-0000-00000000000f');
+select public.profile_entry_count('00000000-0000-0000-0000-00000000000f', true, true);
 \echo '--- W10: Bilder als anon: mara Titelbild + Profilbild ja; frieda Titelbild nein, Profilbild ja; otto (Web aus) beides nein'
 select o.name, public.profile_media_visible(o.name, o.id) as sichtbar from storage.objects o order by o.name;
 select count(*) as anon_sieht_objekte from storage.objects;
@@ -199,4 +229,16 @@ select public.profile_web_value_count('{"progress":{"counts":{"koerper":4,"train
        public.profile_web_value_count('{"progress":{"counts":{"koerper":0,"training":0}}}') as nullen,
        public.profile_web_value_count('{"progress":{}}') as fehlend,
        public.profile_web_value_count('[1]') as kein_objekt;
+
+\echo '--- W19: Stufen: 9.99 -> keine, 10 -> 10, 29.9 -> 20, 30 -> 30, 74.9 -> 50, 99 -> 75, 250 -> 100, 0 / -5 / null -> keine'
+select public.profile_web_progress_tier(9.99) a, public.profile_web_progress_tier(10) b, public.profile_web_progress_tier(29.9) c,
+       public.profile_web_progress_tier(30) d, public.profile_web_progress_tier(74.9) e, public.profile_web_progress_tier(99) f,
+       public.profile_web_progress_tier(250) g, public.profile_web_progress_tier(0) h, public.profile_web_progress_tier(-5) i,
+       public.profile_web_progress_tier(null) j;
+\echo '--- W20: Dauer: 0 / 30 Tage -> Tage; 31 / 364 -> Monate (1 / 11); 365 -> 11 Monate; 366 / 730 / 1095 -> Jahre (1 / 1 / 2); Zukunft -> 0 Tage; null -> nichts'
+select d, public.profile_web_member_for((date '2026-11-04' - d)::timestamptz, date '2026-11-04') as dauer
+  from unnest(array[0, 30, 31, 364, 365, 366, 730, 1095, -3]) d
+union all select null, public.profile_web_member_for(null, date '2026-11-04');
+\echo '--- W21: Dauer am Tageswechsel UTC: Konto 03.11. 23:30 UTC, heute 04.11. -> 1 Tag'
+select public.profile_web_member_for('2026-11-03 23:30+00', date '2026-11-04') as dauer;
 ```

@@ -267,3 +267,9 @@ Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/ar
   keine Bereiche — sonst ließe sich Blut/Einnahmen zurückrechnen); **Einträge zählen Blut/Einnahmen nur, wenn der
   Nutzer es erlaubt** (Feld auf „Alle“); **„Seit … dabei“ und „trackt N Werte“ immer bei Web-Link an**;
   **„Seit … dabei“ nur als Dauer**, nie als Datum.
+- **2c Task 1 überarbeitet (Nutzer 04.11., offene Fragen der Migration)**: Web-Fortschritt nur als Stufe
+  `progress.tier` (10/20/30/50/75/100, abgerundet, in SQL; kein total/areas/since — Subtraktionsleck weg);
+  `card.member_since` nur als Dauer `{unit, n}` (Jahre erst ab 366 Tagen, sonst „0 Jahre“), `card.web_value_count`
+  beide immer bei Web-Link an; `entry_count` nur mit Stufe, Blutwerte nur bei `markers`, Einnahmen nur bei
+  `adherence` auf „Alle“. Fortschrittskarte ⇔ `progress.tier` da; Karte ohne Startmonat („positive Veränderung“).
+  Trockenlauf frisch, zwei Läufe gleich (9/8/8/7, 2 Spalten, 1 Prüfung, 11 Funktionen), Proben W1–W21 bestanden.

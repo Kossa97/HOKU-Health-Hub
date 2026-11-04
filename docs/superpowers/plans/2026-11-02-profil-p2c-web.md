@@ -23,9 +23,9 @@
 
 ## Review Focus
 
-1. **Leck Web-Stufe:** Als `anon` liefert `profile_view` nur `cover, country, goals, streak, progress, badges, reviews` (je nur bei „Alle“) plus Name/Nickname/Bild; `progress.areas` ohne `blut`/`einnahmen`, ohne Web-Bereich gar kein `progress`; `badges` nach Web-Freigabe; `reviews` nur `count`; keine `bio`. (Task 1, 2)
+1. **Leck Web-Stufe:** Als `anon` liefert `profile_view` in `fields` nur `cover, country, goals, bio, streak, progress, badges, reviews` (je nur bei „Alle“; `profile_web_fields()` hat 8 Einträge, `bio` nur nach `oeffentlicher_text_fehler`, Entscheidung 04.11.) plus Name/Nickname/Bild; `progress` nur `{tier}` (10/20/30/50/75/100, abgerundet; kein `total`, keine `areas`, kein `since`), ohne Web-Bereich oder unter 10 % gar kein `progress`; `badges` nach Web-Freigabe; `reviews` nur `count`. Dazu ein eigenes Objekt `card` (nicht in `fields`): `member_since` nur als Dauer `{unit, n}`, `web_value_count` (beide immer bei Web-Link an), `entry_count` nur mit `progress.tier` und Blut/Einnahmen nur bei `markers`/`adherence` auf „Alle“; dazu `web_indexable`. (Task 1, 2)
 2. **Gleiche 404:** aus / privat / unbekannt / ausgeblendet ergeben byte-gleiche Antworten von `api/u.js` und dieselbe neutrale Karte von `api/og.js`. (Task 6)
-3. **Keine Dienstrolle, kein zweiter Filter:** Bild und Meta-Tags entstehen nur aus der anon-`profile_view`-Antwort; Profil mit allem auf „Freunde“ → Karte C ohne Zahl. (Task 6)
+3. **Keine Dienstrolle, kein zweiter Filter:** Bild und Meta-Tags entstehen nur aus der anon-`profile_view`-Antwort; Profil mit allem auf „Freunde“ → Karte C ohne Fortschritt und ohne Einträge, mit „Seit … dabei“ und „trackt N Werte“ (Entscheidung 04.11.). (Task 6)
 4. **Hoku-Code liest:** Adresse dekodiert exakt bei 124 px, 300 px, halber Auflösung, Weichzeichnung, ±10°; längster erlaubter Name. (Task 5)
 5. **Deep-Link-Routing:** Die App folgt nur `/u/<name>` mit Nutzernamen-Zeichen; alles andere wird ignoriert. (Task 7)
 6. **Escape:** Nutzername/Anzeigename in HTML-Attributen und SVG maskiert; `name`-Parameter außerhalb des Zeichensets → sofort 404. (Task 6)
@@ -36,8 +36,8 @@
 
 - [ ] Kopf wie 2b: Zweck, „setzt 2a + 2b voraus“, „2a/2b danach nicht erneut laufen lassen“, Zählungen vor/nach (nur Zahlen).
 - [ ] `profiles.web_indexable boolean not null default false` (Spec 7.2, Entscheidung 04.11.).
-- [ ] `profiles.web_badges jsonb not null default '{}'` (`add column if not exists`); Grenzfall-Abzeichen (Spec 6.1) ab Werk aus; `profile_badge_web_sensitive()` (10 IDs aus Spec 6.1); `profile_web_badges_ok(v)` + Constraint `profiles_web_badges_check` nur wenn nicht vorhanden; `profile_web_fields()`.
-- [ ] `profile_view` neu: Stufe `web` mit fester Feldliste, `cover/country/goals` aus `profiles`, `streak/progress/badges/reviews` aus dem bereinigten Schnappschuss; `progress.areas` auf `koerper/training/erholung` beschnitten, leer → kein `progress`; `badges` nach `web_badges`/Standard; `reviews` nur `count`; Eigentümer erhält `web_badges`.
+- [ ] `profiles.web_badges jsonb not null default '{}'` (`add column if not exists`); Grenzfall-Abzeichen (Spec 6.1) ab Werk aus, als eigene Liste `profile_badge_web_borderline()` (8 IDs) neben `profile_badge_web_sensitive()` (10 IDs aus Spec 6.1) — Task 2 braucht deshalb zwei Paritätslisten (`BADGES_WEB_SENSITIVE`, `BADGES_WEB_BORDERLINE`); `profile_web_badges_ok(v)` + Constraint `profiles_web_badges_check` nur wenn nicht vorhanden; `profile_web_fields()` (8, mit `bio`).
+- [ ] `profile_view` neu: Stufe `web` mit fester Feldliste, `cover/country/goals/bio` aus `profiles` (`bio` nur nach Textprüfung), `streak/progress/badges/reviews` aus dem bereinigten Schnappschuss; `progress` nur `{tier}` (Stufe abgerundet, in SQL), ohne Web-Bereich oder unter 10 % kein `progress`; `badges` nach `web_badges`/Standard; `reviews` nur `count`; `card` (`member_since` als Dauer, `web_value_count`, `entry_count`) und `web_indexable`; Eigentümer erhält `web_badges` und `web_indexable`.
 - [ ] `profile_media_visible`: Titelbild für `anon` bei Web-Link an, nicht privat, `cover = all`, geprüft, Objekt-ID passt.
 - [ ] Trockenlauf: Postgres 16 als `postgres` unter `/var/tmp/p2c-…`; Schema aus Basis + P1 + 2a + 2b nachbauen; Probezeilen (Web-Link aus, privat, unbekannt, an mit allem auf „Alle“, an mit allem auf „Freunde“, nur Blut-Bereich, heikle Abzeichen mit und ohne Abweichung); Datei **zweimal** laufen lassen; Proben als `anon` (`set role anon`, leere JWT-Claims) zu Review Focus 1; Zählungen gleich nach beiden Läufen; ungültige `web_badges` (fremde ID, Nicht-Bool) werden abgewiesen.
 - [ ] Ergebnis (Zahlen, Proben) im Commit und im Projektgedächtnis. **Anhalten** für das Ja zum Produktivlauf (zusammen mit 2a und 2b, vor dem Merge).
@@ -46,7 +46,8 @@
 
 - [ ] `BADGES_WEB_SENSITIVE` in `src/features/profil/lib/badgeIds.ts`; Paritätstest gegen die SQL-Liste (wie `BADGE_IDS`).
 - [ ] `webBadgeEnabled(id, overrides)` und `webBadgeOverrides(set)` (Abweichungen vom Standard bilden, „zurücksetzen“ = `{}`), mit Tests.
-- [ ] `parseProfileView` versteht `web_badges` (nur Eigentümer) und die Web-Formen (`reviews.count`, beschnittenes `progress`); unbekannte Schlüssel weiter ignorieren.
+- [ ] `parseProfileView` versteht `web_badges`/`web_indexable` (nur Eigentümer) und die Web-Formen (`reviews.count`, `progress.tier`, `card`); unbekannte Schlüssel weiter ignorieren.
+- [ ] Schnappschuss schreibt `progress.counts` (Werte je Bereich, die in den Fortschritt eingehen); Grundlage von `card.web_value_count`.
 - [ ] Speichern von `web_badges` im Profildienst (Tipp-Reihenfolge wie die Sichtbarkeit aus 2a, Rücksetzen bei Fehler).
 
 ### Task 3: Einstellung „Abzeichen im Web“ (`/profil/web-abzeichen`)
@@ -57,11 +58,11 @@
 
 ### Task 4: Web-Seite `/u/<name>` (`src/pages/PublicProfile.tsx`, `WebAnsicht`)
 
-- [ ] Aufbau nach Spec 1.1 und Mockup: Titelbild, Profilbild, Name, Flagge + Kürzel, @nick, Ziel-Tags, Streak, „In Hoku öffnen“, Berichte-Hinweis (nur `reviews.count > 0`), Gesamtfortschritt wie 2b-Karte Variante 1 mit nur den Web-Bereichen (kein Ring), Web-Abzeichen, „Was ist Hoku?“, Store-Knöpfe, Impressum/Datenschutz/Profil melden. Bio nicht mehr.
+- [ ] Aufbau nach Spec 1.1 und Mockup: Titelbild, Profilbild, Name, Flagge + Kürzel, @nick, Ziel-Tags, Streak, „In Hoku öffnen“, Berichte-Hinweis (nur `reviews.count > 0`), Gesamtfortschritt nur als „über X %“ aus `progress.tier` (keine Bereiche, kein Ring, keine genaue Zahl; Entscheidung 04.11.), „Seit … dabei“ aus `card.member_since`, Web-Abzeichen, „Was ist Hoku?“, Store-Knöpfe, Impressum/Datenschutz/Profil melden. Bio bei „Alle“, wenn `profile_view` sie liefert (Textprüfung auf dem Server).
 - [ ] 404-Seite: „Seite nicht gefunden“ + „Was ist Hoku?“, gleich für alle drei Fälle; angemeldet bleibt die bisherige App-Meldung.
 - [ ] „Ansehen als › Web-Link“ zeigt dieselbe Seite.
 - [ ] „Profil melden“ ohne Konto nach Entscheidung zu Spec-Frage 8 (Empfehlung: kleines Formular in die bestehende Moderation); bis dahin Link auf die Kontaktadresse im Impressum.
-- [ ] e2e (`profil-web.spec.ts`, Supabase-Mock): nur Web-Felder, Bio nur nach Textprüfung, keine Bereiche Blut/Einnahmen, Abzeichen folgen `web_badges`, 404 gleich.
+- [ ] e2e (`profil-web.spec.ts`, Supabase-Mock): nur Web-Felder, Bio nur nach Textprüfung, Fortschritt nur als Stufe, keine Bereiche, Abzeichen folgen `web_badges`, 404 gleich.
 
 ### Task 5: Hoku-Code und Sheet „Profil teilen“
 
@@ -74,8 +75,8 @@
 
 ### Task 6: Link-Karte (Vercel-Funktionen)
 
-- [ ] `api/_lib/profileCard.js` (+ `.test.js`): Kartenwahl Fortschritt / Rückfall / neutral nach Spec 3.3 (nicht positiv → Rückfall, kein geprüftes Bild → Initiale), „Seit … dabei“ (Tage/Monate/Jahre, abgerundet), Einträge mit Tausenderpunkt, Fortschrittsstufe abgerundet, Texte de/en für Titel/Beschreibung/Bild, Rückfall-Text per Schalter: Musterfunktion live → „kann Muster finden“, sonst Ersatztext; Fassungs-Hash, Escape, Zeichensatz-Prüfung für `name`, SVG 1200×630 der drei Karten wie im freigegebenen Mockup (Logos weiß neben großem Hoku).
-- [ ] `profile_view` Stufe `web` liefert dafür zusätzlich: Mitglied seit (Datum), Zahl aller Einträge (ohne Aufschlüsselung), Zahl der Werte in den Web-Bereichen. In Task 2 (Migration) ergänzen, Trockenlauf wie dort.
+- [ ] `api/_lib/profileCard.js` (+ `.test.js`): Kartenwahl Fortschritt / Rückfall / neutral nach Spec 3.3 (nicht positiv → Rückfall, kein geprüftes Bild → Initiale), „Seit … dabei“ aus `card.member_since` (Dauer kommt fertig aus SQL, nur noch Text bilden), Einträge mit Tausenderpunkt, Fortschrittsstufe aus `progress.tier` (rundet SQL; `progress.tier` da → Fortschrittskarte, sonst Rückfall), Texte de/en für Titel/Beschreibung/Bild, Rückfall-Text per Schalter: Musterfunktion live → „kann Muster finden“, sonst Ersatztext; Fassungs-Hash, Escape, Zeichensatz-Prüfung für `name`, SVG 1200×630 der drei Karten wie im freigegebenen Mockup (Logos weiß neben großem Hoku).
+- [x] `profile_view` Stufe `web` liefert dafür zusätzlich `card`: `member_since` als Dauer `{unit, n}`, `web_value_count` (beide immer bei Web-Link an), `entry_count` (nur mit `progress.tier`; Blut/Einnahmen nur bei `markers`/`adherence` auf „Alle“). In Task 1 gebaut (Entscheidungen 04.11.). `web_value_count` braucht `progress.counts` im Schnappschuss (Task 2).
 - [ ] `api/u.js`: anon-`profile_view`, gebautes `index.html` (über `functions.includeFiles`) mit Titel, `og:*`, `twitter:card`, `robots noindex` außer bei `web_indexable` (dann ohne); 200/404; `Cache-Control: public, max-age=0, s-maxage=60, stale-while-revalidate=60`, `Vary: Accept-Language`, `X-Robots-Tag: noindex`.
 - [ ] `api/og.js`: anon-`profile_view` + Profilbild über Storage (anon), SVG → PNG mit `@resvg/resvg-js` (Schriften im Paket, Lizenz geprüft), `v` veraltet → neutrale Karte, `s-maxage=600`.
 - [ ] `vercel.json`: Route `/u/([^/]+)/?` → `/api/u?name=$1` vor dem Rückfall; `functions`-Eintrag für `includeFiles`. `@resvg/resvg-js` nach `dependencies`.
