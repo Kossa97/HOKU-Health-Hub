@@ -30,8 +30,11 @@ const CARD = {
   'a1': ['Freigegeben', 'Fortschritt · Hauptlogo unten Mitte', 'Erscheint, wenn der Web-Link an ist und der Gesamtfortschritt positiv und auf „Alle“ ist. Zahl in Stufen abgerundet: über 10/20/30/50/75/100 %, rechnet über alle Bereiche. „trackt 9 Werte“ zählt nur die fürs Web freigegebenen Bereiche (Bereiche darunter). Links: „Seit X dabei“ = Mitgliedschaft (unter 1 Monat Tage, ab 1 Jahr Jahre, abgerundet) und die Zahl aller Einträge. Cyan nur für 9, 30 % und Trend-Symbol.'],
   'c': ['Freigegeben', 'Rückfall · Hoku unten rechts (B1)', 'Erscheint, wenn der Fortschritt nicht positiv ist oder nicht auf „Alle“ steht. Rechts nur Aussagen über Hoku. Text gilt nur zusammen mit der Musterfunktion zum Start, sonst Folie 6 (Ersatz). EN: More than just tracking. / You track. Hoku connects. / Hoku’s smart engine layers your data and can find patterns you’d never have spotted on your own.'],
   'n': ['Freigegeben', 'Neutral · Hoku als Halbkreis links (B3)', 'Erscheint, wenn der Web-Link aus ist, das Profil privat ist oder der Name unbekannt ist. Slogan: Sieh, wer du wirst. / See who you’re becoming. Hauptlogo weiß, 480 px, mittig auf Höhe der Pupille.'],
+  'a1-rang': ['Mit Titel', 'Fortschritt · Titel Rang (Routinier)', 'Titel als leise Marke unter dem Namen (Mono, Großbuchstaben, umrandet, keine Farbe). Erscheint nur, wenn das Feld Titel auf „Alle“ steht und der Web-Link an ist (Standard „Nur ich“). Rang nach Tagen mit eigenem Eintrag: Neuling 1, Entdecker 10, Dranbleiber 50, Routinier 100, Veteran 200, Legende 365 (en: Newcomer, Explorer, Committed, Steady, Veteran, Legend).'],
+  'a1-abztitel': ['Mit Titel', 'Fortschritt · Titel aus Abzeichen (Läufer)', 'Statt des Rangs ein tragbares Abzeichen, z. B. Läufer (50 Läufe). Längster Name zum Testen der Breite: Trainingsmaschine, Tagebuchschreiber, Gelegenheitsradler. Persönliche Titel (In Form …) nur, wenn auch ihr Quellfeld auf „Alle“ steht.'],
+  'c-rang': ['Mit Titel', 'Rückfall · Titel Rang (Routinier)', 'Wie auf der Fortschrittskarte: Marke unter dem Namen, gleiche Regeln.'],
+  'c-abztitel': ['Mit Titel', 'Rückfall · Titel aus Abzeichen (Läufer)', 'Wie auf der Fortschrittskarte.'],
   'a1-abzeichen': ['Varianten', 'Fortschritt · zweite Angabe Abzeichen', 'Statt der Einträge die Zahl der fürs Web freigegebenen Abzeichen.'],
-  'a1-titel': ['Varianten', 'Fortschritt · mit Titel (künftig)', 'Titel, den man sich verdienen muss, als leise Marke unter dem Namen. Gibt es noch nicht, braucht ein eigenes Vorhaben.'],
   'c-ersatz': ['Varianten', 'Rückfall · Ersatztext', 'Nur falls die Musterfunktion erst nach den Link-Karten fertig wird. EN: … layers your data and shows you what has changed since your start.'],
 }
 
@@ -74,6 +77,7 @@ async function iconPng(d, sw, color) {
 
   const SECTIONS = [
     ['Freigegeben', c => CARD[c.id][0] === 'Freigegeben'],
+    ['Mit Titel', c => CARD[c.id][0] === 'Mit Titel'],
     ['Varianten', c => CARD[c.id][0] === 'Varianten'],
   ]
   for (const [title, f] of SECTIONS) {

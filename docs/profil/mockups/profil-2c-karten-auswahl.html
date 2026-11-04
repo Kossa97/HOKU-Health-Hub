@@ -148,6 +148,8 @@ h2 .k, h3 .k { font: 500 11.5px var(--mono); letter-spacing: .06em; color: var(-
 .og.t-a1 .who { --mt: 2.3cqw; }
 .og .ttl { margin-top: -.4cqw; font: 500 1.9cqw/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--o-t2); padding: .7cqw 1.4cqw; border-radius: 99px; box-shadow: inset 0 0 0 .1cqw rgba(255,255,255,.28); }
 .og .huge .tr .ic { width: .42em; height: .42em; vertical-align: .1em; }
+/* Rueckfall: schmalere linke Spalte, Titel etwas kleiner (laengster Name „Gelegenheitsradler“ passt) */
+.og.t-c .ttl { font-size: 1.7cqw; letter-spacing: .08em; padding: .6cqw 1.2cqw; }
 .og .main { display: grid; gap: 1.1cqw; justify-items: start; align-content: center; min-width: 0; padding-left: 4.4cqw; border-left: .1cqw solid var(--o-hair); min-height: 30cqw; }
 .og .tk { display: flex; align-items: baseline; gap: 1.2cqw; font: 500 2.9cqw/1 var(--ui); color: var(--o-t2); white-space: nowrap; }
 .og .tk .tn { font: 600 5cqw/1 var(--disp); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
@@ -360,11 +362,11 @@ function ogA1(zw = st.zw) {
         <div class="lbl">positive Veränderung seit ${D.monat}</div>
       </div></div>${sq}</div>`;
 }
-function ogC(ct) {
+function ogC(ct, titel = false) {
   const T = CT[ct];
   return `<div class="og t-c" role="img" aria-label="Vorschaubild Rückfall, Text ${T.k}: ${esc(T.h)}">
     ${mark(42, 66.5, 23)}
-    <div class="body">${who([mDabei(), mTrack])}
+    <div class="body">${whoT([mDabei(), mTrack], titel)}
       <div class="say"><span class="q">Über Hoku</span><p class="hl">${nbh(esc(T.hb)).replace('|', '<br>')}</p><p class="ld">${esc(T.lead).replace(/(Hoku [^.]*\.)$/, '<span class="acc">$1</span>')}</p><p class="ln">${nbh(esc(T.l))}</p><span class="pill">Profil ansehen</span></div></div>
     ${img('kompakt_w', 'lg')}${sq}</div>`;
 }

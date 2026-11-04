@@ -9,8 +9,11 @@ const CARDS = [
   { id: 'a1', call: "HOKU.ogA1('eintraege')" },
   { id: 'c', call: 'HOKU.ogC(0)' },
   { id: 'n', call: 'HOKU.ogN()' },
+  { id: 'a1-rang', call: "(D.titel = 'Routinier', HOKU.ogA1('titel'))" },
+  { id: 'a1-abztitel', call: "(D.titel = 'Läufer', HOKU.ogA1('titel'))" },
+  { id: 'c-rang', call: "(D.titel = 'Routinier', HOKU.ogC(0, true))" },
+  { id: 'c-abztitel', call: "(D.titel = 'Läufer', HOKU.ogC(0, true))" },
   { id: 'a1-abzeichen', call: "HOKU.ogA1('abzeichen')" },
-  { id: 'a1-titel', call: "HOKU.ogA1('titel')" },
   { id: 'c-ersatz', call: 'HOKU.ogC(1)' },
 ]
 
