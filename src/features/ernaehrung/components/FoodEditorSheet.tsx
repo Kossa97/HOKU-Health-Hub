@@ -74,7 +74,8 @@ export function FoodEditorSheet({ base, initialName, barcode, busy, onSave, onCl
       name: name.trim().slice(0, 120),
       brand: brand.trim().slice(0, 120) || null,
       unit,
-      per100,
+      // Vitamine und Mineralstoffe stehen nicht im Formular: die des Ausgangs-Lebensmittels bleiben.
+      per100: { ...per100, micros: base?.per100.micros ?? null },
       serving: serving ? { amount: serving, label: servingLabel.trim().slice(0, 40) || null } : null,
       favorite: base?.favorite ?? false,
       // Werte eines fremden Produkts geändert: ab jetzt „von dir korrigiert“ (bleibt es, einmal gesetzt)

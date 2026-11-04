@@ -387,6 +387,9 @@ export function ErnaehrungPage() {
         {t('nutr_credit_off')}{' '}
         <a href="https://world.openfoodfacts.org" target="_blank" rel="noreferrer" className="underline">Open Food Facts</a>
         {' '}(<a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noreferrer" className="underline">ODbL</a>).
+        {' '}{t('nutr_credit_bls')}{' '}
+        <a href="https://blsdb.de" target="_blank" rel="noreferrer" className="underline">{t('nutr_credit_bls_source')}</a>
+        {' '}(<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer" className="underline">CC BY 4.0</a>).
         {' '}{t('nutr_credit_note')}
       </p>
       </>)}
