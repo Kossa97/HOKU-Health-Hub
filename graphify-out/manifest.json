@@ -606,15 +606,15 @@
     "semantic_hash": ""
   },
   "src/i18n/locales/de.json": {
-    "mtime": 1793760510.4312494,
-    "seen": 1793761343.9706607,
-    "ast_hash": "d33847aed2c791247b76029b519afdc9",
+    "mtime": 1793820242.2631366,
+    "seen": 1793820457.108838,
+    "ast_hash": "8fba18001e81c9d9f249d6ab30699e43",
     "semantic_hash": ""
   },
   "src/i18n/locales/en.json": {
-    "mtime": 1793760510.4320238,
-    "seen": 1793761343.9706614,
-    "ast_hash": "b5d35abd24f742ee8eeb8964f3318ee9",
+    "mtime": 1793820242.2650933,
+    "seen": 1793820457.1088398,
+    "ast_hash": "d6023b7768cc40d3f312f1b8f5f39b3d",
     "semantic_hash": ""
   },
   "src/i18n/locales/es.json": {
@@ -924,9 +924,9 @@
     "semantic_hash": ""
   },
   "src/pages/Auth.tsx": {
-    "mtime": 1793760957.586302,
-    "seen": 1793761343.9708118,
-    "ast_hash": "aaa0c98d0c3662c5b70abfd154f53f59",
+    "mtime": 1793820242.260889,
+    "seen": 1793820457.1090317,
+    "ast_hash": "83376fe9fb663d9bdb56c9e80c1240f0",
     "semantic_hash": ""
   },
   "src/pages/Bewertungen.tsx": {
@@ -3504,9 +3504,9 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/i18n.test.ts": {
-    "mtime": 1793760510.430198,
-    "seen": 1793761343.9702616,
-    "ast_hash": "0aa798af7a66a485550bda3ad676d18b",
+    "mtime": 1793820244.2737505,
+    "seen": 1793820457.1082492,
+    "ast_hash": "1dcb91bee4663a86f8d41923540b9947",
     "semantic_hash": ""
   },
   "src/features/my-stack/lib/i18nMerge.test.ts": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793761041.0246458,
-    "seen": 1793761343.9709623,
+    "mtime": 1793820293.3468726,
+    "seen": 1793820457.109259,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -21642,9 +21642,9 @@
     "semantic_hash": ""
   },
   "supabase/functions/auth-mail/auth-mail.test.ts": {
-    "mtime": 1793761518.870142,
-    "seen": 1793761584.9970043,
-    "ast_hash": "c7258d8bf2bbc43871e1fce36dc0b0ee",
+    "mtime": 1793820394.8106608,
+    "seen": 1793820457.1093333,
+    "ast_hash": "c21c5729f17629fbb68bc41523b620f0",
     "semantic_hash": ""
   },
   "supabase/functions/auth-mail/index.ts": {
@@ -21666,9 +21666,9 @@
     "semantic_hash": ""
   },
   "supabase/functions/auth-mail/vorlagen.ts": {
-    "mtime": 1793761539.625854,
-    "seen": 1793761584.9970098,
-    "ast_hash": "d59dc986c0b5f5b4a7933c9431bf3666",
+    "mtime": 1793820394.8082836,
+    "seen": 1793820457.1093407,
+    "ast_hash": "0308ef69b87567d276f0d794849b9371",
     "semantic_hash": ""
   },
   "docs/registrierung/EINSTELLUNGEN.md": {
@@ -21690,9 +21690,9 @@
     "semantic_hash": ""
   },
   "src/features/auth/lib/code.ts": {
-    "mtime": 1793759814.7287009,
-    "seen": 1793761343.9697986,
-    "ast_hash": "52fe3c44ea3595e3ac2106ed733ecc15",
+    "mtime": 1793820242.1408536,
+    "seen": 1793820457.1075141,
+    "ast_hash": "e06195935d4a504514b5b9851866283e",
     "semantic_hash": ""
   },
   "public/mail/hoku-health-hub-logo-720.png": {

@@ -21642,9 +21642,9 @@
     "semantic_hash": ""
   },
   "supabase/functions/auth-mail/auth-mail.test.ts": {
-    "mtime": 1793737035.233119,
-    "seen": 1793737221.641513,
-    "ast_hash": "37ea464953582a845db800e746a42c66",
+    "mtime": 1793761518.870142,
+    "seen": 1793761584.9970043,
+    "ast_hash": "c7258d8bf2bbc43871e1fce36dc0b0ee",
     "semantic_hash": ""
   },
   "supabase/functions/auth-mail/index.ts": {
@@ -21666,9 +21666,9 @@
     "semantic_hash": ""
   },
   "supabase/functions/auth-mail/vorlagen.ts": {
-    "mtime": 1793737136.0524735,
-    "seen": 1793737221.6415184,
-    "ast_hash": "edd9a8c2268aa1f0da4f51f3ce8bc594",
+    "mtime": 1793761539.625854,
+    "seen": 1793761584.9970098,
+    "ast_hash": "d59dc986c0b5f5b4a7933c9431bf3666",
     "semantic_hash": ""
   },
   "docs/registrierung/EINSTELLUNGEN.md": {
@@ -21693,6 +21693,12 @@
     "mtime": 1793759814.7287009,
     "seen": 1793761343.9697986,
     "ast_hash": "52fe3c44ea3595e3ac2106ed733ecc15",
+    "semantic_hash": ""
+  },
+  "public/mail/hoku-health-hub-logo-720.png": {
+    "mtime": 1793761479.456626,
+    "seen": 1793761584.9998088,
+    "ast_hash": "a73b56bc1dc1c7d8001664c3a25e18fd",
     "semantic_hash": ""
   }
 }
