@@ -438,7 +438,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const [confirmSheet, setConfirmSheet] = useState<ConfirmSheet | null>(null)
   const bestaetigenSchliessen = useSheetClose(() => setConfirmSheet(null), confirmSheet !== null)
   // `initialTime` gesetzt: das Blatt fragt die Uhrzeit ab (Bündel).
-  const [routineGroupSheet, setRoutineGroupSheet] = useState<(RoutineGroupModel & { initialTime?: string; initialDate?: string; plannedTime?: string; plannedDate?: string }) | null>(null)
+  const [routineGroupSheet, setRoutineGroupSheet] = useState<(RoutineGroupModel & { initialTime?: string; initialDate?: string; plannedTime?: string; plannedDate?: string; zyklusVorbei?: boolean }) | null>(null)
   const [bundles, setBundles] = useState<IntakeBundle[]>([])
   // undefined = zu, null = neues Bündel, sonst das Bündel in Bearbeitung.
   const [bundleSheet, setBundleSheet] = useState<IntakeBundle | null | undefined>(undefined)
@@ -447,6 +447,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const [confirmPlanTime, setConfirmPlanTime] = useState<string | null>(null)
   // Der Tag zur geplanten Uhrzeit, für denselben Knopf.
   const [confirmPlanDay, setConfirmPlanDay] = useState<Date>(() => new Date())
+  // Der Zyklus läuft jetzt nicht mehr: vorbelegt ist der geplante Zeitpunkt.
+  const [confirmZyklusVorbei, setConfirmZyklusVorbei] = useState(false)
   // Der Tag zur Uhrzeit im Feld. null: der Tag der Einnahme. „Jetzt" setzt
   // heute — wer die Einnahme von gestern Abend nach Mitternacht mit „Jetzt"
   // bestaetigt, hat sie heute um 00:30 genommen, nicht gestern um 00:30.
@@ -1821,13 +1823,25 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   }
 
   // ── Bestätigungs-Sheet ───────────────────────────────────────────────────
-  /** Liegt „jetzt" in einer aktiven Planversion dieses Kurses? Ohne Zeitleiste: ja. */
-  const jetztImPlan = (cycleId: string) => {
+  /**
+   * Liegt der Zeitpunkt in einer aktiven Planversion dieses Zyklus? Nur dann
+   * lässt sich eine Einnahme dort speichern. Ohne Zeitleiste: immer.
+   */
+  const zeitpunktImZyklus = (cycleId: string, zeitpunkt: Date) => {
     if (!FEATURES.planTimelineV2) return true
     const timeline = timelines.find(item => item.cycle.id === cycleId)
-    const aufgeloest = timeline && resolveCycleAt(timeline, new Date(), timeZone)
+    const aufgeloest = timeline && resolveCycleAt(timeline, zeitpunkt, timeZone)
     return Boolean(aufgeloest?.planVersion && aufgeloest.status === 'active')
   }
+  const jetztImPlan = (cycleId: string) => zeitpunktImZyklus(cycleId, new Date())
+  // Das Einzel-Blatt: liegt der gewählte Tag mit Uhrzeit außerhalb des Zyklus?
+  const confirmAusserhalb = (() => {
+    if (!confirmSheet?.cycle || !/^\d{2}:\d{2}$/.test(confirmTime)) return false
+    const [stunde, minute] = confirmTime.split(':').map(Number)
+    const zeitpunkt = new Date(confirmDay ?? selectedDay)
+    zeitpunkt.setHours(stunde, minute, 0, 0)
+    return !zeitpunktImZyklus(confirmSheet.cycle.id, zeitpunkt)
+  })()
 
   const openConfirmSheet = (cycle?: Cycle, log?: DoseLog, slotTime?: string, slotDose: number | null = null, scheduledAt?: string, slotKey?: string, nachtragen = false, ohnePlan = false) => {
     let geplant: string | null = null
@@ -1848,8 +1862,10 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     setConfirmPlanDay(tag)
     // Ist der Plan jetzt nicht mehr aktiv (Kurs beendet, pausiert), ließe sich
     // „jetzt" nicht speichern — dann steht der geplante Zeitpunkt da.
-    if (geplant !== null && cycle && !jetztImPlan(cycle.id)) {
-      setConfirmTime(geplant)
+    const vorbei = geplant !== null && Boolean(cycle) && !jetztImPlan(cycle!.id)
+    setConfirmZyklusVorbei(vorbei)
+    if (vorbei) {
+      setConfirmTime(geplant!)
       setConfirmDay(tag)
     } else {
       confirmJetzt()
@@ -2008,6 +2024,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
       key: items[0].group, items, label: bundle.name, plannedTime: geplant, plannedDate,
       initialTime: jetzt ? format(new Date(), 'HH:mm') : geplant,
       initialDate: jetzt ? format(new Date(), 'yyyy-MM-dd') : plannedDate,
+      zyklusVorbei: !jetzt,
     })
   }
 
@@ -3574,6 +3591,13 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           group={routineGroupSheet}
           initialTime={routineGroupSheet.initialTime}
           initialDate={routineGroupSheet.initialDate}
+          zyklusVorbei={routineGroupSheet.zyklusVorbei}
+          ausserhalbZyklus={(eintraege, datum, zeit) => {
+            const [stunde, minute] = zeit.split(':').map(Number)
+            const zeitpunkt = parseISO(datum)
+            zeitpunkt.setHours(stunde, minute, 0, 0)
+            return eintraege.filter(eintrag => !zeitpunktImZyklus(eintrag.cycleId, zeitpunkt))
+          }}
           plannedTime={routineGroupSheet.plannedTime}
           plannedDate={routineGroupSheet.plannedDate}
           onClose={() => setRoutineGroupSheet(null)}
@@ -3673,6 +3697,19 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                   style={{ colorScheme: 'dark' }}
                 />
               </div>
+              {/* Außerhalb des Zyklus lässt sich nicht speichern — das sagen,
+                  bevor es beim Speichern scheitert. */}
+              {confirmAusserhalb && (
+                <p role="alert" data-confirm-ausserhalb className="-mt-2 mb-4 flex items-start gap-1.5 text-[13px] leading-snug text-[var(--lg-bad-text)]">
+                  <AlertTriangle size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+                  {t('confirm_outside_cycle', { defaultValue: 'Zu diesem Zeitpunkt läuft der Zyklus nicht (beendet oder pausiert). So lässt sich die Einnahme nicht speichern.' })}
+                </p>
+              )}
+              {!confirmAusserhalb && confirmZyklusVorbei && (
+                <p data-confirm-zyklus-vorbei className="-mt-2 mb-4 text-[13px] leading-snug text-[var(--lg-text-3)]">
+                  {t('confirm_cycle_ended_prefill', { defaultValue: 'Der Zyklus läuft jetzt nicht mehr. Vorbelegt ist der geplante Zeitpunkt.' })}
+                </p>
+              )}
               {confirmDay && !isSameDay(confirmDay, selectedDay) && (
                 <p data-confirm-time-today className="-mt-2 mb-4 text-[13px] text-[var(--lg-text-3)]">
                   {t('confirm_time_other_day', { defaultValue: 'Eingetragen für {{day}}, nicht für den geöffneten Tag.', day: format(confirmDay, 'EEEE, d. MMMM', { locale }) })}
@@ -3730,8 +3767,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                   {t('cancel', { defaultValue: 'Abbrechen' })}
                 </button>
                 <button
-                  onClick={() => { if (!confirmDoseUngueltig) void handleConfirmSheet() }}
-                  {...denyProps(confirmDoseUngueltig)}
+                  onClick={() => { if (!confirmDoseUngueltig && !confirmAusserhalb) void handleConfirmSheet() }}
+                  {...denyProps(confirmDoseUngueltig || confirmAusserhalb)}
                   data-tone="good"
                   className="lg-gray-btn flex-1 !min-h-12 !text-[17px]"
                 >

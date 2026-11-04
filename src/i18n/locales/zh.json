@@ -2791,5 +2791,8 @@
   "done_intakes_title": "Taken · Missed · Skipped",
   "confirm_sheet_datetime_label": "Date and time",
   "confirm_sheet_date_label": "Date",
-  "confirm_time_other_day": "Logged for {{day}}, not for the open day."
+  "confirm_time_other_day": "Logged for {{day}}, not for the open day.",
+  "confirm_outside_cycle": "At this time the cycle isn't running (ended or paused). The intake can't be saved like this.",
+  "confirm_outside_cycle_items": "At this time the cycle isn't running for: {{names}}. This can't be saved.",
+  "confirm_cycle_ended_prefill": "The cycle is no longer running. The planned time is filled in."
 }

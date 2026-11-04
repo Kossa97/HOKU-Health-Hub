@@ -1,6 +1,6 @@
 import { useId, useRef, useState } from 'react'
 import { format } from 'date-fns'
-import { Check, Clock, Pencil, RotateCcw, Syringe, X } from 'lucide-react'
+import { AlertTriangle, Check, Clock, Pencil, RotateCcw, Syringe, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { formatTrackedQuantity } from '../quantityPresentation'
 import { formatAmount } from '../../my-stack/lib/bestandLabels'
@@ -40,6 +40,10 @@ interface RoutineConfirmationSheetProps {
   plannedTime?: string
   /** Der Tag (yyyy-MM-dd) zur geplanten Uhrzeit. */
   plannedDate?: string
+  /** Vorbelegt ist der geplante Zeitpunkt, weil ein Zyklus jetzt nicht mehr läuft. */
+  zyklusVorbei?: boolean
+  /** Die gewählten Einnahmen, deren Zyklus zu diesem Zeitpunkt nicht läuft — dort lässt sich nicht speichern. */
+  ausserhalbZyklus?: (entries: RoutineConfirmationEntry[], date: string, time: string) => RoutineConfirmationEntry[]
   /**
    * Bei einem angemischten Vial: wie viele Einheiten auf der Spritze die Menge
    * sind, sonst null. Gerechnet wird mit der tatsaechlichen Menge, also auch
@@ -66,6 +70,8 @@ export function RoutineConfirmationSheet({
   initialDate,
   plannedTime,
   plannedDate,
+  zyklusVorbei = false,
+  ausserhalbZyklus,
   einheitenFuer,
 }: RoutineConfirmationSheetProps) {
   const { t, i18n } = useTranslation()
@@ -104,7 +110,10 @@ export function RoutineConfirmationSheet({
     )
   ))
   const timeMissing = initialTime !== undefined && (!/^\d{2}:\d{2}$/.test(time) || !/^\d{4}-\d{2}-\d{2}$/.test(date))
-  const canConfirm = selectedEntries.length > 0 && !hasInvalidQuantity && !timeMissing && !saving
+  const draussen = initialTime !== undefined && !timeMissing && ausserhalbZyklus
+    ? ausserhalbZyklus(selectedEntries, date, time)
+    : []
+  const canConfirm = selectedEntries.length > 0 && !hasInvalidQuantity && !timeMissing && draussen.length === 0 && !saving
 
   const runAfterConfirm = async (
     confirmedEntries: RoutineConfirmationEntry[],
@@ -274,6 +283,20 @@ export function RoutineConfirmationSheet({
                     className="input min-h-11 w-[8.5rem] shrink-0 text-base font-bold"
                   />
                 </div>
+                {draussen.length > 0 && (
+                  <p role="alert" data-confirm-ausserhalb className="mt-2 flex items-start gap-1.5 text-[13px] font-semibold leading-snug text-red-300">
+                    <AlertTriangle size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+                    {t('confirm_outside_cycle_items', {
+                      defaultValue: 'Zu diesem Zeitpunkt läuft der Zyklus nicht für: {{names}}. So lässt sich nicht speichern.',
+                      names: draussen.map(entry => entry.stackItemName).join(', '),
+                    })}
+                  </p>
+                )}
+                {draussen.length === 0 && zyklusVorbei && (
+                  <p data-confirm-zyklus-vorbei className="mt-2 text-[13px] font-semibold leading-snug text-slate-400">
+                    {t('confirm_cycle_ended_prefill', { defaultValue: 'Der Zyklus läuft jetzt nicht mehr. Vorbelegt ist der geplante Zeitpunkt.' })}
+                  </p>
+                )}
               </div>
             )}
             <ul className="space-y-2">

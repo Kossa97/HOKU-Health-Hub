@@ -1266,6 +1266,36 @@ describe('Dashboard normalized timeline path', () => {
     expect(within(dialog).getByRole('button', { name: 'Geplant · 20:00' })).toBeTruthy()
   })
 
+  it('belegt beim Nachtragen den geplanten Zeitpunkt vor, wenn der Zyklus jetzt nicht mehr läuft, und warnt außerhalb', async () => {
+    const fixtures = startFixFixture()
+    // Zyklus am 19. um Mitternacht beendet: gestern lief er noch, jetzt nicht mehr.
+    Object.assign(fixtures.cycles[0] as object, { ended_at: '2026-09-18T22:00:00.000Z', end_date: '2026-09-18' })
+    vi.setSystemTime(new Date('2026-09-19T12:00:00Z'))
+    const client = createDashboardClient(fixtures, undefined, { filterLogs: true })
+    renderDashboard(client)
+    fireEvent.click(document.querySelector('[data-calendar-date="2026-09-18"]') as HTMLElement)
+    const zeile = await waitFor(() => {
+      const element = document.querySelector<HTMLElement>('[data-verpasst-row]')
+      expect(element).toBeTruthy()
+      return element!
+    })
+    fireEvent.click(within(zeile).getByRole('button', { name: 'Doch eingenommen' }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect((within(dialog).getByLabelText('Uhrzeit') as HTMLInputElement).value).toBe('08:00')
+    expect((within(dialog).getByLabelText('Datum') as HTMLInputElement).value).toBe('2026-09-18')
+    expect(dialog.querySelector('[data-confirm-zyklus-vorbei]')).toBeTruthy()
+    expect(dialog.querySelector('[data-confirm-ausserhalb]')).toBeNull()
+
+    // „Jetzt" liegt außerhalb: Warnung, und Speichern ist gesperrt.
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Jetzt' }))
+    expect(dialog.querySelector('[data-confirm-ausserhalb]')?.textContent).toContain('läuft der Zyklus nicht')
+    const knopf = within(dialog).getByRole('button', { name: 'Eingenommen' })
+    expect(knopf.getAttribute('aria-disabled')).toBe('true')
+    fireEvent.click(knopf)
+    expect(client.rpc).not.toHaveBeenCalled()
+  })
+
   it('führt ein Bündel auch in der Liste, in der Farbe seines Stands', async () => {
     const fixtures: Record<string, unknown[]> = {
       ...zweiMorgensFixture(),
@@ -1730,8 +1760,9 @@ describe('Dashboard normalized timeline path', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Eingenommen' }))
     expect(await screen.findByText('Einnahme bestätigen')).toBeTruthy()
     fireEvent.change(document.querySelector('input[type="time"]')!, { target: { value: '16:00' } })
+    // Das Blatt sagt es vorher und sperrt das Speichern.
+    expect(document.querySelector('[data-confirm-ausserhalb]')?.textContent).toContain('pausiert')
     fireEvent.click(screen.getAllByRole('button', { name: 'Eingenommen' }).at(-1)!)
-    await waitFor(() => expect(pageMocks.toast.error).toHaveBeenCalled())
     expect(client.rpc).not.toHaveBeenCalled()
     expect(client.mutations).toEqual([])
   })
