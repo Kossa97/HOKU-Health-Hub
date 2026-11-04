@@ -351,7 +351,7 @@ const who = meta => whoT(meta, false);
 const whoT = (meta, titel) => `<div class="who"><div class="ava" aria-hidden="true">M</div><div class="nm">${D.name}</div>${titel ? `<div class="ttl">${D.titel}</div>` : ''}<div class="meta">${meta.join('')}</div></div>`;
 
 function ogA1(zw = st.zw) {
-  return `<div class="og t-a1" role="img" aria-label="Vorschaubild Fortschritt: ${D.name}, trackt ${D.werte} Werte, über ${D.tier} % positive Veränderung seit ${D.monat}">
+  return `<div class="og t-a1" role="img" aria-label="Vorschaubild Fortschritt: ${D.name}, trackt ${D.werte} Werte, über ${D.tier} % positive Veränderung seit Start">
     ${img('haupt_cw', 'lg')}
     <div class="body">${whoT(a1Lines(zw), zw === 'titel')}
       <div class="main">
@@ -359,7 +359,7 @@ function ogA1(zw = st.zw) {
         <div class="ar">${esc(D.areas.join(' · '))}</div>
         <div class="rule"></div>
         <div class="huge"><small>über</small><span class="acc">${D.tier} %</span><span class="acc tr">${ic('trend', 2)}</span></div>
-        <div class="lbl">positive Veränderung seit ${D.monat}</div>
+        <div class="lbl">positive Veränderung seit Start</div>
       </div></div>${sq}</div>`;
 }
 function ogC(ct, titel = false) {
@@ -380,7 +380,7 @@ function ogN() {
 function meta(type, ct = st.ct) {
   const T = CT[ct];
   if (type === 'n') return { t: 'Hoku Health Hub', d: `${SLOGAN.de} ${T.full}` };
-  if (type === 'a1') return { t: `${D.name} auf Hoku: über ${D.tier} % positive Veränderung seit ${D.monat}`,
+  if (type === 'a1') return { t: `${D.name} auf Hoku: über ${D.tier} % positive Veränderung seit Start`,
     d: `${D.vor} trackt ${D.werte} Werte mit Hoku: ${D.areas.slice(0, -1).join(', ')} und ${D.areas.at(-1)}. ${dabeiText((DABEI.find(d => d.k === st.dabei) || DABEI[1]).v)}${st.zw === 'abzeichen' ? `, ${D.abz} Abzeichen` : `, ${fmt(D.eintraege)} Einträge`}. Sieh dir ${D.gen} Profil an.` };
   return { t: `${D.name} auf Hoku · ${T.h}`, d: `${D.vor} trackt ${D.werte} Werte mit Hoku. ${T.full}` };
 }

@@ -273,3 +273,5 @@ Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/ar
   beide immer bei Web-Link an; `entry_count` nur mit Stufe, Blutwerte nur bei `markers`, Einnahmen nur bei
   `adherence` auf „Alle“. Fortschrittskarte ⇔ `progress.tier` da; Karte ohne Startmonat („positive Veränderung“).
   Trockenlauf frisch, zwei Läufe gleich (9/8/8/7, 2 Spalten, 1 Prüfung, 11 Funktionen), Proben W1–W21 bestanden.
+- 04.11.: Fortschrittskarte „positive Veränderung **seit Start**“ (en „since start“) statt „seit März“ — kein Datum im Web.
+  Eintragszähler: Blutbefunde nur bei Feld `markers` („Marker erfasst“) auf „Alle“, Einnahmen nur bei `adherence` auf „Alle“ (bestätigt).
