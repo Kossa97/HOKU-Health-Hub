@@ -280,3 +280,7 @@ Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/ar
   `HOKU_PATTERN_FEATURE` erst mit Musterfunktion auf 1; Firewall-Rate-Limit 60/min je IP auf `/u/*` und `/api/og` im
   Dashboard anlegen; nach Preview-Deploy: Fonts/resvg im Bundle, Avatar als anon, Link in WhatsApp testen.
   Bild-URL trägt `lang` (Hash passt so zu HTML). App-Links: Team ID + 2 SHA-256 nachtragen (`docs/applinks/EINRICHTEN.md`).
+- 04.11.: **Prüfabfrage vor 2a gegen Produktion gelaufen (nur Zählung): 1 öffentliches Profil, 0 Bios fallen durch** —
+  2a-Backfill bricht nicht ab. Migrationen laufen je direkt vor dem Merge ihres PRs (Nutzer-Entscheidung).
+  Firewall-Regel „Profil-Links bremsen“ (60/min je IP auf /u/ und /api/og, 429 für 10 min): Nutzer will sie; die
+  Vercel-API meldet „Seawall Config not found“ — Projekt hat noch keine Firewall-Konfiguration; im Dashboard anlegen.
