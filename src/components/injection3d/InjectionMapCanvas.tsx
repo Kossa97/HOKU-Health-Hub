@@ -162,10 +162,26 @@ function CameraRig({ focusRequest, resetRequestId }: { focusRequest: InjectionFo
     warmupFrames.current = 0
   }, [camera, controls])
 
+  // Beim Einhaengen hart in die Ganzansicht (die Groesse steht erst nach
+  // ein paar Bildern fest: warmupFrames). Jeder spaetere Wunsch („Torso
+  // zentrieren“, Ende von Hokus Rundflug) gleitet wie die Fahrt zum Pin.
+  const ersterReset = useRef(true)
   useEffect(() => {
-    animation.current = null
-    resetCameraFrame(camera, controls)
-    warmupFrames.current = 0
+    if (ersterReset.current || !controls) {
+      ersterReset.current = false
+      animation.current = null
+      resetCameraFrame(camera, controls)
+      warmupFrames.current = 0
+      invalidate()
+      return
+    }
+    animation.current = {
+      fromPosition: camera.position.clone(),
+      toPosition: new THREE.Vector3(0, DEFAULT_CAMERA_TARGET_Y, CAMERA_DISTANCE),
+      fromTarget: controls.target.clone(),
+      toTarget: new THREE.Vector3(0, DEFAULT_CAMERA_TARGET_Y, 0),
+      startedAt: null,
+    }
     invalidate()
   }, [camera, controls, resetRequestId, invalidate])
 
