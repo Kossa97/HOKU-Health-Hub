@@ -42,3 +42,8 @@ Plan: `docs/registrierung/PLAN.md` (2026-11-03).
   Intent-Filter `autoVerify`, `public/.well-known/*` mit Platzhaltern `TEAM_ID` / SHA-256 — Nutzer liefert beides
   (docs/registrierung/APP-LINKS.md). `cap sync` hat dabei auch Haptics in die nativen Projekte nachgetragen.
 - Mail: Codefeld 52 px, „Tippen und halten zum Kopieren", Gültigkeit groß im Feld; App nennt 15 Minuten.
+
+## Live (04.11.2026)
+- PR Kossa97/HOKU-Health-Hub#173 auf main (Nutzer: ohne CI-Ende mergen). auth-mail v1 deployt (verify_jwt aus).
+- Team-ID 5K69NY3K6F in AASA und als DEVELOPMENT_TEAM im Xcode-Projekt. Android-SHA-256 fehlt (keine Play Console).
+- Nutzer schaltet den Hook im Dashboard ein (EINSTELLUNGEN.md); MacBook kommt, erster Xcode-Start mit Anleitung.
