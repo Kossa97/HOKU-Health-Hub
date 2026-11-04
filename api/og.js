@@ -14,7 +14,7 @@ import { cardFontFiles, cardSvg, cardVersion, chooseCard, isValidNickname } from
 import { fetchAvatar, fetchProfileView, patternFeatureOn, toCardInput } from './_lib/profileViewWeb.js'
 
 export const IMAGE_CACHE = 'public, max-age=0, s-maxage=600'
-/** Profilbild kam nicht durch (Netz): Karte mit Initiale nur kurz zwischenspeichern. */
+/** Profilbild kam nicht durch (Netz) oder `v` ist alt: nur kurz zwischenspeichern. */
 const SHORT_CACHE = 'public, max-age=0, s-maxage=60'
 
 let fontOptions = null
@@ -63,13 +63,27 @@ export function createHandler({ fetch = globalThis.fetch, env = process.env } = 
       return res.end()
     }
     const { name, lang, v } = requestParams(req)
-    const neutral = (cache = IMAGE_CACHE) => send(req, res, neutralPng(lang), cache)
+    const neutral = (cache = IMAGE_CACHE) => {
+      try {
+        return send(req, res, neutralPng(lang), cache)
+      } catch {
+        // Schriften/Logos fehlen im Paket o. Ä.: lieber kein Bild als ein halbes.
+        res.statusCode = 500
+        res.setHeader('Cache-Control', 'no-store')
+        return res.end()
+      }
+    }
     if (!isValidNickname(name) || !v) return neutral()
 
     const result = await fetchProfileView(name, { fetch })
     if (!result.ok) return neutral('no-store')
     const input = toCardInput(result.view, { lang, patternFeature: patternFeatureOn(env) })
-    if (chooseCard(input) === 'neutral' || cardVersion(input) !== v) return neutral()
+    if (chooseCard(input) === 'neutral') return neutral()
+    // Profil ist da, `v` aber alt: Das HTML mit dem alten `v` kann noch bis zu
+    // 2 min im CDN liegen. Die neutrale Karte unter dieser URL deshalb nur kurz
+    // halten, sonst bliebe sie 10 min an einem frisch geteilten Link hängen.
+    // (Verrät nichts: dass der Web-Link an ist, zeigt /u/<name> ohnehin.)
+    if (cardVersion(input) !== v) return neutral(SHORT_CACHE)
 
     let cache = IMAGE_CACHE
     if (input.avatar) {

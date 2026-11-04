@@ -118,21 +118,24 @@ function send(req, res, status, headers, body) {
   res.end(req.method === 'HEAD' ? undefined : body)
 }
 
+/** Ohne Inhalt und ohne Cache: 405, oder 500, wenn Vorlage/Seitenbau scheitert. */
+function fail(res, status) {
+  res.statusCode = status
+  res.setHeader('Cache-Control', 'no-store')
+  return res.end()
+}
+
 export function createHandler({ fetch = globalThis.fetch, env = process.env, template = loadTemplate } = {}) {
   return async function handler(req, res) {
     if (req.method !== 'GET' && req.method !== 'HEAD') {
-      res.statusCode = 405
       res.setHeader('Allow', 'GET, HEAD')
-      res.setHeader('Cache-Control', 'no-store')
-      return res.end()
+      return fail(res, 405)
     }
     let tpl
     try {
       tpl = typeof template === 'function' ? template() : template
     } catch {
-      res.statusCode = 500
-      res.setHeader('Cache-Control', 'no-store')
-      return res.end()
+      return fail(res, 500)
     }
     const lang = pickLang(headerValue(req, 'accept-language'))
     const ctx = { lang, patternFeature: patternFeatureOn(env), origin: siteOrigin(env) }
@@ -147,10 +150,20 @@ export function createHandler({ fetch = globalThis.fetch, env = process.env, tem
     const result = isValidNickname(name) ? await fetchProfileView(name, { fetch }) : { ok: true, view: null }
     if (!result.ok) {
       // Supabase nicht erreichbar: neutral, aber nicht zwischenspeichern.
-      const page = buildPage(tpl, { ...ctx, view: null })
+      let page
+      try {
+        page = buildPage(tpl, { ...ctx, view: null })
+      } catch {
+        return fail(res, 500)
+      }
       return send(req, res, 503, { ...base, 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex', 'Retry-After': '30' }, page.html)
     }
-    const page = buildPage(tpl, { ...ctx, view: result.view })
+    let page
+    try {
+      page = buildPage(tpl, { ...ctx, view: result.view })
+    } catch {
+      return fail(res, 500)
+    }
     const headers = { ...base, 'Cache-Control': PAGE_CACHE }
     if (!page.indexable) headers['X-Robots-Tag'] = 'noindex'
     return send(req, res, page.found ? 200 : 404, headers, page.html)

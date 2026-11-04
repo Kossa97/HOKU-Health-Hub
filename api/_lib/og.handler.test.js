@@ -107,11 +107,9 @@ describe('api/og.js: Treffer', () => {
 })
 
 describe('api/og.js: neutrale Karte', () => {
-  it('aus / privat / unbekannt / ausgeblendet / ungültig / veraltetes v: gleiches Bild, gleiche Kopfzeilen', async () => {
+  it('aus / privat / unbekannt / ausgeblendet / ungültig / ohne v: gleiches Bild, gleiche Kopfzeilen', async () => {
     const maraUrl = await ogUrl('mara', { mara: MARA })
     const v = new URL(maraUrl, 'http://x').searchParams.get('v')
-    const vEn = new URL(await ogUrl('mara', { mara: MARA }, 'en'), 'http://x').searchParams.get('v')
-    expect(vEn).not.toBe(v)
     const views = { otto: null, ben: null, hanna: null, lisa: { ...MARA, username: 'lisa', private: true }, mara: MARA }
     const cases = [
       ['ohne Parameter', '/api/og?lang=de'],
@@ -121,10 +119,8 @@ describe('api/og.js: neutrale Karte', () => {
       ['unbekannt', `/api/og?name=niemand&lang=de&v=${v}`],
       ['privat als Objekt', `/api/og?name=lisa&lang=de&v=${v}`],
       ['ungültiger Name', `/api/og?name=%3Cscript%3E&lang=de&v=${v}`],
-      ['veraltetes v', '/api/og?name=mara&lang=de&v=AAAAAAAAAA'],
       ['ohne v', '/api/og?name=mara&lang=de'],
       ['v doppelt', `/api/og?name=mara&lang=de&v=${v}&v=${v}`],
-      ['Fassung der anderen Sprache', `/api/og?name=mara&lang=de&v=${vEn}`],
       ['Web-Link inzwischen aus', maraUrl.replace('name=mara', 'name=otto')],
     ]
     const results = []
@@ -138,6 +134,18 @@ describe('api/og.js: neutrale Karte', () => {
       expect(r.status, label).toBe(200)
       expect(r.headers, label).toEqual(first.headers)
       expect(Buffer.compare(r.body, first.body), label).toBe(0)
+    }
+  })
+
+  it('veraltetes oder fremdes v: dasselbe neutrale Bild, aber nur 60 s im CDN', async () => {
+    const neutral = await image('/api/og?lang=de')
+    const v = new URL(await ogUrl('mara', { mara: MARA }), 'http://x').searchParams.get('v')
+    const vEn = new URL(await ogUrl('mara', { mara: MARA }, 'en'), 'http://x').searchParams.get('v')
+    expect(vEn).not.toBe(v)
+    for (const url of ['/api/og?name=mara&lang=de&v=AAAAAAAAAA', `/api/og?name=mara&lang=de&v=${vEn}`]) {
+      const r = await image(url, { views: { mara: MARA } })
+      expect(Buffer.compare(r.body, neutral.body), url).toBe(0)
+      expect(r.headers, url).toEqual({ ...neutral.headers, 'cache-control': 'public, max-age=0, s-maxage=60' })
     }
   })
 

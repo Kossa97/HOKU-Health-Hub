@@ -223,6 +223,14 @@ describe('api/u.js: Sonderfälle', () => {
     expect(post.fetch).not.toHaveBeenCalled()
   })
 
+  it('Vorlage ohne <title>: 500 ohne Cache statt Absturz', async () => {
+    const handler = createHandler({ fetch: mockFetch({ mara: MARA }), env: ENV, template: '<html><head></head><body></body></html>' })
+    const res = { statusCode: 200, headers: {}, setHeader(k, v) { this.headers[k.toLowerCase()] = v }, end() {} }
+    await handler({ method: 'GET', url: '/api/u?name=mara', headers: {} }, res)
+    expect(res.statusCode).toBe(500)
+    expect(res.headers['cache-control']).toBe('no-store')
+  })
+
   it('fehlendes dist/index.html: 500 ohne Cache', async () => {
     const handler = createHandler({ fetch: vi.fn(), env: ENV, template: () => { throw new Error('ENOENT') } })
     const res = { statusCode: 200, headers: {}, setHeader(k, v) { this.headers[k.toLowerCase()] = v }, end() {} }
