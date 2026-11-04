@@ -1,0 +1,12 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["TEAMID_PLATZHALTER.com.kossa97.tyd"],
+        "components": [
+          { "/": "/u/*", "comment": "Geteilte Profile (Profil 2c)" }
+        ]
+      }
+    ]
+  }
+}
