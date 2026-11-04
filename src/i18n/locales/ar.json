@@ -2711,5 +2711,7 @@
   "nutr_move_today_none": "No activity yet",
   "nutr_move_today_budget_half": "half on your goal · +{{kcal}} kcal",
   "nutr_move_today_budget_full": "full on your goal · +{{kcal}} kcal",
-  "nutr_move_today_deficit": "counts toward your deficit"
+  "nutr_move_today_deficit": "counts toward your deficit",
+  "nutr_credit_bls": "Basic foods:",
+  "nutr_credit_bls_source": "Max Rubner-Institut (2025): German Nutrient Database (BLS), version 4.0"
 }

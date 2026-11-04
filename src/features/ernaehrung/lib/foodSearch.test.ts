@@ -44,6 +44,9 @@ describe('frequentFoods', () => {
 describe('matchScore', () => {
   it('Anfang > Wortanfang > enthalten; Umlaute und ß egal', () => {
     expect(matchScore('hafer', food('Haferflocken'))).toBe(3)
+    // BLS schreibt manches getrennt: zusammengeschrieben findet es trotzdem.
+    expect(matchScore('haferflocken', food('Hafer Flocken'))).toBe(3)
+    expect(matchScore('flocken', food('Hafer Flocken'))).toBe(2)
     expect(matchScore('flocken', food('Hafer Flocken zart'))).toBe(2)
     expect(matchScore('flock', food('Haferflocken'))).toBe(1)
     expect(matchScore('musli', food('Müsli'))).toBe(3)
