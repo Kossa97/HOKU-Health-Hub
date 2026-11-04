@@ -6,9 +6,13 @@
  * App ist 18+. Gespeichert wird in `profiles` mit Zeitpunkt und Fassung der
  * Bedingungen. Aendern sich die Bedingungen wesentlich, wird `TERMS_VERSION`
  * hochgezaehlt — dann fragt die App beim naechsten Start erneut.
+ *
+ * Fassungen: 2026-10 erste Fassung; 2026-11 Datenschutz Abschnitt 6 um die
+ * Web-Seite /u/<name> ergaenzt (was ohne Anmeldung sichtbar ist, Link-Karte,
+ * Zwischenspeicher, Suchmaschinen, Melden ohne Konto; Profil 2c).
  */
 
-export const TERMS_VERSION = '2026-10'
+export const TERMS_VERSION = '2026-11'
 
 export interface ConsentRow {
   age_confirmed_at: string | null
