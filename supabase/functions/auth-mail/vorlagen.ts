@@ -27,6 +27,8 @@ export interface CodeEingabe {
   /** Uhrzeit, bis zu der der Code gilt, schon formatiert (z. B. „11:35"), oder null */
   bis: string | null
   appUrl: string
+  /** Knopf „In Hoku öffnen": öffnet die App und bestätigt mit einem Tipp (sonst kein Knopf) */
+  link?: string | null
 }
 
 export interface HinweisEingabe {
@@ -41,6 +43,8 @@ interface CodeText {
   betreff: (code: string) => string
   titel: string
   einleitung: string
+  /** Einleitung, wenn die Mail den Knopf „In Hoku öffnen" hat */
+  mitKnopf?: string
   ignorieren: string
 }
 
@@ -50,12 +54,14 @@ const CODE_TEXTE: Record<Sprache, Record<CodeArt, CodeText>> = {
       betreff: c => `${c} ist dein Hoku-Code`,
       titel: 'Bestätige deine E-Mail-Adresse',
       einleitung: 'Gib diesen Code in der App ein, um dein Konto zu bestätigen.',
+      mitKnopf: 'Tippe auf den Knopf, um dein Konto zu bestätigen.',
       ignorieren: 'Du hast dich nicht bei Hoku registriert? Dann ignoriere diese Mail einfach.',
     },
     recovery: {
       betreff: c => `${c} ist dein Code zum Zurücksetzen`,
       titel: 'Passwort zurücksetzen',
       einleitung: 'Gib diesen Code in der App ein, um ein neues Passwort festzulegen.',
+      mitKnopf: 'Tippe auf den Knopf, um ein neues Passwort festzulegen.',
       ignorieren: 'Du hast das nicht angefordert? Dann bleibt dein Passwort, wie es ist.',
     },
     email_change_alt: {
@@ -88,12 +94,14 @@ const CODE_TEXTE: Record<Sprache, Record<CodeArt, CodeText>> = {
       betreff: c => `${c} is your Hoku code`,
       titel: 'Confirm your email address',
       einleitung: 'Enter this code in the app to confirm your account.',
+      mitKnopf: 'Tap the button to confirm your account.',
       ignorieren: "Didn't sign up for Hoku? Just ignore this email.",
     },
     recovery: {
       betreff: c => `${c} is your password reset code`,
       titel: 'Reset your password',
       einleitung: 'Enter this code in the app to set a new password.',
+      mitKnopf: 'Tap the button to set a new password.',
       ignorieren: "Didn't ask for this? Your password stays as it is.",
     },
     email_change_alt: {
@@ -182,6 +190,10 @@ const HINWEIS_TEXTE: Record<Sprache, Record<HinweisArt, (anbieter: string) => { 
 
 interface Rahmen {
   code: string
+  /** Knopf: öffnet die App, die den Code selbst übernimmt (ein echter Kopier-Knopf geht in Mails nicht) */
+  oeffnen: string
+  oeffnenInfo: string
+  oder: string
   /** Kopieren: Mail-Apps führen kein JavaScript aus, ein echter Knopf geht nicht — gedrückt halten markiert den Code */
   kopieren: string
   /** Gültigkeit, groß im Codefeld */
@@ -195,6 +207,9 @@ interface Rahmen {
 const RAHMEN: Record<Sprache, Rahmen> = {
   de: {
     code: 'Dein Code',
+    oeffnen: 'In Hoku öffnen',
+    oeffnenInfo: 'Hoku öffnet sich und übernimmt den Code.',
+    oder: 'oder Code eingeben',
     kopieren: 'Tippen und halten zum Kopieren',
     gilt: (min, bis) => `Gültig für ${min} Minuten${bis ? ` · bis ${bis} Uhr` : ''}`,
     einmal: 'Der Code lässt sich nur einmal verwenden.',
@@ -204,6 +219,9 @@ const RAHMEN: Record<Sprache, Rahmen> = {
   },
   en: {
     code: 'Your code',
+    oeffnen: 'Open in Hoku',
+    oeffnenInfo: 'Hoku opens and fills in the code.',
+    oder: 'or enter the code',
     kopieren: 'Tap and hold to copy',
     gilt: (min, bis) => `Valid for ${min} minutes${bis ? ` · until ${bis}` : ''}`,
     einmal: 'The code can only be used once.',
@@ -304,9 +322,18 @@ export function codeMail(e: CodeEingabe): Mail {
 </div>
 <div style="padding:14px 12px;border-top:1px solid ${FARBE.codeRand};font-family:${SCHRIFT};font-size:15px;font-weight:600;color:${FARBE.text};">⏱ ${escape(gilt)}</div>
 </div>`
+  // Knopf im Stil des Hauptknopfs der App: Cyan, dunkle Schrift; als Tabelle, damit ihn auch Outlook zeigt
+  const knopf = e.link ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0 0;">
+<tr><td align="center" style="border-radius:16px;background:${FARBE.cyan};">
+<a href="${escape(e.link)}" style="display:block;padding:17px 16px;font-family:${SCHRIFT};font-size:17px;font-weight:600;line-height:1.2;color:#00141c;text-decoration:none;border-radius:16px;">${escape(r.oeffnen)}</a>
+</td></tr>
+</table>
+<p style="margin:10px 0 0;font-size:13px;line-height:1.5;text-align:center;color:${FARBE.leise};">${escape(r.oeffnenInfo)}</p>
+<div style="margin:22px 0 0;font-family:${MONO};font-size:11px;letter-spacing:0.3em;text-transform:uppercase;text-align:center;color:${FARBE.leise};">${escape(r.oder)}</div>` : ''
   const html = seite(e.sprache, e.appUrl, `${r.code}: ${code}`, t.titel,
-    absatz(t.einleitung) + codeBox + leise(r.einmal) + leise(t.ignorieren))
-  const text = [t.titel, '', t.einleitung, '', `${r.code}: ${code}`, gilt, r.einmal, '', t.ignorieren, '', '—', r.fuss].join('\n')
+    absatz(e.link && t.mitKnopf ? t.mitKnopf : t.einleitung) + knopf + codeBox + leise(r.einmal) + leise(t.ignorieren))
+  const text = [t.titel, '', e.link && t.mitKnopf ? t.mitKnopf : t.einleitung, '', ...(e.link ? [`${r.oeffnen}: ${e.link}`, ''] : []),
+    `${r.code}: ${code}`, gilt, r.einmal, '', t.ignorieren, '', '—', r.fuss].join('\n')
   return { betreff: t.betreff(code), html, text }
 }
 

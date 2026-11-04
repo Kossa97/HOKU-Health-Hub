@@ -585,6 +585,8 @@ export class MockSupabase {
    */
   readonly authMail = {
     code: '123456',
+    /** token_hash für den Knopf „In Hoku öffnen" in der Mail */
+    hash: '7d5b7b1964cf5d388340a7f04f1dbb5eeb6c7b52ef8270e1737a58d0',
     unbestaetigt: false,
     vorhanden: false,
     /** Anfragen an signup/verify/resend/recover und das neue Passwort, mit Inhalt */
@@ -607,7 +609,8 @@ export class MockSupabase {
         return route.fulfill({ headers: corsHeaders(), json: user })
       }
       if (url.pathname === '/auth/v1/verify') {
-        if (inhalt.token !== this.authMail.code) return fehler(403, 'otp_expired', 'Token has expired or is invalid')
+        const passt = inhalt.token_hash ? inhalt.token_hash === this.authMail.hash : inhalt.token === this.authMail.code
+        if (!passt) return fehler(403, 'otp_expired', 'Token has expired or is invalid')
         this.authMail.unbestaetigt = false
         return route.fulfill({ headers: corsHeaders(), json: fakeSession(this.now()) })
       }

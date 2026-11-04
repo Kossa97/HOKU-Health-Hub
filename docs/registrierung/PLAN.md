@@ -26,6 +26,12 @@ Nachtrag (Nutzer 03.11.2026):
 - **Anmeldewege zum Start:** Apple, Google, E-Mail **oder** Benutzername mit Passwort; Code per Mail
   beim Registrieren und bei „Passwort vergessen". Telefonnummer später (s. o.).
 
+- **Knopf „In Hoku öffnen" (Nutzer 04.11.2026):** Ein echter Kopier-Knopf geht in Mails nicht.
+  Stattdessen öffnet ein Knopf über dem Code die App und bestätigt ohne Tippen (Universal Link /
+  App Link mit `token_hash`); der Code bleibt darunter als Weg ohne Knopf. Einrichtung:
+  `docs/registrierung/APP-LINKS.md`. Damit ist „nur Code, kein Link" für diesen Knopf aufgehoben —
+  er öffnet die App, nicht den Browser.
+
 ## Anmeldewege in der nativen App
 
 - **Apple/Google** sind gebaut (6b), aber noch als Web-Rücksprung. In der App gehören die

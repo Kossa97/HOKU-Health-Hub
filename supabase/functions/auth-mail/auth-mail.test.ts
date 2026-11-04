@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { pruefeSignatur, secretBytes, TOLERANZ_S } from './signatur'
 import { codeMail, escape, gueltigBis, hinweisMail } from './vorlagen'
-import { planeMails, spracheVon, type Einstellungen } from './logik'
+import { appLink, planeMails, spracheVon, type Einstellungen } from './logik'
 
 const SECRET_ROH = 'hoku-test-secret-0123456789abcdef'
 const SECRET = `v1,whsec_${btoa(SECRET_ROH)}`
@@ -165,5 +165,37 @@ describe('auth-mail: wer bekommt was', () => {
     expect(planeMails({ user: user(), email_data: { email_action_type: 'signup', token: 'abc' } }, e)).toBe('token')
     expect(planeMails({ user: { email: '' }, email_data: { email_action_type: 'signup', token: '123456' } }, e)).toBe('empfaenger')
     expect(planeMails({ user: user(), email_data: { email_action_type: 'unbekannt', token: '123456' } }, e)).toBe('art')
+  })
+})
+
+describe('auth-mail: Knopf „In Hoku öffnen"', () => {
+  const e: Einstellungen = { minuten: 15, appUrl: 'https://hokuhealth.app/', jetzt: new Date('2026-11-03T10:20:00Z') }
+  const HASH = '7d5b7b1964cf5d388340a7f04f1dbb5eeb6c7b52ef8270e1737a58d0'
+
+  it('Link nur für Registrieren und Passwort vergessen, nur mit sauberem Hash', () => {
+    expect(appLink('https://hokuhealth.app/', 'signup', HASH)).toBe(`https://hokuhealth.app/auth?bestaetigen=${HASH}&art=signup`)
+    expect(appLink('https://hokuhealth.app', 'recovery', HASH)).toBe(`https://hokuhealth.app/auth?bestaetigen=${HASH}&art=recovery`)
+    expect(appLink('https://hokuhealth.app', 'email_change_neu', HASH)).toBeNull()
+    expect(appLink('https://hokuhealth.app', 'signup', '')).toBeNull()
+    expect(appLink('https://hokuhealth.app', 'signup', 'abc"><script>')).toBeNull()
+  })
+
+  it('Registrieren: Knopf über dem Code, auch im Text', () => {
+    const plan = planeMails({ user: { email: 'a@example.com', user_metadata: {} }, email_data: { email_action_type: 'signup', token: '123456', token_hash: HASH } }, e)
+    if (typeof plan === 'string') throw new Error(plan)
+    const { html, text } = plan[0].mail
+    expect(html).toContain(`href="https://hokuhealth.app/auth?bestaetigen=${HASH}&amp;art=signup"`)
+    expect(html).toContain('>In Hoku öffnen</a>')
+    expect(html.indexOf('>In Hoku öffnen</a>')).toBeLessThan(html.indexOf('user-select:all;">123456'))
+    expect(text).toContain(`In Hoku öffnen: https://hokuhealth.app/auth?bestaetigen=${HASH}&art=signup`)
+  })
+
+  it('ohne Hash oder bei E-Mail-Änderung: kein Knopf, nur der Code', () => {
+    const ohne = planeMails({ user: { email: 'a@example.com' }, email_data: { email_action_type: 'signup', token: '123456' } }, e)
+    if (typeof ohne === 'string') throw new Error(ohne)
+    expect(ohne[0].mail.html).not.toContain('In Hoku öffnen')
+    const wechsel = planeMails({ user: { email: 'a@example.com', new_email: 'b@example.com' }, email_data: { email_action_type: 'email_change', token: '111111', token_new: '222222', token_hash: HASH } }, e)
+    if (typeof wechsel === 'string') throw new Error(wechsel)
+    expect(wechsel.every(v => !v.mail.html.includes('In Hoku öffnen'))).toBe(true)
   })
 })

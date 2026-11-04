@@ -24,6 +24,7 @@ interface HookUser {
 
 interface HookEmail {
   token?: unknown
+  token_hash?: unknown
   token_new?: unknown
   email_action_type?: unknown
   old_email?: unknown
@@ -67,6 +68,17 @@ const CODES: Record<string, CodeArt> = {
   email: 'anmelden',
 }
 
+/**
+ * Knopf „In Hoku öffnen" (nur Registrieren und Passwort vergessen): die App öffnet sich über
+ * diese Adresse (Universal Link / App Link, sonst die Web-App) und bestätigt mit `token_hash`
+ * selbst — dasselbe wie der Code, nur ohne Tippen. Gegenstück: `linkAusAdresse` in der App.
+ */
+export function appLink(appUrl: string, art: CodeArt, tokenHash: string): string | null {
+  if (art !== 'signup' && art !== 'recovery') return null
+  if (!/^[A-Za-z0-9_-]{16,128}$/.test(tokenHash)) return null
+  return `${appUrl.replace(/\/+$/, '')}/auth?bestaetigen=${tokenHash}&art=${art}`
+}
+
 /** Liste der Mails, oder ein Fehlertext, wenn der Aufruf unbrauchbar ist. */
 export function planeMails(payload: unknown, e: Einstellungen): Versand[] | string {
   if (!payload || typeof payload !== 'object') return 'payload'
@@ -76,9 +88,9 @@ export function planeMails(payload: unknown, e: Einstellungen): Versand[] | stri
   const sprache = spracheVon(user.user_metadata)
   const bis = gueltigBis(e.jetzt, e.minuten, zeitzoneVon(user.user_metadata), sprache)
   const email = text(user.email)
-  const code = (a: CodeArt, an: string, token: string): Versand | string =>
+  const code = (a: CodeArt, an: string, token: string, link: string | null = null): Versand | string =>
     !an ? 'empfaenger' : !istCode(token) ? 'token'
-      : { an, mail: codeMail({ art: a, sprache, code: token, minuten: e.minuten, bis, appUrl: e.appUrl }) }
+      : { an, mail: codeMail({ art: a, sprache, code: token, minuten: e.minuten, bis, appUrl: e.appUrl, link }) }
 
   if (art === 'email_change') {
     // Achtung, Supabase: `token` gehört zur bisherigen Adresse, `token_new` zur neuen.
@@ -100,7 +112,7 @@ export function planeMails(payload: unknown, e: Einstellungen): Versand[] | stri
 
   const codeArt = CODES[art]
   if (codeArt) {
-    const v = code(codeArt, email, text(email_data.token))
+    const v = code(codeArt, email, text(email_data.token), appLink(e.appUrl, codeArt, text(email_data.token_hash)))
     return typeof v === 'string' ? v : [v]
   }
 

@@ -78,3 +78,23 @@ export async function passwortSetzen(passwort: string): Promise<CodeFehler | 'gl
   if (code === 'weak_password') return 'schwach'
   return codeFehler(r.error)
 }
+
+/**
+ * Knopf „In Hoku öffnen" in der Mail: `/auth?bestaetigen=<token_hash>&art=signup|recovery`
+ * (supabase/functions/auth-mail/logik.ts, `appLink`). Liefert, was die App damit prüfen soll.
+ */
+export function linkAusAdresse(search: string): { hash: string; art: CodeArt } | null {
+  const p = new URLSearchParams(search)
+  const hash = p.get('bestaetigen') ?? ''
+  const art = p.get('art')
+  if (!/^[A-Za-z0-9_-]{16,128}$/.test(hash) || (art !== 'signup' && art !== 'recovery')) return null
+  return { hash, art }
+}
+
+/** Mit dem Knopf aus der Mail bestätigen (statt sechs Ziffern); bei Erfolg steht die Sitzung. */
+export async function linkPruefen(hash: string, art: CodeArt): Promise<CodeFehler | null> {
+  const r = await supabase.auth.verifyOtp({ token_hash: hash, type: art === 'signup' ? 'email' : 'recovery' })
+    .then(x => x, (err: unknown) => ({ data: { session: null }, error: err }))
+  if (r.error) return codeFehler(r.error)
+  return r.data.session ? null : 'fehler'
+}

@@ -34,3 +34,11 @@ Plan: `docs/registrierung/PLAN.md` (2026-11-03).
 - „Passwort vergessen?" steht in der Zeile von „Angemeldet bleiben" (iPhone SE: sonst rutscht der Knopf aus dem Bild
   und Hoku zeigt nicht mehr darauf — e2e „Absenden während des Hinweises").
 - Offen: Benutzername-Anmeldung bei unbestätigter Adresse (Edge Function `login-name` meldet nur 401).
+
+## Knopf „In Hoku öffnen" (Nutzer 04.11.2026)
+- Nutzer wollte „mit einem Tipp kopieren"; geht in Mails nicht (kein JavaScript). Gewählt: Knopf öffnet die App und
+  bestätigt mit `token_hash` (`/auth?bestaetigen=…&art=signup|recovery`), Code bleibt darunter.
+- Native: `@capacitor/app` (appUrlOpen → `src/lib/appLinks.tsx`), iOS-Entitlements `applinks:hokuhealth.app`, Android
+  Intent-Filter `autoVerify`, `public/.well-known/*` mit Platzhaltern `TEAM_ID` / SHA-256 — Nutzer liefert beides
+  (docs/registrierung/APP-LINKS.md). `cap sync` hat dabei auch Haptics in die nativen Projekte nachgetragen.
+- Mail: Codefeld 52 px, „Tippen und halten zum Kopieren", Gültigkeit groß im Feld; App nennt 15 Minuten.

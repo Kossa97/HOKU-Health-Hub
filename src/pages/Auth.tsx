@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Capacitor } from '@capacitor/core'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, Eye, EyeOff, ScanFace } from 'lucide-react'
 import { hapticErgebnis, hapticTick } from '../lib/haptics'
@@ -15,7 +16,7 @@ import { MedicalNotice } from '../features/compliance/components/MedicalNotice'
 import { LegalLinks } from '../features/compliance/components/LegalLinks'
 import { KEINE_ZUSTIMMUNG, geburtsdatumZeile, heuteLokal, vollstaendig, zustimmungsZeile } from '../features/compliance/lib/consent'
 import { BENUTZERNAME, istEmail, pruefeEmail, pruefeLogin, pruefeNeuesPasswort, pruefeRegistrierung, serverFehler, type LoginFeld, type RegFeld } from '../features/auth/lib/pruefung'
-import { CODE_GUELTIG_MIN, CODE_LAENGE, NEU_SPERRE_MS, alsUhr, codePruefen, codeSenden, istUnbestaetigt, kontoVorhanden, nurZiffern, passwortSetzen, restSekunden, type CodeArt } from '../features/auth/lib/code'
+import { CODE_GUELTIG_MIN, CODE_LAENGE, NEU_SPERRE_MS, alsUhr, codePruefen, codeSenden, istUnbestaetigt, kontoVorhanden, linkAusAdresse, linkPruefen, nurZiffern, passwortSetzen, restSekunden, type CodeArt } from '../features/auth/lib/code'
 import { erstesLeeres, faellig, type HinweisSchritt, type HinweisZiel, type Stille } from '../features/auth/lib/hinweise'
 import { anmeldenMitName, benutzernameFrei, type NamensFehler } from '../features/auth/lib/anmelden'
 import { merkeAngemeldetBleiben } from '../features/auth/lib/sitzung'
@@ -34,8 +35,12 @@ import '../features/auth/auth.css'
  * meldet sich bei Stille mit einem Satz und fliegt zum Feld oder Knopf, um den es geht.
  */
 
-/** `code`: Code aus der Mail; `vergessen`: Passwort vergessen; `neuesPw`: nach dem Code ein neues Passwort. */
-type Ansicht = 'start' | 'login' | 'register' | 'code' | 'vergessen' | 'neuesPw'
+/**
+ * `code`: Code aus der Mail; `vergessen`: Passwort vergessen; `neuesPw`: nach dem Code ein neues Passwort;
+ * `link`: Knopf aus der Mail im Browser — erst ein Tipp bestätigt (Link-Prüfer in Mailprogrammen öffnen
+ * Links probeweise und würden den Code sonst verbrauchen). In der App bestätigt der Knopf sofort.
+ */
+type Ansicht = 'start' | 'login' | 'register' | 'code' | 'vergessen' | 'neuesPw' | 'link'
 type Feld = LoginFeld | RegFeld | 'code'
 interface Meldung { feld: Feld | null; text: string; art: 'fehler' | 'info' }
 
@@ -66,7 +71,11 @@ export function Auth() {
   const stand = useDotStand()
   // Zurück von Apple/Google? Dann keine Eröffnung, sondern gleich der Ausgang
   const [zurueck] = useState(() => rueckkehr(window.location.search, window.location.hash))
-  const [ansicht, setAnsicht] = useState<Ansicht>(zurueck.anbieter ? 'login' : 'start')
+  // Knopf „In Hoku öffnen" aus der Mail: bestätigt ohne Tippen (supabase/functions/auth-mail)
+  const [link] = useState(() => linkAusAdresse(window.location.search))
+  const nativ = Capacitor.isNativePlatform()
+  const location = useLocation()
+  const [ansicht, setAnsicht] = useState<Ansicht>(link && !nativ ? 'link' : zurueck.anbieter || link ? 'login' : 'start')
   const [von, setVon] = useState<'rechts' | 'links'>('rechts')
   const [email, setEmail] = useState('')
   // Anmelden: E-Mail oder Benutzername
@@ -80,16 +89,18 @@ export function Auth() {
   const [codeFuer, setCodeFuer] = useState<{ email: string; art: CodeArt } | null>(null)
   const [code, setCode] = useState('')
   const [sperreBis, setSperreBis] = useState(0)
+  // Knopf aus der Mail im Browser: wartet auf „Jetzt bestätigen"
+  const [linkWartet, setLinkWartet] = useState(() => (link && !nativ ? link : null))
   const [uhr, setUhr] = useState(() => Date.now())
   const [zustimmung, setZustimmung] = useState(KEINE_ZUSTIMMUNG)
   const [zeigePw, setZeigePw] = useState(false)
   const [meldung, setMeldung] = useState<Meldung | null>(null)
-  const [laeuft, setLaeuft] = useState(() => !!zurueck.anbieter && !zurueck.fehler && !zurueck.abgebrochen)
+  const [laeuft, setLaeuft] = useState(() => (!!link && nativ) || (!!zurueck.anbieter && !zurueck.fehler && !zurueck.abgebrochen))
   const [nochmal, setNochmal] = useState(false)
   const [geschafft, setGeschafft] = useState(false)
   const [verlassen, setVerlassen] = useState(false)
   // Nach dem Erfolg bleibt die Seite stehen, bis Dot den Haken gezeigt hat
-  const [halten, setHalten] = useState(() => !!zurueck.anbieter && !zurueck.fehler && !zurueck.abgebrochen)
+  const [halten, setHalten] = useState(() => (!!link && nativ) || (!!zurueck.anbieter && !zurueck.fehler && !zurueck.abgebrochen))
   const buehne = useRef<HTMLDivElement>(null)
   const lauf = useRef(0)
   const uhren = useRef<number[]>([])
@@ -184,6 +195,12 @@ export function Auth() {
     const d = dotStore.api()
     if (stand.modus !== 'login' || gegruesst.current || !d) return
     gegruesst.current = true
+    if (link) {
+      window.history.replaceState(null, '', '/auth')
+      // im Browser wartet die Ansicht `link` auf den Tipp auf „Jetzt bestätigen"
+      if (nativ) void mitLink(link)
+      return
+    }
     if (zurueck.anbieter) {
       window.history.replaceState(null, '', '/auth')
       if (zurueck.fehler) { void serverAntwort(lauf.current, 'fehler', 0, null, 'login_err_generic'); return }
@@ -272,6 +289,15 @@ export function Auth() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- nur solange die Meldung steht
   }, [meldung])
 
+  // Knopf aus der Mail, während die Anmeldung schon offen ist (die App wurde über den Link geweckt)
+  useEffect(() => {
+    const l = linkAusAdresse(location.search)
+    if (!l || !gegruesst.current) return
+    navigate('/auth', { replace: true })
+    linkAngekommen(l)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- nur wenn ein neuer Link kommt
+  }, [location.search])
+
   // Sperre für „Neuen Code senden" herunterzählen
   useEffect(() => {
     if (ansicht !== 'code' || sperreBis <= Date.now()) return
@@ -290,7 +316,8 @@ export function Auth() {
   if (session && !halten) return <Navigate to="/" replace />
 
   /** Alles Laufende abbrechen: Abläufe, Dots Form, Meldung. */
-  const abbrechen = () => {
+  // als Funktionsdeklaration: auch Effekte von oben (Knopf aus der Mail) dürfen sie rufen
+  function abbrechen() {
     lauf.current++
     uhren.current.forEach(clearTimeout); uhren.current = []
     // abgebrochene Abläufe enden nie (ihre Uhren sind weg): Zähler zurück, laufende Hinweise stoppen
@@ -597,24 +624,56 @@ export function Auth() {
       setCode('')
       return void serverAntwort(gen, fehler, seit, 'code', 'login_code_falsch')
     }
-    if (codeFuer.art === 'recovery') {
-      // Die Sitzung steht; erst mit neuem Passwort geht es in die App. Wird die App vorher
-      // geschlossen, gilt sie nur bis zum nächsten Start (wie „Angemeldet bleiben" aus)
-      merkeAngemeldetBleiben(false)
-      await warte(DENKEN.erfolg - (performance.now() - seit))
-      if (gen !== lauf.current) return
-      wartet.current = false
-      fuehlen(true)
-      wechsle('neuesPw'); setHalten(true)
-      setPasswort(''); setPasswort2('')
-      const g = lauf.current
-      void mitHoku(async () => {
-        dot()?.setStimmung('idle'); dot()?.zeigeForm('haken')
-        await warte(ZEIGEN.haken)
-        if (g === lauf.current) ruheForm()
-      })
-      return
+    if (codeFuer.art === 'recovery') return void zumNeuenPasswort(gen, seit)
+    merkeAngemeldetBleiben(true)
+    merkePasskeyAnbieten()
+    void erfolg(gen, seit)
+  }
+
+  /** Nach dem Recovery-Code (oder -Knopf): Haken, dann das neue Passwort. */
+  async function zumNeuenPasswort(gen: number, seit: number) {
+    // Die Sitzung steht; erst mit neuem Passwort geht es in die App. Wird die App vorher
+    // geschlossen, gilt sie nur bis zum nächsten Start (wie „Angemeldet bleiben" aus)
+    merkeAngemeldetBleiben(false)
+    await warte(DENKEN.erfolg - (performance.now() - seit))
+    if (gen !== lauf.current) return
+    wartet.current = false
+    fuehlen(true)
+    wechsle('neuesPw'); setHalten(true)
+    setPasswort(''); setPasswort2('')
+    const g = lauf.current
+    void mitHoku(async () => {
+      dot()?.setStimmung('idle'); dot()?.zeigeForm('haken')
+      await warte(ZEIGEN.haken)
+      if (g === lauf.current) ruheForm()
+    })
+  }
+
+  /** Ein Link aus der Mail kommt an, während die Anmeldung offen ist: in der App gleich prüfen, im Browser erst nach einem Tipp. */
+  function linkAngekommen(l: { hash: string; art: CodeArt }) {
+    abbrechen()
+    if (!nativ) { setLinkWartet(l); setAnsicht('link'); ansichtRef.current = 'link'; return }
+    setAnsicht('login'); ansichtRef.current = 'login'
+    void mitLink(l)
+  }
+
+  /** Knopf „In Hoku öffnen" aus der Mail: wie der Code, nur ohne Tippen. */
+  async function mitLink(l: { hash: string; art: CodeArt }, e?: FormEvent) {
+    e?.preventDefault()
+    if (laeuft && !nativ) return
+    const gen = ++lauf.current
+    setMeldung(null); setNochmal(false); setLaeuft(true); setHalten(true)
+    mitWarten(gen)
+    const seit = performance.now()
+    const fehler = await linkPruefen(l.hash, l.art)
+    if (gen !== lauf.current) return
+    // schon benutzt oder abgelaufen: anmelden geht weiter (bei unbestätigter Adresse kommt ein neuer Code)
+    if (fehler) {
+      setLinkWartet(null)
+      if (ansichtRef.current === 'link') { setAnsicht('login'); ansichtRef.current = 'login' }
+      return void serverAntwort(gen, fehler, seit, null, 'login_link_ungueltig')
     }
+    if (l.art === 'recovery') return void zumNeuenPasswort(gen, seit)
     merkeAngemeldetBleiben(true)
     merkePasskeyAnbieten()
     void erfolg(gen, seit)
@@ -931,6 +990,17 @@ export function Auth() {
               )}
             </div>
             <p className="tyd-auth-text" data-leise>{t('login_code_spam')}</p>
+          </form>
+        )}
+
+        {ansicht === 'link' && linkWartet && (
+          <form key="link" className="tyd-auth-ansicht" data-von={von} onSubmit={e => void mitLink(linkWartet, e)} noValidate data-auth-link-ansicht>
+            {kopf(t(linkWartet.art === 'signup' ? 'login_link_titel_signup' : 'login_link_titel_recovery'))}
+            <p className="tyd-auth-text">{t('login_link_info')}</p>
+            {meldungZeile}
+            <button className="tyd-auth-knopf" data-art="haupt" data-ok={geschafft} type="submit" disabled={laeuft} data-auth-submit>
+              {laeuft ? t('loading') : t('login_link_bestaetigen')}
+            </button>
           </form>
         )}
 

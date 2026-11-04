@@ -145,3 +145,38 @@ test('Passwort vergessen, beim neuen Passwort zurück: wieder abgemeldet', async
   expect(mock.log.some(z => z.includes('/auth/v1/logout'))).toBe(true)
   expect(mock.authMail.neuesPasswort).toBeNull()
 })
+
+test('Knopf „In Hoku öffnen“ im Browser: erst „Jetzt bestätigen“, dann angemeldet in der App', async ({ page, mock }) => {
+  await abgemeldet(page)
+  await page.goto(`/auth?bestaetigen=${mock.authMail.hash}&art=signup`)
+  await lassLaufen(page, 3000)
+  // Link-Prüfer in Mailprogrammen öffnen die Seite probeweise: ohne Tipp wird nichts verbraucht
+  await expect(page.locator('[data-auth-link-ansicht]')).toBeVisible()
+  expect(mock.authMail.calls.filter(c => c.pfad === 'verify')).toEqual([])
+  await page.locator('[data-auth-submit]').click()
+  await lassLaufen(page, 4000)
+  await expect(page).toHaveURL(/\/$/)
+  expect(mock.authMail.calls.filter(c => c.pfad === 'verify').map(c => [c.body.token_hash, c.body.type])).toEqual([[mock.authMail.hash, 'email']])
+})
+
+test('Knopf aus der Mail, schon benutzt: Hinweis, Anmeldung bleibt offen', async ({ page, mock }) => {
+  await abgemeldet(page)
+  await page.goto('/auth?bestaetigen=0000000000000000000000000000000000000000&art=signup')
+  await lassLaufen(page, 2000)
+  await page.locator('[data-auth-submit]').click()
+  await lassLaufen(page, 2500)
+  await expect(page).toHaveURL(/\/auth$/)
+  await expect(page.getByRole('alert')).toHaveText('Der Knopf in der Mail gilt nicht mehr. Melde dich an oder lass dir einen neuen Code schicken.')
+  await expect(page.locator('#auth-kennung')).toBeVisible()
+  void mock
+})
+
+test('Knopf aus der Mail bei „Passwort vergessen“: gleich zum neuen Passwort', async ({ page, mock }) => {
+  await abgemeldet(page)
+  await page.goto(`/auth?bestaetigen=${mock.authMail.hash}&art=recovery`)
+  await lassLaufen(page, 2000)
+  await page.locator('[data-auth-submit]').click()
+  await lassLaufen(page, 3000)
+  await expect(page.locator('[data-auth-neues-pw]')).toBeVisible()
+  await expect(page).toHaveURL(/\/auth$/)
+})

@@ -16,6 +16,7 @@ import { SeitenSilhouette } from './components/ui/Silhouette'
 import { silhouetteFuerPfad } from './components/ui/silhouetteTakt'
 import { FehlerGrenze } from './components/FehlerGrenze'
 import { VerbindungsHinweis } from './components/VerbindungsHinweis'
+import { AppLinks } from './lib/appLinks'
 
 const Home = lazyPage(() => import('./pages/Home'), 'Home')
 const Dashboard = lazyPage(() => import('./pages/Dashboard'), 'Dashboard')
@@ -125,7 +126,7 @@ function PersonalApp() {
 
 export default function App() {
   // Äußerste Grenze: was keine Seite abfängt, endet hier statt weiß
-  return <FehlerGrenze ort="app"><BrowserRouter><ReloadOnUpdate /><VerbindungsHinweis /><AppBackNavigation><Routes>
+  return <FehlerGrenze ort="app"><BrowserRouter><ReloadOnUpdate /><AppLinks /><VerbindungsHinweis /><AppBackNavigation><Routes>
       {publicPeptipediaRoutes()}
       <Route path="*" element={<PersonalApp />} />
     </Routes></AppBackNavigation></BrowserRouter></FehlerGrenze>

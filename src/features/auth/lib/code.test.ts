@@ -1,6 +1,6 @@
 import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js'
 import { describe, expect, it } from 'vitest'
-import { CODE_LAENGE, alsUhr, codeFehler, istUnbestaetigt, kontoVorhanden, nurZiffern, restSekunden } from './code'
+import { CODE_LAENGE, alsUhr, codeFehler, istUnbestaetigt, kontoVorhanden, linkAusAdresse, nurZiffern, restSekunden } from './code'
 import { pruefeNeuesPasswort } from './pruefung'
 
 describe('Code aus der Mail', () => {
@@ -43,5 +43,17 @@ describe('Code aus der Mail', () => {
     expect(pruefeNeuesPasswort('geheim1', '')).toEqual({ feld: 'passwort2', text: 'login_err_pw2_empty' })
     expect(pruefeNeuesPasswort('geheim1', 'geheim2')).toEqual({ feld: 'passwort2', text: 'login_err_pw_mismatch' })
     expect(pruefeNeuesPasswort('geheim1', 'geheim1')).toBeNull()
+  })
+})
+
+describe('Knopf aus der Mail', () => {
+  const HASH = '7d5b7b1964cf5d388340a7f04f1dbb5eeb6c7b52ef8270e1737a58d0'
+  it('liest Hash und Art aus der Adresse, sonst nichts', () => {
+    expect(linkAusAdresse(`?bestaetigen=${HASH}&art=signup`)).toEqual({ hash: HASH, art: 'signup' })
+    expect(linkAusAdresse(`?bestaetigen=${HASH}&art=recovery`)).toEqual({ hash: HASH, art: 'recovery' })
+    expect(linkAusAdresse(`?bestaetigen=${HASH}&art=email_change`)).toBeNull()
+    expect(linkAusAdresse('?bestaetigen=kurz&art=signup')).toBeNull()
+    expect(linkAusAdresse('?bestaetigen=%3Cscript%3E1234567890123456&art=signup')).toBeNull()
+    expect(linkAusAdresse('')).toBeNull()
   })
 })

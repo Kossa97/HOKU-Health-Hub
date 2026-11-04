@@ -10,7 +10,7 @@ import type { LoginFeld, RegFeld } from './pruefung'
 
 export type HinweisZiel = 'start-anmelden' | 'start-registrieren' | LoginFeld | RegFeld | 'absenden'
 export type HinweisSchritt = { art: 'hinweis'; ziel: HinweisZiel; text: DotTextKey } | { art: 'klopfen' }
-export interface Stille { ansicht: 'start' | 'login' | 'register' | 'code' | 'vergessen' | 'neuesPw'; seit: number; gezeigt: number; geklopft: boolean }
+export interface Stille { ansicht: 'start' | 'login' | 'register' | 'code' | 'vergessen' | 'neuesPw' | 'link'; seit: number; gezeigt: number; geklopft: boolean }
 
 /**
  * Startseite: erster Hinweis direkt nach der Begrüßung (0,8 s), der zweite gleich danach ohne Pause;

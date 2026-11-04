@@ -1,0 +1,12 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["TEAM_ID.com.kossa97.tyd"],
+        "components": [
+          { "/": "/auth", "?": { "bestaetigen": "?*" }, "comment": "Knopf „In Hoku öffnen“ in den Mails" }
+        ]
+      }
+    ]
+  }
+}
