@@ -1008,9 +1008,9 @@
     "semantic_hash": ""
   },
   "src/pages/Profil.tsx": {
-    "mtime": 1793764024.0344443,
-    "seen": 1793764179.5563858,
-    "ast_hash": "f144d5373726cdfd25c725ab34182ad1",
+    "mtime": 1793786570.5785093,
+    "seen": 1793787190.2106578,
+    "ast_hash": "11e56a960f65e241248b31d537e831cf",
     "semantic_hash": ""
   },
   "src/pages/Progress.tsx": {
@@ -2790,15 +2790,15 @@
     "semantic_hash": ""
   },
   "src/components/navigation/LiquidGlassTabBar.test.tsx": {
-    "mtime": 1793762412.7943435,
-    "seen": 1793762460.6948514,
-    "ast_hash": "fdf32268b5db86d4919d14fb6a541bb6",
+    "mtime": 1793786383.398584,
+    "seen": 1793787190.208845,
+    "ast_hash": "c203524d05a89279ccdc9995ba6fdf98",
     "semantic_hash": ""
   },
   "src/components/navigation/LiquidGlassTabBar.tsx": {
-    "mtime": 1793762412.7943435,
-    "seen": 1793762460.694853,
-    "ast_hash": "8728a1fcbf9beab4fec092b1071bdf2c",
+    "mtime": 1793786570.578249,
+    "seen": 1793787190.2088485,
+    "ast_hash": "64db8b413fa78d14bc04afb85b42d7aa",
     "semantic_hash": ""
   },
   "src/components/navigation/bottomNavMetrics.test.ts": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793764127.049789,
-    "seen": 1793764179.5566049,
+    "mtime": 1793786995.0407999,
+    "seen": 1793787190.2108736,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7722,9 +7722,9 @@
     "semantic_hash": ""
   },
   "memory/projects/erscheinungsbild.md": {
-    "mtime": 1793762418.8303432,
-    "seen": 1793762460.6970737,
-    "ast_hash": "a09fafb9060f2fd936c2dc18370b2f2b",
+    "mtime": 1793786941.2022424,
+    "seen": 1793787190.2113936,
+    "ast_hash": "1a1a93c81a874f888fb2abc1e609767f",
     "semantic_hash": ""
   },
   "src/features/my-stack/components/FormUndFarbe.tsx": {
@@ -21666,9 +21666,9 @@
     "semantic_hash": ""
   },
   "src/lib/hokuLicht.ts": {
-    "mtime": 1793723081.2061045,
-    "seen": 1793724933.4696426,
-    "ast_hash": "71b6f79a856e72bff0186663d179af0a",
+    "mtime": 1793786117.766084,
+    "seen": 1793787190.2103944,
+    "ast_hash": "4b85f857ad6d67e7c8371b3340379546",
     "semantic_hash": ""
   },
   "src/pages/HokuSeite.tsx": {
@@ -21690,21 +21690,21 @@
     "semantic_hash": ""
   },
   "src/lib/linse.ts": {
-    "mtime": 1793764024.0340517,
-    "seen": 1793764179.5562575,
-    "ast_hash": "7498846b7693d3bbb8772d725795cafc",
+    "mtime": 1793786570.5779538,
+    "seen": 1793787190.2104626,
+    "ast_hash": "677cb3a86b0e77db3aeb5917ca1f1311",
     "semantic_hash": ""
   },
   "src/components/navigation/linsenFeder.test.ts": {
-    "mtime": 1793744912.609878,
-    "seen": 1793745278.3177345,
-    "ast_hash": "01217c0c434a1d931dba49f5efb90ec3",
+    "mtime": 1793786570.5835812,
+    "seen": 1793787190.208852,
+    "ast_hash": "e619aa2209a0b0ed2ee3787e915ddd12",
     "semantic_hash": ""
   },
   "src/components/navigation/linsenFeder.ts": {
-    "mtime": 1793762412.7943435,
-    "seen": 1793762460.6948602,
-    "ast_hash": "4dbeb79edb8735ea92b6f5e836309921",
+    "mtime": 1793786930.5970693,
+    "seen": 1793787190.2088575,
+    "ast_hash": "470eb83f52af2f919e0f42101ba22ef1",
     "semantic_hash": ""
   },
   "src/lib/glasBrechung.test.ts": {
