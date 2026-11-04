@@ -7,6 +7,7 @@ import { inferBodyRegion } from '../../lib/injectionGeometry'
 import { INJECTION_MODEL_VERSION, INJECTION_TORSO_MODEL_URL, prepareInjectionTorsoModel } from '../../lib/injectionModelMaterial'
 import { getInjectionPinAgeColor } from '../../lib/injectionPinPresentation'
 import { FOCUS_FLIGHT_MS, focusFlightEase, focusTargetDrop, measureFreeViewport } from '../../lib/injectionFocusFrame'
+import { cameraFlightPose, planCameraFlight, type CameraFlight } from '../../lib/injectionCameraFlight'
 import type { InjectionLog3D, InjectionPinDraft } from '../../lib/injectionLogTypes'
 import { INJECTION_STUDIO_BACKDROP } from '../../lib/injectionStudioLook'
 import { InjectionStudioLight } from './InjectionStudioLight'
@@ -32,6 +33,9 @@ const CAMERA_FOV = 48
 const DEFAULT_CAMERA_TARGET_Y = FIT_Y_OFFSET
 // Abstand der Kamera zum Pin beim Fokus.
 const FOCUS_DISTANCE = 0.82
+// So viele Bilder nach dem Einhaengen wird die Ganzansicht neu eingepasst
+// (die Groesse der Karte steht erst dann fest).
+const WARMUP_FRAMES = 6
 
 export interface InjectionFocusRequest {
   // Ein gespeicherter Pin oder eine gerade gewaehlte Stelle (ohne id).
@@ -40,6 +44,10 @@ export interface InjectionFocusRequest {
   // Nur Ausloeser: oeffnet/schliesst ein Sheet, wird neu eingepasst. Wie viel
   // frei bleibt, misst die Kamera an den data-injection-cover-Elementen.
   sheetOpen?: boolean
+  // Abstand der Kamera zum Pin; ohne: FOCUS_DISTANCE (nah, zum Setzen).
+  distance?: number
+  // Dauer der Fahrt; ohne: FOCUS_FLIGHT_MS.
+  durationMs?: number
 }
 
 type OrbitControlsApi = { target: THREE.Vector3; update: () => void }
@@ -134,8 +142,8 @@ function resetCameraFrame(
 
 // Ziel so unter den Pin legen (senkrecht zur Blickrichtung), dass der Pin in
 // der Mitte des freien Bereichs erscheint und nicht unter einem Overlay.
-function focusTargetForRequest(point: THREE.Vector3, normal: THREE.Vector3, canvas: Element) {
-  const drop = focusTargetDrop(measureFreeViewport(canvas), FOCUS_DISTANCE, CAMERA_FOV)
+function focusTargetForRequest(point: THREE.Vector3, normal: THREE.Vector3, canvas: Element, distance: number) {
+  const drop = focusTargetDrop(measureFreeViewport(canvas), distance, CAMERA_FOV)
   const screenUp = new THREE.Vector3(0, 1, 0).addScaledVector(normal, -normal.y)
   if (screenUp.lengthSq() < 0.001) return point.clone()
   return point.clone().addScaledVector(screenUp.normalize(), -drop)
@@ -148,14 +156,20 @@ function CameraRig({ focusRequest, resetRequestId }: { focusRequest: InjectionFo
   const frameloop = useThree((s) => s.frameloop)
   const canvas = useThree((s) => s.gl.domElement)
   const warmupFrames = useRef(0)
+  // Im Bogen um den Torso (nicht geradeaus hindurch), an der Uhr.
   const animation = useRef<{
-    fromPosition: THREE.Vector3
-    toPosition: THREE.Vector3
-    fromTarget: THREE.Vector3
-    toTarget: THREE.Vector3
+    flight: CameraFlight
+    durationMs: number
     // Gesetzt im ersten Bild der Fahrt, nicht beim Anstossen.
     startedAt: number | null
   } | null>(null)
+
+  // Eine Fahrt uebernimmt die Einstellung: danach darf das Einpassen der
+  // ersten Bilder die Kamera nicht mehr zurueck in die Ganzansicht setzen.
+  const startFlight = (flight: CameraFlight, durationMs: number) => {
+    warmupFrames.current = WARMUP_FRAMES
+    animation.current = { flight, durationMs, startedAt: null }
+  }
 
   useLayoutEffect(() => {
     resetCameraFrame(camera, controls)
@@ -175,13 +189,15 @@ function CameraRig({ focusRequest, resetRequestId }: { focusRequest: InjectionFo
       invalidate()
       return
     }
-    animation.current = {
-      fromPosition: camera.position.clone(),
-      toPosition: new THREE.Vector3(0, DEFAULT_CAMERA_TARGET_Y, CAMERA_DISTANCE),
-      fromTarget: controls.target.clone(),
-      toTarget: new THREE.Vector3(0, DEFAULT_CAMERA_TARGET_Y, 0),
-      startedAt: null,
-    }
+    startFlight(
+      planCameraFlight(
+        camera.position,
+        controls.target,
+        new THREE.Vector3(0, DEFAULT_CAMERA_TARGET_Y, CAMERA_DISTANCE),
+        new THREE.Vector3(0, DEFAULT_CAMERA_TARGET_Y, 0),
+      ),
+      FOCUS_FLIGHT_MS,
+    )
     invalidate()
   }, [camera, controls, resetRequestId, invalidate])
 
@@ -207,15 +223,13 @@ function CameraRig({ focusRequest, resetRequestId }: { focusRequest: InjectionFo
     if (normal.lengthSq() < 0.001) normal.set(0, 0, 1)
     normal.normalize()
 
-    const target = focusTargetForRequest(point, normal, canvas)
+    const distance = focusRequest.distance ?? FOCUS_DISTANCE
+    const target = focusTargetForRequest(point, normal, canvas, distance)
 
-    animation.current = {
-      fromPosition: camera.position.clone(),
-      toPosition: target.clone().addScaledVector(normal, FOCUS_DISTANCE),
-      fromTarget: controls.target.clone(),
-      toTarget: target,
-      startedAt: null,
-    }
+    startFlight(
+      planCameraFlight(camera.position, controls.target, target.clone().addScaledVector(normal, distance), target),
+      focusRequest.durationMs ?? FOCUS_FLIGHT_MS,
+    )
     invalidate()
   }, [camera, canvas, controls, focusRequest, invalidate])
 
@@ -225,19 +239,18 @@ function CameraRig({ focusRequest, resetRequestId }: { focusRequest: InjectionFo
       const now = performance.now()
       active.startedAt ??= now
       const elapsed = now - active.startedAt
-      const t = focusFlightEase(elapsed)
-      camera.position.lerpVectors(active.fromPosition, active.toPosition, t)
-      controls?.target.lerpVectors(active.fromTarget, active.toTarget, t)
+      const t = focusFlightEase(elapsed, active.durationMs)
+      if (controls) cameraFlightPose(active.flight, t, camera.position, controls.target)
       controls?.update()
-      if (elapsed >= FOCUS_FLIGHT_MS) animation.current = null
+      if (elapsed >= active.durationMs) animation.current = null
       else invalidate()
       return
     }
 
-    if (warmupFrames.current >= 6) return
+    if (warmupFrames.current >= WARMUP_FRAMES) return
     resetCameraFrame(camera, controls)
     warmupFrames.current += 1
-    if (warmupFrames.current < 6) invalidate()
+    if (warmupFrames.current < WARMUP_FRAMES) invalidate()
   })
 
   return null
