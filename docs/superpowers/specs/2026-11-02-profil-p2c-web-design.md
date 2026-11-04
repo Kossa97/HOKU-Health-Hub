@@ -519,9 +519,11 @@ Profil › ⚙︎ › Web-Link › **Abzeichen im Web** (`/profil/web-abzeichen`
   Supabase-API aufrufbar; die Funktionen öffnen also keinen neuen Weg, sondern
   denselben über Vercel. Schutz: identische 404 (1.2), keine Liste aller Profile,
   Rate-Limit.
-- **Rate-Limit** **[Claude, ungeprüft]** (Frage 10): Regel in der Vercel-Firewall
-  (z. B. 60 Anfragen/Minute je IP auf `/u/*` und `/api/og`), im Dashboard vom Nutzer
-  anzulegen. Ohne Regel bleibt nur der CDN-Cache als Bremse.
+- **Rate-Limit** **[Nutzer, angelegt 04.11.]** (Frage 10): Vercel-Firewall-Regel „Profil-Links bremsen“:
+  Pfad beginnt mit `/u/` oder `/api/og`, Fixed Window 60 s, **100 Anfragen je IP**, darüber 429 für
+  **1 Minute**. 100 statt 60 und nur 1 Minute Sperre, weil Vorschau-Dienste (Slack, Discord, X, Telegram,
+  LinkedIn) von wenigen gemeinsamen Adressen abrufen. Kosten: 0,50 $ je 1 Mio. durchgelassene Aufrufe auf
+  diesen Pfaden, blockierte kostenlos. Nach dem Start Firewall-Logs ansehen.
 
 ### 7.3 Datenschutzerklärung und App-Texte
 
@@ -609,7 +611,7 @@ Abweichend entschieden: 3, 7, 18 (siehe dort). 1 und 22 nach den Link-Karten ang
    E-Mail, landet in der bestehenden Moderation. Empfehlung: Formular.
 9. **Sprache der Karte:** `Accept-Language`, sonst Englisch. Alternative: Sprache
    des Profilinhabers speichern. Empfehlung: erst `Accept-Language`, ansehen.
-10. **Rate-Limit** über die Vercel-Firewall (60/min je IP). Empfehlung: anlegen.
+10. **Rate-Limit: angelegt** (100/min je IP, 1 Minute Sperre, 7.2).
 11. **Helligkeit im Vollbild:** ohne Plugin weglassen; mit einem Community-Plugin
     (Kompatibilität mit Capacitor 8 prüfen) später. Empfehlung: weglassen.
 12. **Lesetest am Gerät:** iPhone- und Android-Kamera mit Code im Sheet und

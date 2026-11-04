@@ -283,4 +283,4 @@ Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/ar
 - 04.11.: **Prüfabfrage vor 2a gegen Produktion gelaufen (nur Zählung): 1 öffentliches Profil, 0 Bios fallen durch** —
   2a-Backfill bricht nicht ab. Migrationen laufen je direkt vor dem Merge ihres PRs (Nutzer-Entscheidung).
   Firewall-Regel „Profil-Links bremsen“ (60/min je IP auf /u/ und /api/og, 429 für 10 min): Nutzer will sie; die
-  Vercel-API meldet „Seawall Config not found“ — Projekt hat noch keine Firewall-Konfiguration; im Dashboard anlegen.
+  Nutzer hat sie im Dashboard angelegt: 100/min je IP (nicht 60, wegen Vorschau-Diensten), 429 für 1 Minute.
