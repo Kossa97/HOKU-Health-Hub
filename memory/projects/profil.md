@@ -257,3 +257,7 @@ Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/ar
   braucht `progress.counts` im Schnappschuss (Task 2). Fortschrittsstufe rundet `profileCard.js`, nicht SQL.
   Nebenbefund 2a: Bestands-update bricht ab, wenn eine `is_public`-Alt-Bio den Filter nicht besteht (Zählabfrage
   in der Trockenlauf-Notiz) — vor dem 2a-Produktivlauf zählen.
+- **Vor dem Produktivlauf von 2a prüfen (Fund aus dem 2c-Trockenlauf, 04.11.):** Der Bio-Backfill in 2a (Abschnitt 4)
+  bricht die ganze Migration ab, wenn eine alte öffentliche Bio den heutigen Textfilter nicht besteht
+  (`ERROR: oeffentliches_profil_link`). Diese Zählung muss 0 ergeben, sonst Treffer von Hand klären:
+  `select count(*) from public.profiles where is_public and field_visibility = '{}'::jsonb and public.oeffentlicher_text_fehler(public_bio) is not null;`
