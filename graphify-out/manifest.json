@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793650586.8560312,
-    "seen": 1793651168.893542,
+    "mtime": 1793760186.304992,
+    "seen": 1793760687.7085562,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -6480,9 +6480,9 @@
     "semantic_hash": ""
   },
   "src/features/training/components/live/LiveWorkout.tsx": {
-    "mtime": 1793415941.7464218,
-    "seen": 1793651168.8925748,
-    "ast_hash": "dcce0d764ae01d024645e1ae4ad5a60a",
+    "mtime": 1793760428.715614,
+    "seen": 1793760687.7076902,
+    "ast_hash": "1cbf7326a2d437421c31777c9b91e36a",
     "semantic_hash": ""
   },
   "src/features/training/components/live/RestTimer.tsx": {
@@ -6642,9 +6642,9 @@
     "semantic_hash": ""
   },
   "src/features/training/i18n/index.ts": {
-    "mtime": 1793366445.3755465,
-    "seen": 1793651168.892661,
-    "ast_hash": "6ba4ef2156258f6829f89e7543261921",
+    "mtime": 1793759478.782091,
+    "seen": 1793760687.7077851,
+    "ast_hash": "fb3e52fe38e534afc5fd6ccf95f212a1",
     "semantic_hash": ""
   },
   "src/features/training/i18n/progressTexts.ts": {
@@ -6660,21 +6660,21 @@
     "semantic_hash": ""
   },
   "src/features/training/i18n/texts.test.ts": {
-    "mtime": 1793366445.3770425,
-    "seen": 1793651168.892669,
-    "ast_hash": "44aa0b6b591b602b8605763ebbc42504",
+    "mtime": 1793759478.7826257,
+    "seen": 1793760687.7077932,
+    "ast_hash": "c4718b051b4855c996a4f33eda7e4341",
     "semantic_hash": ""
   },
   "src/features/training/lib/activeWorkout.test.ts": {
-    "mtime": 1793366445.377314,
-    "seen": 1793651168.8926702,
-    "ast_hash": "5955d19e5e01181d6d8ad0028d6c28d7",
+    "mtime": 1793759440.0129478,
+    "seen": 1793760687.7077959,
+    "ast_hash": "7c6ecf139ced31049880278a3e67af05",
     "semantic_hash": ""
   },
   "src/features/training/lib/activeWorkout.ts": {
-    "mtime": 1793366445.377711,
-    "seen": 1793651168.8926723,
-    "ast_hash": "f90e7490acd49f4e7ee805c0d0f435b1",
+    "mtime": 1793759374.0738313,
+    "seen": 1793760687.707798,
+    "ast_hash": "da02ea10f359ab233c3e994f9d1c3fa1",
     "semantic_hash": ""
   },
   "src/features/training/lib/csvImport.test.ts": {
@@ -6774,9 +6774,9 @@
     "semantic_hash": ""
   },
   "memory/projects/workouttracker.md": {
-    "mtime": 1793648087.9515522,
-    "seen": 1793651168.894173,
-    "ast_hash": "9bd859f9168d47bc567c0ccee52cd015",
+    "mtime": 1793651607.828008,
+    "seen": 1793760687.709182,
+    "ast_hash": "4b94debcee18c57be0be7b28847d562f",
     "semantic_hash": ""
   },
   "src/features/training/services/trainingRepo.test.ts": {
@@ -18906,9 +18906,9 @@
     "semantic_hash": ""
   },
   "src/features/training/components/live/nextSet.ts": {
-    "mtime": 1793366445.3661027,
-    "seen": 1793651168.892586,
-    "ast_hash": "1fc4f197c28267050d30cd33c7bdd9cc",
+    "mtime": 1793760483.9850097,
+    "seen": 1793760687.707701,
+    "ast_hash": "35dff9ed823cff5f5cd8fe4a056b7c11",
     "semantic_hash": ""
   },
   "src/features/training/components/live/wheelGeometry.ts": {
@@ -21087,6 +21087,48 @@
     "mtime": 1793650966.444273,
     "seen": 1793651168.8927157,
     "ast_hash": "8b83afa4403584a19d1000b82a3bf160",
+    "semantic_hash": ""
+  },
+  "e2e/training-voice.spec.ts": {
+    "mtime": 1793759852.6951907,
+    "seen": 1793760687.706002,
+    "ast_hash": "25d68f590dde1bda5607fb9cb000d734",
+    "semantic_hash": ""
+  },
+  "src/features/training/components/live/CommandBar.tsx": {
+    "mtime": 1793759785.5958283,
+    "seen": 1793760687.7076828,
+    "ast_hash": "93ceb71096bda4db0d2925e03cf6e8c8",
+    "semantic_hash": ""
+  },
+  "src/features/training/components/live/voiceRun.test.ts": {
+    "mtime": 1793760428.715046,
+    "seen": 1793760687.7077026,
+    "ast_hash": "f07d81956e3e7c1a9827eb5c38722698",
+    "semantic_hash": ""
+  },
+  "src/features/training/components/live/voiceRun.ts": {
+    "mtime": 1793760428.7147706,
+    "seen": 1793760687.707704,
+    "ast_hash": "88c77b71dd83af9635d3353e68033253",
+    "semantic_hash": ""
+  },
+  "src/features/training/i18n/voiceTexts.ts": {
+    "mtime": 1793759896.832975,
+    "seen": 1793760687.7077942,
+    "ast_hash": "e25999396a8bb3cd75450f987935b2a0",
+    "semantic_hash": ""
+  },
+  "src/features/training/lib/voiceCommand.test.ts": {
+    "mtime": 1793760627.1186116,
+    "seen": 1793760687.7078922,
+    "ast_hash": "7431eda1c4eb92480076b7d8eecffd8f",
+    "semantic_hash": ""
+  },
+  "src/features/training/lib/voiceCommand.ts": {
+    "mtime": 1793760428.7143073,
+    "seen": 1793760687.7078936,
+    "ast_hash": "16c2d7b6bc6ac846c9d8ed04b659798f",
     "semantic_hash": ""
   }
 }
