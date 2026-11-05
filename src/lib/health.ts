@@ -13,7 +13,7 @@ const IOS_READ_PERMISSIONS = ['weight', 'steps', 'activity', 'calories', 'heartR
 // 'ExerciseSession' fehlt mit Absicht: capacitor-health-connect 0.7 kann solche
 // Eintraege nicht lesen (siehe getWorkouts). Jede Health-Connect-Berechtigung
 // muss zusaetzlich im AndroidManifest stehen, sonst wird sie nie erteilt.
-const ANDROID_READ_PERMISSIONS: RecordType[] = ['Weight', 'Steps', 'HeartRateSeries', 'RestingHeartRate'];
+export const ANDROID_READ_PERMISSIONS: RecordType[] = ['Weight', 'Steps', 'HeartRateSeries', 'RestingHeartRate'];
 
 // Testdaten statt Uhr (nur Entwicklung und Playwright, siehe healthDemo.ts).
 // Die Bedingung muss hier stehen: nur so ist sie im Produktions-Build ein

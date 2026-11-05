@@ -186,3 +186,24 @@ describe('Android (Health Connect)', () => {
     expect(healthConnect.readRecords).not.toHaveBeenCalled()
   })
 })
+
+describe('AndroidManifest', () => {
+  // Health Connect erteilt nur, was auch im Manifest steht.
+  const MANIFEST_NAME: Record<string, string> = {
+    Weight: 'READ_WEIGHT',
+    Steps: 'READ_STEPS',
+    HeartRateSeries: 'READ_HEART_RATE',
+    RestingHeartRate: 'READ_RESTING_HEART_RATE',
+  }
+
+  it('erklärt genau die Leserechte, die health.ts anfragt', async () => {
+    const { readFileSync } = await import('node:fs')
+    const manifest = readFileSync(new URL('../../android/app/src/main/AndroidManifest.xml', import.meta.url), 'utf8')
+    const declared = [...manifest.matchAll(/android\.permission\.health\.(\w+)/g)].map(m => m[1]).sort()
+    const { ANDROID_READ_PERMISSIONS } = await loadAs('android')
+    const requested = ANDROID_READ_PERMISSIONS.map(type => MANIFEST_NAME[type] ?? `unbekannt:${type}`).sort()
+    expect(declared).toEqual(requested)
+    expect(manifest).toContain('androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE')
+    expect(manifest).toContain('android.intent.category.HEALTH_PERMISSIONS')
+  })
+})
