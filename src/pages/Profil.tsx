@@ -21,6 +21,7 @@ import { PhotoConsentProfile } from '../features/ernaehrung/components/PhotoCons
 import { BioProfilKarte } from '../features/blutwerte/components/BioProfil'
 import { filterFehlerSchluessel } from '../features/compliance/lib/moderation'
 import { setzeStoerungSimuliert, useStoerung } from '../lib/stoerung'
+import { PruefSchalter } from '../components/pruef/PruefSchalter'
 
 interface Profile {
   username: string; display_name: string; age: number | null
@@ -115,6 +116,8 @@ export function Profil() {
         </div>
         <p className="text-[15px] text-[var(--lg-text-2)]">{user?.email}</p>
       </div>
+
+      <PruefSchalter />
 
       {/* ── Profil teilen ─────────────────────────────────────────────────── */}
       <div className="card mb-4">

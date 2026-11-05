@@ -12,6 +12,7 @@ import { installReflex } from './lib/reflex'
 import { installFlashlight } from './lib/flashlight'
 import { installHokuLicht } from './lib/hokuLicht'
 import { installMessAnzeige } from './lib/messAnzeige'
+import { aktivePruef } from './lib/pruef'
 import { LINSE_STANDARD, wendeLinseAn } from './lib/linse'
 import { installStoerungsFetch } from './lib/stoerung'
 
@@ -21,26 +22,23 @@ installStoerungsFetch()
 
 // Falls das Startskript in index.html nicht lief (Tests, alte Seiten-Caches)
 applyLook(getLook())
-// Prüfschalter fürs Gerät, nur über die Adresse (kein Knopf): ?licht=aus
-// schaltet Hokus Licht ab, ?effekte=aus die schweren Look-Effekte (Leuchtschatten,
-// Glas auf Karten, Kanten), ?hintergrund=aus den Seitenhintergrund der Looks
-// (Rauschen, große Verläufe), ?schwappen=aus die lebende Flüssigkeit in den
-// Fläschchen (MyStack), ?blasen=aus die Bläschen darin, ?buehne=still alle
-// Dauer-Animationen der Seite samt Flüssigkeit, ?messen=an blendet Bildrate und Rechenzeit ein
-// (messAnzeige.ts). So lässt sich am iPhone eingrenzen, was bremst.
-try {
-  const pruef = new URLSearchParams(location.search)
-  if (pruef.get('licht') === 'aus') document.documentElement.dataset.lichtAus = ''
-  if (pruef.get('effekte') === 'aus') document.documentElement.dataset.effekteAus = ''
-  if (pruef.get('hintergrund') === 'aus') document.documentElement.dataset.hintergrundAus = ''
-  if (pruef.get('schwappen') === 'aus') document.documentElement.dataset.schwappenAus = ''
-  if (pruef.get('blasen') === 'aus') document.documentElement.dataset.blasenAus = ''
-  if (pruef.get('buehne') === 'still') {
-    document.documentElement.dataset.buehneStill = ''
-    document.documentElement.dataset.schwappenAus = ''
-  }
-  if (pruef.get('messen') === 'an') installMessAnzeige()
-} catch { /* ohne Adresse nichts zu tun */ }
+// Prüfschalter fürs Gerät (lib/pruef.ts): über die Adresse (?licht=aus …) oder
+// in Vorschau-Versionen im Profil, gespeichert auf dem Gerät. licht: Hokus
+// Licht, effekte: schwere Look-Effekte, hintergrund: Seitenhintergrund der
+// Looks, schwappen: Flüssigkeit in den Fläschchen, blasen: Bläschen darin,
+// buehne: alle Dauer-Animationen der Seite samt Flüssigkeit, messen:
+// Bildrate und Rechenzeit (messAnzeige.ts). So lässt sich am iPhone
+// eingrenzen, was bremst.
+{
+  const pruef = aktivePruef(), d = document.documentElement.dataset
+  if (pruef.has('licht')) d.lichtAus = ''
+  if (pruef.has('effekte')) d.effekteAus = ''
+  if (pruef.has('hintergrund')) d.hintergrundAus = ''
+  if (pruef.has('schwappen') || pruef.has('buehne')) d.schwappenAus = ''
+  if (pruef.has('blasen')) d.blasenAus = ''
+  if (pruef.has('buehne')) d.buehneStill = ''
+  if (pruef.has('messen')) installMessAnzeige()
+}
 installReflex()
 installFlashlight()
 installHokuLicht()
