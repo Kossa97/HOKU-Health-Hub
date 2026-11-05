@@ -50,6 +50,37 @@ interface ConfirmIntakeGroupRpcParams {
   p_entries: ConfirmIntakeGroupRpcEntry[]
 }
 
+/** Der Ausschnitt des Clients, mit dem nicht genommene Einnahmen ihren Marker bekommen. */
+export interface NotizClient {
+  from(table: 'dose_logs'): {
+    update(row: { notes: string }): { in(column: 'id', ids: string[]): PromiseLike<{ error: ServiceError | null }> }
+  }
+}
+
+/**
+ * Markiert gerade entschiedene, nicht genommene Einnahmen (Marker aus
+ * intakeSchedule: übersprungen oder auto-verpasst). `confirm_intake_group`
+ * nimmt keine Notiz an; ohne Marker gilt eine nicht genommene als verpasst.
+ * Nur Zeilen ohne eigene Notiz; ein Fehler hier macht die Entscheidung nicht
+ * rückgängig, die Einnahme stünde dann nur als verpasst da.
+ */
+export async function markiereNichtGenommen(
+  client: NotizClient,
+  zeilen: readonly SavedDoseLog[],
+  notiz: string,
+): Promise<string[]> {
+  const ids = zeilen.filter(zeile => zeile.taken === false && !zeile.notes).map(zeile => zeile.id)
+  if (ids.length === 0) return []
+  try {
+    const { error } = await client.from('dose_logs').update({ notes: notiz }).in('id', ids)
+    if (error) throw new Error(error.message)
+    return ids
+  } catch (fehler) {
+    console.error('[Einnahmen] Marker nicht gesetzt:', fehler)
+    return []
+  }
+}
+
 export interface IntakeConfirmationClient {
   rpc(
     name: 'confirm_intake_group',

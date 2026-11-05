@@ -26,6 +26,7 @@ import {
   resolveTimelineIntakesForDay,
   scheduleForDay,
   AUTO_MISSED_NOTE,
+  MANUAL_SKIP_NOTE,
   type EscalationRow,
   type IntakeLog,
   type ResolvedRoutineGroup,
@@ -54,8 +55,10 @@ import {
 import {
   confirmIntakeGroup,
   quantifiedVialEntries,
+  markiereNichtGenommen,
   skipIntakeGroup,
   skipIntakeGroupsInBatches,
+  type NotizClient,
   type IntakeConfirmationClient,
 } from '../features/routines/services/intakeConfirmation'
 import { RoutineConfirmationSheet } from '../features/routines/components/RoutineConfirmationSheet'
@@ -697,7 +700,10 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
               // ueberfaelligen Slot gleichzeitig abschliessen, ohne 409. Kleine
               // Pakete verhindern ein Statement-Timeout bei laengerem Rueckstand.
               if (entries.length > 0) {
+                // Verpasst, nicht übersprungen: der Marker unterscheidet sie
+                // von selbst übersprungenen Einnahmen (grau).
                 void skipIntakeGroupsInBatches(homeDataClient as unknown as IntakeConfirmationClient, entries)
+                  .then(zeilen => markiereNichtGenommen(homeDataClient as unknown as NotizClient, zeilen, AUTO_MISSED_NOTE))
                   .catch(error => console.error('[Home] auto-miss error:', error))
               }
             }
@@ -862,7 +868,7 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
           routineSlotKey: FEATURES.planTimelineV2 ? intake.key : null,
         })
         if (FEATURES.planTimelineV2) {
-          await skipIntakeGroup(
+          const zeilen = await skipIntakeGroup(
             homeDataClient as unknown as IntakeConfirmationClient,
             [{
               ...buildConfirmationEntry(buildHomeRoutineIntake(intake)),
@@ -870,6 +876,8 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
               actualLoggedAt: skippedAt,
             }],
           )
+          // Bewusst übersprungen: grau, nicht rot (verpasst).
+          await markiereNichtGenommen(homeDataClient as unknown as NotizClient, zeilen, MANUAL_SKIP_NOTE)
         } else {
           const { error } = await homeDataClient.from('dose_logs').insert(payload)
           if (error) throw error
