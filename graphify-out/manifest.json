@@ -918,9 +918,9 @@
     "semantic_hash": ""
   },
   "src/main.tsx": {
-    "mtime": 1793839455.5997083,
-    "seen": 1793839577.9024327,
-    "ast_hash": "ebfb9ea76a20f91e80e3c25920bb6407",
+    "mtime": 1793890379.6574476,
+    "seen": 1793890543.2887297,
+    "ast_hash": "39e9d2c3154ee973da430970825b41bb",
     "semantic_hash": ""
   },
   "src/pages/Auth.tsx": {
@@ -7716,9 +7716,9 @@
     "semantic_hash": ""
   },
   "memory/projects/erscheinungsbild.md": {
-    "mtime": 1793839527.7756119,
-    "seen": 1793839577.9110155,
-    "ast_hash": "764d1b89b32f85f5cdebcd024f2563b5",
+    "mtime": 1793890488.992214,
+    "seen": 1793890543.2974927,
+    "ast_hash": "629c6b2b4186b616f1cc3ec129cbf30f",
     "semantic_hash": ""
   },
   "src/features/my-stack/components/FormUndFarbe.tsx": {
@@ -21903,6 +21903,12 @@
     "mtime": 1793795762.6486633,
     "seen": 1793833825.2088487,
     "ast_hash": "4b8b8fb4da6feba43af93f720546600c",
+    "semantic_hash": ""
+  },
+  "src/lib/messAnzeige.ts": {
+    "mtime": 1793890369.1682193,
+    "seen": 1793890543.2876616,
+    "ast_hash": "2a360702b60bdbed8a02c24e235ae83d",
     "semantic_hash": ""
   }
 }
