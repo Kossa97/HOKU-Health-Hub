@@ -263,12 +263,13 @@ const SCHRIFT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
 const MONO = "'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"
 const MARKE = "Michroma,'Arial Black',Helvetica,Arial,sans-serif"
 /**
- * Logo im Kopf: Datei 720 × 235 px (dreifach), angezeigt mit 240 px Breite, geladen von
- * hokuhealth.app (public/mail). Outlook zeigt es neuen Absendern erst nach „Bilder herunterladen“.
- * Bewusst NICHT eingebettet (cid): mit dem Logo als Inline-Anhang erkannte das iPhone den Code in
- * Outlook nicht mehr („Aus Outlook einfügen“ fehlte, Einfügen kam nicht an; Nutzer 05.11.2026).
+ * Logo im Kopf: Datei 720 × 235 px (dreifach), angezeigt mit 240 px Breite. Es reist als
+ * eingebetteter Anhang mit (`cid:`), nicht als Link auf hokuhealth.app: Outlook zeigt
+ * nachgeladene Bilder neuer Absender erst nach einem Klick, eingebettete sofort.
+ * Resend holt die Datei beim Versand von `pfad` (unter APP_URL, aus public/mail) und hängt sie
+ * an (index.ts).
  */
-export const LOGO = { pfad: '/mail/hoku-health-hub-logo-720.png', breite: 240, hoehe: 78 }
+export const LOGO = { cid: 'hoku-logo', datei: 'hoku-logo.png', pfad: '/mail/hoku-health-hub-logo-720.png', breite: 240, hoehe: 78 }
 
 function seite(sprache: Sprache, appUrl: string, vorschau: string, titel: string, inhalt: string): string {
   const r = RAHMEN[sprache]
@@ -290,7 +291,7 @@ function seite(sprache: Sprache, appUrl: string, vorschau: string, titel: string
 <tr><td align="center" style="padding:32px 16px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:${FARBE.karte};border:1px solid ${FARBE.rand};border-radius:24px;">
 <tr><td align="center" style="padding:24px 28px 16px;border-bottom:1px solid ${FARBE.rand};">
-<img src="${escape(basis + LOGO.pfad)}" width="${LOGO.breite}" height="${LOGO.hoehe}" alt="HOKU · HEALTH HUB" style="display:block;margin:0 auto;width:${LOGO.breite}px;max-width:100%;height:auto;border:0;outline:none;color:${FARBE.text};font-family:${MARKE};font-size:20px;letter-spacing:0.16em;">
+<img src="cid:${LOGO.cid}" width="${LOGO.breite}" height="${LOGO.hoehe}" alt="HOKU · HEALTH HUB" style="display:block;margin:0 auto;width:${LOGO.breite}px;max-width:100%;height:auto;border:0;outline:none;color:${FARBE.text};font-family:${MARKE};font-size:20px;letter-spacing:0.16em;">
 </td></tr>
 <tr><td style="padding:24px 28px 8px;font-family:${SCHRIFT};color:${FARBE.text};">
 <h1 style="margin:0;font-size:22px;line-height:1.3;font-weight:700;color:${FARBE.text};">${escape(titel)}</h1>
