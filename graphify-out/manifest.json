@@ -312,9 +312,9 @@
     "semantic_hash": ""
   },
   "src/components/injection3d/InjectionHistorySheet.tsx": {
-    "mtime": 1792472164.8118634,
-    "seen": 1793821771.6847053,
-    "ast_hash": "817f43ed00107949c546f31bb454e5cb",
+    "mtime": 1793890691.4521308,
+    "seen": 1793891764.6293135,
+    "ast_hash": "753853f4fe0014a03bb45d533d3d17a2",
     "semantic_hash": ""
   },
   "src/components/injection3d/InjectionIntroSheet.tsx": {
@@ -828,9 +828,9 @@
     "semantic_hash": ""
   },
   "src/lib/intakeSchedule.ts": {
-    "mtime": 1791845686.4430625,
-    "seen": 1793821771.686509,
-    "ast_hash": "fda6c1ce58a6700b134fcc03c8c8d567",
+    "mtime": 1793890678.853437,
+    "seen": 1793891764.6682606,
+    "ast_hash": "ffd91bc1e7a9b6201e8724eec6f8612e",
     "semantic_hash": ""
   },
   "src/lib/openInjectionIntakeFilters.test.ts": {
@@ -948,15 +948,15 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.test.ts": {
-    "mtime": 1793831924.6642375,
-    "seen": 1793832156.6484797,
-    "ast_hash": "36eae0ba682763735f23edfaa56e5881",
+    "mtime": 1793891081.0773342,
+    "seen": 1793891764.670662,
+    "ast_hash": "629c499ac5d33b3f9ae44ec0a2ea6ef0",
     "semantic_hash": ""
   },
   "src/pages/Dashboard.tsx": {
-    "mtime": 1793831924.6552927,
-    "seen": 1793832156.648483,
-    "ast_hash": "e6a1d9b9bc610f3905a026a75be61d54",
+    "mtime": 1793890784.3594592,
+    "seen": 1793891764.6706653,
+    "ast_hash": "0815665a28b1b8171e6d76550eb628e9",
     "semantic_hash": ""
   },
   "src/pages/FAQ.tsx": {
@@ -978,9 +978,9 @@
     "semantic_hash": ""
   },
   "src/pages/Home.tsx": {
-    "mtime": 1793792533.5660605,
-    "seen": 1793821771.6866431,
-    "ast_hash": "d5c05c51f8be0d8a4be1075efd28a18a",
+    "mtime": 1793891606.5773175,
+    "seen": 1793891764.6707711,
+    "ast_hash": "76a0f2f901b42ba04b48f4fac1032dee",
     "semantic_hash": ""
   },
   "src/pages/InjektionsTracker.test.ts": {
@@ -4200,15 +4200,15 @@
     "semantic_hash": ""
   },
   "src/features/routines/services/intakeConfirmation.test.ts": {
-    "mtime": 1791845686.4210207,
-    "seen": 1793821771.6861236,
-    "ast_hash": "b2a27dc324167ed87aa146e9f29161ad",
+    "mtime": 1793891111.0122073,
+    "seen": 1793891764.6589994,
+    "ast_hash": "258b1269c268edb07671b8f0fedd0980",
     "semantic_hash": ""
   },
   "src/features/routines/services/intakeConfirmation.ts": {
-    "mtime": 1792472165.1951966,
-    "seen": 1793821771.686125,
-    "ast_hash": "6e2ed04cf38aa52b661292b140bf54d3",
+    "mtime": 1793890678.854161,
+    "seen": 1793891764.6590028,
+    "ast_hash": "ce388572682530588bbd1ced3bc53bda",
     "semantic_hash": ""
   },
   "src/i18n/data/my-stack-i18n.json": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793821625.3211486,
-    "seen": 1793821771.6868975,
+    "mtime": 1793891245.4470453,
+    "seen": 1793891764.675251,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -5670,9 +5670,9 @@
     "semantic_hash": ""
   },
   "e2e/intake-journey.spec.ts": {
-    "mtime": 1793831924.669261,
-    "seen": 1793832156.6188657,
-    "ast_hash": "0780e3d16404648bcfbd5a5499fa0d12",
+    "mtime": 1793891480.95512,
+    "seen": 1793891764.6251688,
+    "ast_hash": "2846e5e82c2a2f9d179e58b51d341278",
     "semantic_hash": ""
   },
   "e2e/intake-timeline.spec.ts": {
@@ -7974,9 +7974,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/chat/meldungen.ts": {
-    "mtime": 1793319518.9768515,
-    "seen": 1793821771.6851203,
-    "ast_hash": "4a746ab4625394328764580e28c1ffeb",
+    "mtime": 1793890678.858332,
+    "seen": 1793891764.636687,
+    "ast_hash": "a78019ba7eaeaa9e4e6a85b873b1b12a",
     "semantic_hash": ""
   },
   "src/features/dot/DotZeichen.tsx": {
