@@ -16,6 +16,7 @@
  */
 import { pruefeSignatur } from './signatur.ts'
 import { planeMails } from './logik.ts'
+import { LOGO } from './vorlagen.ts'
 
 /** Supabase bricht den Hook nach 5 s ab; Resend bekommt höchstens so lange. */
 const RESEND_LIMIT_MS = 4000
@@ -45,9 +46,10 @@ Deno.serve(async (request: Request) => {
   }
 
   const minuten = Number(Deno.env.get('OTP_MINUTEN') ?? '15')
+  const appUrl = (Deno.env.get('APP_URL') ?? 'https://hokuhealth.app').replace(/\/+$/, '')
   const plan = planeMails(payload, {
     minuten: Number.isFinite(minuten) && minuten > 0 ? Math.round(minuten) : 15,
-    appUrl: Deno.env.get('APP_URL') ?? 'https://hokuhealth.app',
+    appUrl,
     jetzt: new Date(),
   })
   if (typeof plan === 'string') return fehler(400, plan)
@@ -57,6 +59,8 @@ Deno.serve(async (request: Request) => {
   const from = Deno.env.get('MAIL_FROM') ?? 'Hoku <hallo@hokuhealth.app>'
   const replyTo = Deno.env.get('MAIL_REPLY_TO') ?? ''
   const webhookId = request.headers.get('webhook-id') ?? crypto.randomUUID()
+  // Logo eingebettet (cid:), damit es auch Outlook ohne Klick zeigt; Resend holt die Datei selbst
+  const logo = { filename: LOGO.datei, path: `${appUrl}${LOGO.pfad}`, content_type: 'image/png', content_id: LOGO.cid }
 
   // Beide Mails einer Adressänderung gleichzeitig, jede mit Zeitlimit: Supabase wartet auf den
   // Hook nur wenige Sekunden. Läuft er ab, meldet die App einen Fehler, obwohl die Mail noch
@@ -78,6 +82,7 @@ Deno.serve(async (request: Request) => {
         html: mail.html,
         text: mail.text,
         ...(replyTo ? { reply_to: replyTo } : {}),
+        attachments: [logo],
       }),
     }).catch(() => null)))
   const kaputt = ergebnisse.find(antwort => !antwort?.ok)
