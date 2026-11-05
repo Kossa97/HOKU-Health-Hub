@@ -25,7 +25,8 @@ applyLook(getLook())
 // schaltet Hokus Licht ab, ?effekte=aus die schweren Look-Effekte (Leuchtschatten,
 // Glas auf Karten, Kanten), ?hintergrund=aus den Seitenhintergrund der Looks
 // (Rauschen, große Verläufe), ?schwappen=aus die lebende Flüssigkeit in den
-// Fläschchen (MyStack), ?messen=an blendet Bildrate und Rechenzeit ein
+// Fläschchen (MyStack), ?blasen=aus die Bläschen darin, ?buehne=still alle
+// Dauer-Animationen der Seite samt Flüssigkeit, ?messen=an blendet Bildrate und Rechenzeit ein
 // (messAnzeige.ts). So lässt sich am iPhone eingrenzen, was bremst.
 try {
   const pruef = new URLSearchParams(location.search)
@@ -33,6 +34,11 @@ try {
   if (pruef.get('effekte') === 'aus') document.documentElement.dataset.effekteAus = ''
   if (pruef.get('hintergrund') === 'aus') document.documentElement.dataset.hintergrundAus = ''
   if (pruef.get('schwappen') === 'aus') document.documentElement.dataset.schwappenAus = ''
+  if (pruef.get('blasen') === 'aus') document.documentElement.dataset.blasenAus = ''
+  if (pruef.get('buehne') === 'still') {
+    document.documentElement.dataset.buehneStill = ''
+    document.documentElement.dataset.schwappenAus = ''
+  }
   if (pruef.get('messen') === 'an') installMessAnzeige()
 } catch { /* ohne Adresse nichts zu tun */ }
 installReflex()

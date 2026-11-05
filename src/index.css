@@ -1999,3 +1999,13 @@ html[data-effekte-aus] :is(.lg-surface, .card, .lg-group, .lg-glass)::before,
 html[data-effekte-aus] :is(.lg-surface, .card, .lg-group, .lg-glass)::after { display: none !important; }
 /* Prüfschalter ?hintergrund=aus: einfarbiger Grund statt Rauschen und Verläufen */
 html[data-hintergrund-aus] body { background: var(--app-bg) !important; }
+/* ?blasen=aus: nur die Bläschen in den Fläschchen weg (SVG-Animation, die
+   Safari das ganze Fläschchen in jedem Bild neu malen lässt) */
+html[data-blasen-aus] .tyd-liquid-bubble { animation: none !important; display: none; }
+/* ?buehne=still: alle Dauer-Animationen der Seite angehalten (Bläschen,
+   Schimmer, Punkte, Hinweise); Hoku und die Leiste liegen außerhalb von main */
+html[data-buehne-still] main *,
+html[data-buehne-still] main *::before,
+html[data-buehne-still] main *::after { animation-play-state: paused !important; }
+/* das einmalige Füllen beim Laden darf durchlaufen, sonst bliebe das Fläschchen leer */
+html[data-buehne-still] main .vial-liquid-fill-reveal { animation-play-state: running !important; }
