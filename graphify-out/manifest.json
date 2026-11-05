@@ -918,9 +918,9 @@
     "semantic_hash": ""
   },
   "src/main.tsx": {
-    "mtime": 1793890379.6574476,
-    "seen": 1793890543.2887297,
-    "ast_hash": "39e9d2c3154ee973da430970825b41bb",
+    "mtime": 1793906789.5991461,
+    "seen": 1793906902.1534638,
+    "ast_hash": "2c3e7b22c1f2ef980752cb4327b85683",
     "semantic_hash": ""
   },
   "src/pages/Auth.tsx": {
