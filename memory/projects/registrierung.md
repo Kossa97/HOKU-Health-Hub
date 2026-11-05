@@ -47,3 +47,8 @@ Plan: `docs/registrierung/PLAN.md` (2026-11-03).
 - PR Kossa97/HOKU-Health-Hub#173 auf main (Nutzer: ohne CI-Ende mergen). auth-mail v1 deployt (verify_jwt aus).
 - Team-ID 5K69NY3K6F in AASA und als DEVELOPMENT_TEAM im Xcode-Projekt. Android-SHA-256 fehlt (keine Play Console).
 - Nutzer schaltet den Hook im Dashboard ein (EINSTELLUNGEN.md); MacBook kommt, erster Xcode-Start mit Anleitung.
+
+## Logo eingebettet (05.11.2026)
+- Logo als Inline-Anhang (cid, Resend holt es per path von hokuhealth.app/mail), damit Outlook es ohne Klick zeigt. auth-mail v6.
+- Kurz zurückgenommen, weil der Code aus Outlook nicht einzufügen war — Ursache war aber Intune im Firmen-Outlook
+  („Ihre Organisationsdaten können hier nicht eingefügt werden“), nicht das Logo. Firmenkonten: Code abtippen.
