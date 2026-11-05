@@ -11,6 +11,7 @@ import { applyLook, getLook } from './lib/look'
 import { installReflex } from './lib/reflex'
 import { installFlashlight } from './lib/flashlight'
 import { installHokuLicht } from './lib/hokuLicht'
+import { installMessAnzeige } from './lib/messAnzeige'
 import { LINSE_STANDARD, wendeLinseAn } from './lib/linse'
 import { installStoerungsFetch } from './lib/stoerung'
 
@@ -20,20 +21,22 @@ installStoerungsFetch()
 
 // Falls das Startskript in index.html nicht lief (Tests, alte Seiten-Caches)
 applyLook(getLook())
-installReflex()
-installFlashlight()
 // Prüfschalter fürs Gerät, nur über die Adresse (kein Knopf): ?licht=aus
 // schaltet Hokus Licht ab, ?effekte=aus die schweren Look-Effekte (Leuchtschatten,
 // Glas auf Karten, Kanten), ?hintergrund=aus den Seitenhintergrund der Looks
 // (Rauschen, große Verläufe), ?schwappen=aus die lebende Flüssigkeit in den
-// Fläschchen (MyStack). So lässt sich am iPhone eingrenzen, was bremst.
+// Fläschchen (MyStack), ?messen=an blendet Bildrate und Rechenzeit ein
+// (messAnzeige.ts). So lässt sich am iPhone eingrenzen, was bremst.
 try {
   const pruef = new URLSearchParams(location.search)
   if (pruef.get('licht') === 'aus') document.documentElement.dataset.lichtAus = ''
   if (pruef.get('effekte') === 'aus') document.documentElement.dataset.effekteAus = ''
   if (pruef.get('hintergrund') === 'aus') document.documentElement.dataset.hintergrundAus = ''
   if (pruef.get('schwappen') === 'aus') document.documentElement.dataset.schwappenAus = ''
+  if (pruef.get('messen') === 'an') installMessAnzeige()
 } catch { /* ohne Adresse nichts zu tun */ }
+installReflex()
+installFlashlight()
 installHokuLicht()
 wendeLinseAn(LINSE_STANDARD)
 // Die Test-Regler sind entfernt: ihre gespeicherten Werte aufräumen

@@ -243,3 +243,5 @@ Frost war davon betroffen und ist korrigiert; im Browser nachgemessen
 - Hokus Hauptthread-Takt im Container auf Home, MyStack, Kalender gleich (60/s, 4× gedrosselt).
 - Auf MyStack ändert die Flüssigkeit (sloshEngine/LiquidGraphic) dauerhaft SVG-Pfade: 3 Fläschchen ≈ 124 Pfade/s, auch in Ruhe (30 Hz). Verdacht: Malarbeit auf der iPhone-GPU neben Hokus Vollbild-Canvas.
 - Prüfschalter `?schwappen=aus` (SloshContext) zum Eingrenzen am Gerät.
+- Nutzer 05.11.: auch mit `?schwappen=aus` ist Hoku auf MyStack schwammig → Flüssigkeit ausgeschlossen.
+- Prüfanzeige `?messen=an` (src/lib/messAnzeige.ts): Bilder/s, Ruck-Anteil (>20 ms), Skriptzeit aller rAF-Schleifen, längstes Bild. Unterscheidet Rechenkern- von GPU-Last am Gerät.
