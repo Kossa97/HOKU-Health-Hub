@@ -13,7 +13,10 @@ export function PruefSchalter() {
     const neu = new Set(an)
     if (neu.has(id)) neu.delete(id); else neu.add(id)
     speicherePruef(neu)
-    location.reload()
+    // Ohne die Zusätze der Adresse neu laden, sonst setzte ?blasen=aus usw. den Schalter gleich wieder
+    const url = new URL(location.href)
+    for (const p of PRUEF_SCHALTER) url.searchParams.delete(p.id)
+    location.replace(url.toString())
   }
   return (
     <div className="card mb-4" data-pruef-schalter>
