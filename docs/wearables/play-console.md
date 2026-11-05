@@ -41,7 +41,7 @@ Das geht erst mit einem gebauten APK.
 
 | Frage | Antwort |
 |---|---|
-| Health info / Fitness info: collected? | **Ja** für Fitness info, wenn Workouts übernommen werden (Einstellung im Training, gespeichert im Konto). Schritte, Puls und Ruhepuls werden nur auf dem Gerät gelesen. |
+| Health info / Fitness info: collected? | Unter Android **derzeit nein**: Schritte, Puls und Ruhepuls werden nur auf dem Gerät gelesen, Workouts kann das Plugin dort nicht lesen. Sobald Workouts übernommen werden (neues Plugin), **ja** für Fitness info (im Konto gespeichert, dazu ergänzte kcal/Puls an eigenen Einheiten). |
 | Shared with third parties? | Nein |
 | Optional? | Ja, nur nach Erlaubnis |
 | Purpose | App functionality |

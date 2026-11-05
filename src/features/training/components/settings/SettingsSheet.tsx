@@ -1,7 +1,7 @@
 import { useState, type CSSProperties, type ReactNode } from 'react'
 import toast from 'react-hot-toast'
 import { RefreshCw, ShieldCheck } from 'lucide-react'
-import { isAndroid, isIOS, isNative, requestPermissions } from '../../../../lib/health'
+import { hasHealthAccess, isAndroid, isIOS, isNative, requestPermissions } from '../../../../lib/health'
 import type { TrainingData } from '../../hooks/useTrainingData'
 import { useTrainingText, type TrainingTextKey } from '../../i18n'
 import { formatNumber, parseDecimal } from '../../lib/format'
@@ -179,7 +179,7 @@ function HealthSection({ data, save }: { data: TrainingData; save: Save }) {
     try {
       const result = await requestPermissions()
       if (!result.available) { setNote('settings_health_unavailable'); return }
-      if (!result.granted && !result.grantedPermissions?.length) { setNote('settings_health_denied'); return }
+      if (!hasHealthAccess(result)) { setNote('settings_health_denied'); return }
       setNote(null)
       await save({ healthImport: true })
     } catch {

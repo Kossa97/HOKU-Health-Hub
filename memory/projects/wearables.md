@@ -20,4 +20,5 @@
 | Gewicht lesen | `getWeight()` wird nirgends angezeigt, die Berechtigung aber angefragt (iOS und Android). Einbauen oder streichen. |
 | HealthKit-Schlaf | `@perfood` meldet jede Nicht-InBed-Phase als „Asleep“, auch Wachphasen. |
 | Nicht gebaut | weder iOS (kein Xcode) noch Android (kein SDK im Container). Capability „HealthKit“ in Xcode setzen. |
-| Datenschutz | Abschnitt 4 ist ein Entwurf, der Nutzer muss ihn gegenlesen |
+| Datenschutz | Abschnitt 4 ist ein Entwurf, der Nutzer muss ihn gegenlesen. Beim Veröffentlichen `TERMS_VERSION` (`src/features/compliance/lib/consent.ts`) anheben, damit bestehende Nutzer neu zustimmen (Workouts gehen jetzt ins Konto). |
+| Android-Schalter | „Daten von der Uhr übernehmen“ lässt sich unter Android einschalten, übernimmt aber keine Workouts (Plugin). Der Hinweistext sagt das; behoben erst mit dem Plugin-Wechsel. |

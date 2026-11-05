@@ -16,6 +16,7 @@ vi.mock('react-hot-toast', () => ({ default: toastMock }))
 const healthMock = vi.hoisted(() => ({
   isNative: false, isIOS: false, isAndroid: false,
   requestPermissions: vi.fn(),
+  hasHealthAccess: (r: { granted: boolean; grantedPermissions?: string[] }) => r.granted || (r.grantedPermissions?.length ?? 0) > 0,
 }))
 vi.mock('../../../../lib/health', () => healthMock)
 

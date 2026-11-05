@@ -149,7 +149,11 @@ describe('Android (Health Connect)', () => {
 
     healthConnect.checkAvailability.mockResolvedValueOnce({ availability: 'Available' })
     healthConnect.requestHealthPermissions.mockResolvedValueOnce({ hasAllPermissions: false, grantedPermissions: ['Steps'] })
-    expect(await health.requestPermissions()).toMatchObject({ available: true, granted: false, grantedPermissions: ['Steps'] })
+    const partial = await health.requestPermissions()
+    expect(partial).toMatchObject({ available: true, granted: false, grantedPermissions: ['Steps'] })
+    // Teilweise erteilt reicht zum Lesen der erlaubten Arten
+    expect(health.hasHealthAccess(partial)).toBe(true)
+    expect(health.hasHealthAccess({ platform: 'android', available: true, granted: false, grantedPermissions: [] })).toBe(false)
   })
 
   it('Puls: Serien werden zu einzelnen Messungen, neueste zuerst', async () => {

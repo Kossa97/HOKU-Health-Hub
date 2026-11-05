@@ -10,7 +10,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { alterAm } from '../features/blutwerte/lib/referenzbereiche'
 import { altfelderAus, geburtsdatumGueltig, geschlechtAusAltangabe, type BioSex } from '../features/blutwerte/lib/bioProfile'
-import { getHeartRate, getSleep, getSteps, isNative, requestPermissions } from '../lib/health'
+import { getHeartRate, getSleep, getSteps, hasHealthAccess, isNative, requestPermissions } from '../lib/health'
 import { SheetGriff } from '../components/ui/SheetGriff'
 
 // ─── Typen ───────────────────────────────────────────────────────────────────
@@ -218,7 +218,7 @@ export function Health() {
     async function load() {
       try {
         const perms = await requestPermissions()
-        if (!perms.granted) return
+        if (!hasHealthAccess(perms)) return
         const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0)
         const [steps, hrs, sleep] = await Promise.all([
           getSteps({ startDate: todayStart, endDate: new Date() }),

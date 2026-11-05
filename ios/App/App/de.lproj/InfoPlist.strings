@@ -3,4 +3,3 @@
 "NSMicrophoneUsageDescription" = "Hoku hört zu, wenn du im Chat auf das Mikrofon tippst, und HOKU hört zu, solange du im Training das Mikrofon hältst; das Gesagte wird zu Text. Es wird nichts aufgenommen oder gespeichert.";
 "NSSpeechRecognitionUsageDescription" = "Die Spracherkennung von Apple wandelt das, was du Hoku im Chat sagst, und deine Sätze im Training (z. B. „80 Kilo, 8 Wiederholungen“) in Text um. HOKU speichert keine Aufnahmen.";
 "NSHealthShareUsageDescription" = "HOKU liest Gewicht, Schritte, Schlaf, Puls, Ruhepuls, Workouts und aktive Energie aus Apple Health, um deine Werte anzuzeigen, Workouts ins Training zu übernehmen und Aktivitätskalorien im Kalorientracker einzurechnen.";
-"NSHealthUpdateUsageDescription" = "HOKU kann ausgewählte Gesundheitsdaten speichern, wenn du diese Funktion aktiv nutzt.";

@@ -36,6 +36,14 @@ export interface HealthPermissionResult {
   grantedPermissions?: string[];
 }
 
+/**
+ * Ob die App überhaupt etwas lesen darf. Health Connect lässt einzelne Arten
+ * abwählen; dann ist granted (= alle erteilt) false, die übrigen gehen trotzdem.
+ */
+export function hasHealthAccess(result: HealthPermissionResult): boolean {
+  return result.granted || (result.grantedPermissions?.length ?? 0) > 0;
+}
+
 export interface HealthQueryOptions {
   startDate?: Date;
   endDate?: Date;

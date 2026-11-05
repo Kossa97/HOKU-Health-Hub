@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
 import { Sheet } from './Panel'
 import { SheetClose } from '../../../components/ui/SheetClose'
-import { isIOS, isNative, requestPermissions } from '../../../lib/health'
+import { hasHealthAccess, isIOS, isNative, requestPermissions } from '../../../lib/health'
 import { type ActivityDay, type ActivityLog, type ActivityTotal, estimateActiveKcal } from '../lib/activity'
 import { type Goals, parseAmount } from '../lib/nutrition'
 import { DIM, ERROR_TEXT, MUTED } from '../styles'
@@ -37,7 +37,7 @@ export function ActivitySheet({ dayLabel, day, error, total, bonus, goals, weigh
     setBusy(true)
     try {
       const r = await requestPermissions()
-      if (!r.granted) toast.error(t('nutr_move_health_denied'))
+      if (!hasHealthAccess(r)) toast.error(t('nutr_move_health_denied'))
       onReload()
     } finally { setBusy(false) }
   }
