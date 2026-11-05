@@ -300,9 +300,9 @@
     "semantic_hash": ""
   },
   "src/components/SloshContext.tsx": {
-    "mtime": 1792570285.9643135,
-    "seen": 1793833825.2074056,
-    "ast_hash": "2c7d9323da44b1af54955948858a52fe",
+    "mtime": 1793839455.5999248,
+    "seen": 1793839577.8811684,
+    "ast_hash": "64d062acda5b40a131fd44dfebcd1958",
     "semantic_hash": ""
   },
   "src/components/WorkflowBanner.tsx": {
@@ -918,9 +918,9 @@
     "semantic_hash": ""
   },
   "src/main.tsx": {
-    "mtime": 1793834893.886103,
-    "seen": 1793835067.1560383,
-    "ast_hash": "669b702fee7baf65060501cb70b7cbae",
+    "mtime": 1793839455.5997083,
+    "seen": 1793839577.9024327,
+    "ast_hash": "ebfb9ea76a20f91e80e3c25920bb6407",
     "semantic_hash": ""
   },
   "src/pages/Auth.tsx": {
@@ -7716,9 +7716,9 @@
     "semantic_hash": ""
   },
   "memory/projects/erscheinungsbild.md": {
-    "mtime": 1793835045.731967,
-    "seen": 1793835067.1643548,
-    "ast_hash": "2c20f976dd1b115b95f41398a762e883",
+    "mtime": 1793839527.7756119,
+    "seen": 1793839577.9110155,
+    "ast_hash": "764d1b89b32f85f5cdebcd024f2563b5",
     "semantic_hash": ""
   },
   "src/features/my-stack/components/FormUndFarbe.tsx": {
