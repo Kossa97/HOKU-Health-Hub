@@ -918,9 +918,9 @@
     "semantic_hash": ""
   },
   "src/main.tsx": {
-    "mtime": 1793906789.5991461,
-    "seen": 1793906902.1534638,
-    "ast_hash": "2c3e7b22c1f2ef980752cb4327b85683",
+    "mtime": 1793909961.0862775,
+    "seen": 1793910118.7113388,
+    "ast_hash": "1ab456e03dfdfbe68f6d6cfd58469424",
     "semantic_hash": ""
   },
   "src/pages/Auth.tsx": {
@@ -1008,9 +1008,9 @@
     "semantic_hash": ""
   },
   "src/pages/Profil.tsx": {
-    "mtime": 1793795747.0189538,
-    "seen": 1793833825.2089715,
-    "ast_hash": "1e12200d14eb16d1e1465dffff0d6813",
+    "mtime": 1793909961.0865867,
+    "seen": 1793910118.71176,
+    "ast_hash": "d6abba946f317a5efd6c7eec3fa28496",
     "semantic_hash": ""
   },
   "src/pages/Progress.tsx": {
@@ -7716,9 +7716,9 @@
     "semantic_hash": ""
   },
   "memory/projects/erscheinungsbild.md": {
-    "mtime": 1793890488.992214,
-    "seen": 1793890543.2974927,
-    "ast_hash": "629c6b2b4186b616f1cc3ec129cbf30f",
+    "mtime": 1793910096.8461666,
+    "seen": 1793910118.7196677,
+    "ast_hash": "2e95c8df71fe4410d3adf1e030ec98b0",
     "semantic_hash": ""
   },
   "src/features/my-stack/components/FormUndFarbe.tsx": {
@@ -21909,6 +21909,18 @@
     "mtime": 1793890369.1682193,
     "seen": 1793890543.2876616,
     "ast_hash": "2a360702b60bdbed8a02c24e235ae83d",
+    "semantic_hash": ""
+  },
+  "src/components/pruef/PruefSchalter.tsx": {
+    "mtime": 1793909961.0757554,
+    "seen": 1793910118.69113,
+    "ast_hash": "3fad596f8b621ab3b61bdf52b891eb0b",
+    "semantic_hash": ""
+  },
+  "src/lib/pruef.ts": {
+    "mtime": 1793910002.121187,
+    "seen": 1793910118.7108884,
+    "ast_hash": "cd691ed48627eb0f46a9f9319b5e4a43",
     "semantic_hash": ""
   }
 }
