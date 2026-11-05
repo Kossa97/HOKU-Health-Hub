@@ -21912,9 +21912,9 @@
     "semantic_hash": ""
   },
   "src/components/pruef/PruefSchalter.tsx": {
-    "mtime": 1793909961.0757554,
-    "seen": 1793910118.69113,
-    "ast_hash": "3fad596f8b621ab3b61bdf52b891eb0b",
+    "mtime": 1793910136.5364614,
+    "seen": 1793910204.1335666,
+    "ast_hash": "83bb94688a718655311b87fec4dbbeeb",
     "semantic_hash": ""
   },
   "src/lib/pruef.ts": {
