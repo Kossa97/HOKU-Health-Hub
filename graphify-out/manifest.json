@@ -708,9 +708,9 @@
     "semantic_hash": ""
   },
   "src/lib/health.ts": {
-    "mtime": 1793889732.1929078,
-    "seen": 1793889861.3052247,
-    "ast_hash": "4e5da0a2f2854fc99956b8a6f8ac5537",
+    "mtime": 1793899425.8403423,
+    "seen": 1793899659.044354,
+    "ast_hash": "cc8505e93da6d7153dbd54478eac71d8",
     "semantic_hash": ""
   },
   "src/lib/injectionDeepLink.test.ts": {
@@ -966,9 +966,9 @@
     "semantic_hash": ""
   },
   "src/pages/Health.tsx": {
-    "mtime": 1793889732.2249079,
-    "seen": 1793889861.3056118,
-    "ast_hash": "86fbdfbd824130ffa698d1865dd23a1a",
+    "mtime": 1793899425.841134,
+    "seen": 1793899659.046969,
+    "ast_hash": "65ee9aa77373429fa5fb751ba355ea5a",
     "semantic_hash": ""
   },
   "src/pages/Home.test.ts": {
@@ -5298,9 +5298,9 @@
     "semantic_hash": ""
   },
   "playwright.config.ts": {
-    "mtime": 1793889731.8289077,
-    "seen": 1793889861.3026993,
-    "ast_hash": "81156a90c990d86a3916a6d3d6fe11d4",
+    "mtime": 1793898819.1522849,
+    "seen": 1793899659.0175326,
+    "ast_hash": "85067ca71268101cf53aa002575c1152",
     "semantic_hash": ""
   },
   ".github/workflows/e2e.yml": {
@@ -5448,9 +5448,9 @@
     "semantic_hash": ""
   },
   "src/features/compliance/legal/texts.ts": {
-    "mtime": 1793889731.957805,
-    "seen": 1793889861.3033879,
-    "ast_hash": "6d85a944068b53a51a8611edf2c747e4",
+    "mtime": 1793899467.0832818,
+    "seen": 1793899659.0236983,
+    "ast_hash": "9e2d9934d7436b05ccf4e47e230a0cb9",
     "semantic_hash": ""
   },
   "src/features/compliance/lib/compliance.test.ts": {
@@ -6546,15 +6546,15 @@
     "semantic_hash": ""
   },
   "src/features/training/components/settings/SettingsSheet.test.tsx": {
-    "mtime": 1793889732.0487432,
-    "seen": 1793889861.304854,
-    "ast_hash": "d46de7e529ff1bc3b7277270941f7edb",
+    "mtime": 1793899431.6068277,
+    "seen": 1793899659.0388172,
+    "ast_hash": "f28ad62c9df724c8e490ed603193fc3c",
     "semantic_hash": ""
   },
   "src/features/training/components/settings/SettingsSheet.tsx": {
-    "mtime": 1793889732.0487432,
-    "seen": 1793889861.3048565,
-    "ast_hash": "bd517dc3d8f04702666c119918c600af",
+    "mtime": 1793899425.8422198,
+    "seen": 1793899659.038819,
+    "ast_hash": "0836ae467344f1ee3843f12e6f53aae3",
     "semantic_hash": ""
   },
   "src/features/training/components/settings/importPlan.test.ts": {
@@ -21684,9 +21684,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/ActivitySheet.tsx": {
-    "mtime": 1793889731.9664056,
-    "seen": 1793889861.303572,
-    "ast_hash": "24a0feafb09da375e7a8f852725ec8df",
+    "mtime": 1793899425.8415663,
+    "seen": 1793899659.025428,
+    "ast_hash": "d2fb4f681be7dbc7402deaa6af67758a",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/hooks/useActivityDay.ts": {
@@ -22017,6 +22017,60 @@
     "mtime": 1793889731.8849077,
     "seen": 1793889861.3124473,
     "ast_hash": "a73b56bc1dc1c7d8001664c3a25e18fd",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/java/com/trackyourdose/app/PermissionsRationaleActivity.java": {
+    "mtime": 1793899449.4795473,
+    "seen": 1793899659.0148146,
+    "ast_hash": "f13ac1edcafbbe16d8f7a79ae546e0bf",
+    "semantic_hash": ""
+  },
+  "e2e/health-demo.spec.ts": {
+    "mtime": 1793898954.2183974,
+    "seen": 1793899659.0166552,
+    "ast_hash": "d473dd784d6a9d12c52e3574a2651ce6",
+    "semantic_hash": ""
+  },
+  "src/lib/health.test.ts": {
+    "mtime": 1793899425.8425312,
+    "seen": 1793899659.0443516,
+    "ast_hash": "0dac7d68f7e02501b97d4689674f9ff3",
+    "semantic_hash": ""
+  },
+  "src/lib/healthDemo.test.ts": {
+    "mtime": 1793898662.5635004,
+    "seen": 1793899659.0443559,
+    "ast_hash": "6d36d2b53781bdbba46020cc1cbe776b",
+    "semantic_hash": ""
+  },
+  "src/lib/healthDemo.ts": {
+    "mtime": 1793898874.3957505,
+    "seen": 1793899659.04436,
+    "ast_hash": "80ef0180559d6c5b17384ef6a15bd000",
+    "semantic_hash": ""
+  },
+  "docs/wearables/README.md": {
+    "mtime": 1793899201.3915324,
+    "seen": 1793899659.0574286,
+    "ast_hash": "ae0b279f4cc1c44a718c9c9e71d8f5cd",
+    "semantic_hash": ""
+  },
+  "docs/wearables/play-console.md": {
+    "mtime": 1793899525.0278325,
+    "seen": 1793899659.057431,
+    "ast_hash": "de597658af912b9e55893d0a4117b1fc",
+    "semantic_hash": ""
+  },
+  "docs/wearables/plugin-vergleich.md": {
+    "mtime": 1793899214.1955333,
+    "seen": 1793899659.0574334,
+    "ast_hash": "36118f755eb6b0c0d6913bbbf4b525c8",
+    "semantic_hash": ""
+  },
+  "memory/projects/wearables.md": {
+    "mtime": 1793899525.027403,
+    "seen": 1793899659.0577688,
+    "ast_hash": "936b3664b5862eedd2c4ac6455f19aaf",
     "semantic_hash": ""
   }
 }
