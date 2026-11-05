@@ -86,6 +86,11 @@ violett), Bühne über `--inj-backdrop` in liquid-glass.css. Details in
 entfernt, ein Test wacht darüber (`src/lib/injectionStudioLook.test.ts`).
 **Hoku-Rundflug** beim Öffnen geplant: Pins der letzten 3 Tage, Kamera dreht mit,
 Sätze je Stelle + freie Stellen am Ende. Spezifikation:
-`docs/superpowers/specs/2026-11-04-hoku-injektion-rundflug-design.md`. Nächster
-Schritt: Live-Mockup mit echter Engine und echtem Torso, dann Bau.
+`docs/superpowers/specs/2026-11-04-hoku-injektion-rundflug-design.md`. Live-Mockup
+(Artefakt „Hokus Rundflug“, https://claude.ai/artifact/2UpJHsQk6ng2dKZcKVV4rM):
+Nutzer wählt **Variante B** (Hoku wartet seitlich, Torso dreht) und will, dass
+Hoku **wirklich fliegt** (Bogen, Nachfedern, Schweben, wechselnder Blick) — steht
+in der Spezifikation. Offen: Haltezeit 1,6 s bestätigen, dann Bau.
+Artefakt-Hinweis: kein iframe, kein Skript als eigene Datei (beides bleibt im
+Viewer leer); JS/CSS inline, Torso als `.wasm` (GLB wird nicht ausgeliefert).
 

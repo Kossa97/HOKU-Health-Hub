@@ -176,6 +176,7 @@ test('Registrieren: vergebener Benutzername wird vom Server erkannt, bevor ein K
   await page.locator('[data-auth-start-register]').click()
   await page.locator('#auth-user').fill('E2E')
   await page.locator('#auth-reg-email').fill('neu@example.test')
+  await page.locator('#auth-geburt').fill('1990-05-17')
   await page.locator('#auth-reg-pw').fill('geheim1')
   await page.locator('#auth-reg-pw2').fill('geheim1')
   for (const haken of await page.locator('[data-consent]').all()) await haken.check()

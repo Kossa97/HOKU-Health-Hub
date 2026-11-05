@@ -6,10 +6,11 @@ import type { LegalPageKey } from '../legal/texts'
 import type { ConsentState } from '../lib/consent'
 
 /**
- * Drei Pflicht-Haekchen: 18+, Nutzungsbedingungen/Datenschutz und die
+ * Zwei Pflicht-Haekchen: Nutzungsbedingungen/Datenschutz und die
  * ausdrueckliche Einwilligung in die Verarbeitung von Gesundheitsdaten
  * (Art. 9 DSGVO verlangt sie gesondert). Die Rechtstexte oeffnen sich in
  * einem Sheet — so bleibt ein halb ausgefuelltes Formular erhalten.
+ * Das Alter (ab 18) belegt das Geburtsdatum daneben.
  */
 export function ConsentChecks({ value, onChange }: { value: ConsentState; onChange: (next: ConsentState) => void }) {
   const { t } = useTranslation()
@@ -31,7 +32,6 @@ export function ConsentChecks({ value, onChange }: { value: ConsentState; onChan
 
   return (
     <div className="flex flex-col gap-3" data-consent-checks>
-      {zeile('alter', t('consent_age'))}
       {zeile('bedingungen', (
         <Trans
           i18nKey="consent_terms"

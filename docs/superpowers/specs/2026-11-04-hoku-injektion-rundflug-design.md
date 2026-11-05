@@ -75,10 +75,20 @@ schon die Schnittstelle `Rundflug` (`src/features/dot/engine/dotEngine.ts`).
 - Hervorheben: eigener Zustand für die Pins (Leuchten), getrennt von Auswahl und
   Sichtbarkeit.
 - **[Bauende]:** Haltezeiten, Abstand Hoku–Pin, Kurve der Kamera.
+- **Wechsel zwischen zwei Stellen = Variante B** (Mockup 04.11.2026): Hoku bleibt
+  seitlich neben dem Pin, der Torso dreht sich unter ihm; Hoku macht einen Hopser
+  (≈58 px hoch, ≈24 px gegen die Drehrichtung) und federt beim Landen kurz ein.
+  „Hoku umkreist den Torso“ (A) ist verworfen. **[Nutzer]**
+- **Hoku muss fliegen, nicht gleiten** (Nutzer: „wirkt sehr starr, auch Partikel
+  und Pupille“): Partikel reagieren auf Beschleunigung, die Pupille aufs Blickziel.
+  Deshalb Bahnen im Bogen, Ankunft mit gedämpfter Feder (≈7 % Überschwingen),
+  beim Halt Schweben in einer liegenden Acht (±6/±4 px), Blick im Flug voraus,
+  am Halt erst auf den Pin, dann zum Nutzer. Werte im Mockup
+  (`hoku-rundflug/main.tsx`, Abschnitt „Flugbewegung“). **[Nutzer]**
 
 ## Offen
 
-- **[offen]** Zeiten, Bewegungen, Leuchten: im Live-Mockup mit Hokus echter Engine
+- **[offen]** Zeiten und Leuchten (Bewegung siehe oben): im Live-Mockup mit Hokus echter Engine
   und dem echten Torso festlegen, bevor gebaut wird.
 - **[offen]** Ob die kurze Runde („dazwischen“) die Kamera mitdreht oder nur Hoku
   um den stehenden Torso fliegt.
