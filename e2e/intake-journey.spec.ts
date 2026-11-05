@@ -37,6 +37,8 @@ test('Kalender: Überspringen verbraucht nichts; Wiederöffnen und Bestätigen v
   expect(mock.table('dose_logs')).toHaveLength(1)
   const id = mock.table('dose_logs')[0].id
   expect(mock.table('dose_logs')[0].taken).toBe(false)
+  // Bewusst übersprungen: mit Marker (grau), nicht verpasst (rot).
+  await expect.poll(() => mock.table('dose_logs')[0].notes).toBe('skipped')
   expect(remainingStock(mock)).toBe(2)
   await page.reload()
   await skipped.click()
@@ -46,7 +48,7 @@ test('Kalender: Überspringen verbraucht nichts; Wiederöffnen und Bestätigen v
   await confirmHomeRoutine(page)
   await expect.poll(() => remainingStock(mock)).toBeCloseTo(1.95)
   expect(mock.table('dose_logs')).toHaveLength(1)
-  expect(mock.table('dose_logs')[0]).toMatchObject({ id, taken: true })
+  expect(mock.table('dose_logs')[0]).toMatchObject({ id, taken: true, notes: null })
   await expectCalendarTaken(page)
 })
 

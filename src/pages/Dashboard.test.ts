@@ -443,7 +443,7 @@ describe('Dashboard normalized timeline path', () => {
     // Vorher war jede ausgelassene Einnahme eine Karte mit „Wieder öffnen"
     // und vier Erinnerungsknöpfen — sechs davon füllten drei Bildschirme.
     const fixtures = startFixFixture()
-    fixtures.dose_logs = [{ ...pendingLog(), taken: false }]
+    fixtures.dose_logs = [{ ...pendingLog(), taken: false, notes: 'skipped' }]
     renderDashboard(createDashboardClient(fixtures))
     await erledigtOeffnen()
 
@@ -1098,7 +1098,7 @@ describe('Dashboard normalized timeline path', () => {
     const fixtures = zweiMorgensFixture()
     fixtures.dose_logs = [
       { ...pendingLog(), taken: true, routine_slot_key: 'timeline-cycle@2026-09-18T08:00' },
-      { ...pendingLog(), id: 'pending-zwei', stack_item_id: 'stack-2', taken: false,
+      { ...pendingLog(), id: 'pending-zwei', stack_item_id: 'stack-2', taken: false, notes: 'skipped',
         cycle_id: 'zyklus-zwei', plan_version_id: 'version-zwei',
         routine_slot_key: 'zyklus-zwei@2026-09-18T08:00' },
     ]
@@ -1124,7 +1124,7 @@ describe('Dashboard normalized timeline path', () => {
     // protokolliert war.
     const fixtures = zweiSlotsFixture()
     fixtures.dose_logs = [
-      { ...pendingLog(), taken: false, routine_slot_key: 'timeline-cycle@2026-09-18T08:00' },
+      { ...pendingLog(), taken: false, notes: 'skipped', routine_slot_key: 'timeline-cycle@2026-09-18T08:00' },
       { ...pendingLog(), id: 'pending-abend', taken: false, notes: 'auto-missed',
         routine_slot_key: 'timeline-cycle@2026-09-18T20:00' },
     ]
@@ -1325,7 +1325,7 @@ describe('Dashboard normalized timeline path', () => {
     const fixtures = zweiSlotsFixture()
     fixtures.dose_logs = [
       { ...pendingLog(), taken: true, routine_slot_key: 'timeline-cycle@2026-09-18T08:00' },
-      { ...pendingLog(), id: 'pending-abend', taken: false,
+      { ...pendingLog(), id: 'pending-abend', taken: false, notes: 'skipped',
         routine_slot_key: 'timeline-cycle@2026-09-18T20:00' },
     ]
     renderDashboard(createDashboardClient(fixtures, undefined, { filterLogs: true }))
@@ -1710,7 +1710,31 @@ describe('Dashboard normalized timeline path', () => {
         taken: false,
       })],
     }))
-    expect(client.mutations).toEqual([])
+    // Bewusst übersprungen: der Marker macht die Zeile grau statt rot.
+    await waitFor(() => expect(client.mutations).toEqual([
+      { table: 'dose_logs', kind: 'update', values: { notes: 'skipped' } },
+    ]))
+  })
+
+  it('zeigt eine nicht genommene Einnahme ohne Übersprungen-Marker als verpasst (rot), auch als Bündel', async () => {
+    // Ältere oder automatisch eingetragene Zeilen ohne Marker: nicht bewusst übersprungen.
+    const fixtures: Record<string, unknown[]> = {
+      ...zweiMorgensFixture(),
+      intake_bundles: [{ id: 'bundle-m', name: 'Morgens', stack_item_ids: ['stack-1', 'stack-2'], sort_order: 0, created_at: '2026-01-01T00:00:00Z' }],
+    }
+    fixtures.dose_logs = [
+      { ...pendingLog(), taken: false },
+      { ...pendingLog(), id: 'pending-zwei', stack_item_id: 'stack-2', taken: false,
+        cycle_id: 'zyklus-zwei', plan_version_id: 'version-zwei', routine_slot_key: 'zyklus-zwei@2026-09-18T08:00' },
+    ]
+    renderDashboard(createDashboardClient(fixtures))
+    await erledigtOeffnen()
+    const karte = await waitFor(() => {
+      const element = document.querySelector<HTMLElement>('[data-erledigt-buendel]')
+      expect(element).toBeTruthy()
+      return element!
+    })
+    expect(karte.getAttribute('data-stand')).toBe('verpasst')
   })
 
   it('surfaces a rejected pending provenance change without a legacy write', async () => {
