@@ -3,6 +3,7 @@ import { CapacitorHealthkit } from '@perfood/capacitor-healthkit';
 import type { ActivityData, OtherData, SleepData } from '@perfood/capacitor-healthkit';
 import { HealthConnect } from 'capacitor-health-connect';
 import type { Record as HealthConnectRecord, RecordType } from 'capacitor-health-connect';
+import { createHealthDemo, readHealthDemoScenario } from './healthDemo';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -14,9 +15,16 @@ const IOS_READ_PERMISSIONS = ['weight', 'steps', 'activity', 'calories', 'heartR
 // muss zusaetzlich im AndroidManifest stehen, sonst wird sie nie erteilt.
 const ANDROID_READ_PERMISSIONS: RecordType[] = ['Weight', 'Steps', 'HeartRateSeries', 'RestingHeartRate'];
 
-export const isNative = Capacitor.isNativePlatform();
-export const isIOS = Capacitor.getPlatform() === 'ios';
-export const isAndroid = Capacitor.getPlatform() === 'android';
+// Testdaten statt Uhr (nur Entwicklung und Playwright, siehe healthDemo.ts).
+// Die Bedingung muss hier stehen: nur so ist sie im Produktions-Build ein
+// fester Wert, und der Bundler wirft healthDemo.ts ganz heraus.
+const HEALTH_DEMO_ENABLED = import.meta.env.DEV || import.meta.env.VITE_HEALTH_DEMO === '1';
+const demoScenario = HEALTH_DEMO_ENABLED && !Capacitor.isNativePlatform() ? readHealthDemoScenario() : null;
+const demo = demoScenario ? createHealthDemo(demoScenario) : null;
+
+export const isNative = Capacitor.isNativePlatform() || demo !== null;
+export const isIOS = demo ? demo.platform === 'ios' : Capacitor.getPlatform() === 'ios';
+export const isAndroid = demo ? demo.platform === 'android' : Capacitor.getPlatform() === 'android';
 
 export type HealthPlatform = 'ios' | 'android' | 'web' | string;
 
@@ -88,7 +96,7 @@ type HealthConnectHeartRateRecord = HealthConnectStoredRecord & Extract<HealthCo
 type HealthConnectRestingHeartRateRecord = HealthConnectStoredRecord & Extract<HealthConnectRecord, { type: 'RestingHeartRate' }>;
 
 function platform(): HealthPlatform {
-  return Capacitor.getPlatform();
+  return demo?.platform ?? Capacitor.getPlatform();
 }
 
 function queryRange(options: HealthQueryOptions | undefined, fallbackDays: number) {
@@ -149,6 +157,8 @@ async function readHealthConnectRecords<T extends HealthConnectStoredRecord>(
 }
 
 export async function requestPermissions(): Promise<HealthPermissionResult> {
+  if (demo) return demo.requestPermissions();
+
   if (!isNative) {
     return {
       platform: platform(),
@@ -216,6 +226,7 @@ export async function requestPermissions(): Promise<HealthPermissionResult> {
 }
 
 export async function getWeight(options?: HealthQueryOptions): Promise<HealthWeight | null> {
+  if (demo) return demo.weight(queryRange({ ...options, startDate: options?.startDate ?? new Date(Date.now() - 365 * DAY_MS) }, 365));
   if (!isNative) return null;
 
   if (isIOS) {
@@ -260,6 +271,8 @@ export async function getSteps(options?: HealthQueryOptions): Promise<HealthStep
   const startDate = options?.startDate ?? startOfToday();
   const endDate = options?.endDate ?? new Date();
 
+  if (demo) return demo.steps({ startDate, endDate, limit: 0 });
+
   if (isIOS) {
     const samples = await queryHealthKit<OtherData>('stepCount', {
       ...options,
@@ -292,6 +305,7 @@ export async function getSteps(options?: HealthQueryOptions): Promise<HealthStep
 }
 
 export async function getSleep(options?: HealthQueryOptions): Promise<HealthSleep[]> {
+  if (demo) return demo.sleep(queryRange({ ...options, startDate: options?.startDate ?? new Date(Date.now() - DAY_MS) }, 1));
   if (!isNative) return [];
 
   if (isIOS) {
@@ -314,6 +328,7 @@ export async function getSleep(options?: HealthQueryOptions): Promise<HealthSlee
 }
 
 export async function getHeartRate(options?: HealthQueryOptions): Promise<HealthHeartRate[]> {
+  if (demo) return demo.heartRate(queryRange(options, 1));
   if (!isNative) return [];
 
   if (isIOS) {
@@ -377,6 +392,7 @@ export async function getWorkouts(
   /** Fuer welche Workouts der Durchschnittspuls nachgeschlagen wird (Standard: alle). */
   { withHeartRate = () => true }: { withHeartRate?: (externalId: string) => boolean } = {},
 ): Promise<HealthWorkout[]> {
+  if (demo) return demo.workouts(queryRange(options, 30));
   if (!isNative) return [];
 
   if (isIOS) {
@@ -413,6 +429,7 @@ export async function getWorkouts(
 
 /** Ruhepuls-Tageswerte (Standard: die letzten 30 Tage), neueste zuerst. */
 export async function getRestingHeartRate(options?: HealthQueryOptions): Promise<HealthHeartRate[]> {
+  if (demo) return demo.restingHeartRate(queryRange(options, 30));
   if (!isNative) return [];
 
   const { startDate, endDate, limit } = queryRange(options, 30);
@@ -454,6 +471,13 @@ export async function getRestingHeartRate(options?: HealthQueryOptions): Promise
  * HealthKit meldet einen verweigerten Lesezugriff nicht; dann kommt 0.
  */
 export async function getActiveEnergy(options?: HealthQueryOptions): Promise<number | null> {
+  if (demo) {
+    return demo.activeEnergy({
+      startDate: options?.startDate ?? startOfToday(),
+      endDate: options?.endDate ?? new Date(),
+      limit: 0,
+    });
+  }
   if (!isNative || !isIOS) return null;
   try {
     const samples = await queryHealthKit<OtherData>('activeEnergyBurned', {

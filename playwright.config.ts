@@ -45,6 +45,7 @@ export default defineConfig({
     reuseExistingServer: false,
     timeout: 240_000,
     // Keine Sentry-Berichte oder Source-Map-Uploads, auch mit lokaler .env.
-    env: { VITE_SENTRY_DSN: '', SENTRY_AUTH_TOKEN: '' },
+    // VITE_HEALTH_DEMO: Testdaten statt Uhr (src/lib/healthDemo.ts), nur wenn ein Test sie einschaltet.
+    env: { VITE_SENTRY_DSN: '', SENTRY_AUTH_TOKEN: '', VITE_HEALTH_DEMO: '1' },
   },
 })
