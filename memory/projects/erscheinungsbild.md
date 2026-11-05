@@ -237,3 +237,9 @@ Frost war davon betroffen und ist korrigiert; im Browser nachgemessen
   Gefunden: Hokus Trefferknopf (.tyd-dot-treffer) bekam jedes Bild Breite/Höhe neu →
   Neumalen darunter. Jetzt eigene Ebene (will-change) und Größe nur bei Änderung (2 px).
   Prüfschalter ?hintergrund=aus. Ergebnis vom iPhone steht aus.
+
+### 2026-11-05 Hoku langsamer auf MyStack (Nutzer: unabhängig vom Design)
+- Farbe „Passend zum Design" und dieselbe Farbe von Hand sind im Code gleich (Engine liest nur FARBE); kein Stau über Zeit (15 Lookwechsel, Navigation, 30 s: rAF, Beobachter, Animationen konstant).
+- Hokus Hauptthread-Takt im Container auf Home, MyStack, Kalender gleich (60/s, 4× gedrosselt).
+- Auf MyStack ändert die Flüssigkeit (sloshEngine/LiquidGraphic) dauerhaft SVG-Pfade: 3 Fläschchen ≈ 124 Pfade/s, auch in Ruhe (30 Hz). Verdacht: Malarbeit auf der iPhone-GPU neben Hokus Vollbild-Canvas.
+- Prüfschalter `?schwappen=aus` (SloshContext) zum Eingrenzen am Gerät.

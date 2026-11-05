@@ -13,7 +13,9 @@ export function useSloshEngine(): SloshEngine {
   useEffect(() => {
     if (typeof window === 'undefined') return
     const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)')
-    const apply = () => engine.setEnabled(!(mq?.matches ?? false) && !document.hidden)
+    // ?schwappen=aus (Prüfschalter, main.tsx): Flüssigkeit steht still
+    const aus = 'schwappenAus' in document.documentElement.dataset
+    const apply = () => engine.setEnabled(!aus && !(mq?.matches ?? false) && !document.hidden)
     apply()
     mq?.addEventListener?.('change', apply)
     document.addEventListener('visibilitychange', apply)
