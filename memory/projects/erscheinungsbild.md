@@ -245,3 +245,5 @@ Frost war davon betroffen und ist korrigiert; im Browser nachgemessen
 - Prüfschalter `?schwappen=aus` (SloshContext) zum Eingrenzen am Gerät.
 - Nutzer 05.11.: auch mit `?schwappen=aus` ist Hoku auf MyStack schwammig → Flüssigkeit ausgeschlossen.
 - Prüfanzeige `?messen=an` (src/lib/messAnzeige.ts): Bilder/s, Ruck-Anteil (>20 ms), Skriptzeit aller rAF-Schleifen, längstes Bild. Unterscheidet Rechenkern- von GPU-Last am Gerät.
+- iPhone-Messung 05.11. (`?messen=an`): Home 120/s, 0 % Ruck, Skript 84 ms/s. MyStack 42–60/s, 8–29 % Ruck, max 100–120 ms, Skript nur 54–64 ms/s → Malarbeit, nicht Hokus Rechnung.
+- Verdacht: Bläschen (`.tyd-liquid-bubble`, CSS-Animation auf SVG-Kreisen) zwingen WebKit, das Fläschchen-SVG (Verläufe, SVG-Filter shellSoft) jedes Bild neu zu malen. Prüfschalter `?blasen=aus` und `?buehne=still` (alle Dauer-Animationen in main + Flüssigkeit).
