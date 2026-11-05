@@ -7,5 +7,11 @@
 	<array>
 		<string>applinks:hokuhealth.app</string>
 	</array>
+	<!-- Apple Health lesen (src/lib/health.ts). In Xcode zusätzlich unter
+	     Signing & Capabilities „HealthKit“ hinzufügen, damit die App-ID es bekommt. -->
+	<key>com.apple.developer.healthkit</key>
+	<true/>
+	<key>com.apple.developer.healthkit.access</key>
+	<array/>
 </dict>
 </plist>
