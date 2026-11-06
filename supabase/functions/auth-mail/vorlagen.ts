@@ -250,8 +250,8 @@ export function gueltigBis(jetzt: Date, minuten: number, zeitzone: unknown, spra
 /**
  * Brand-Kit v2 (docs/logo/hoku/brand-kit-v2/HOKU-Brand-Guide.md): ruhige dunkle Fläche im
  * Blau-Schwarz des App-Icons, Cyan #00CCF5 als einziger Akzent, Schrift neutral weiß. Kopf ist
- * das Hauptlogo (Hoku in Cyan, HOKU / HEALTH HUB weiß, freigestellt) in 240 px, der kleinsten
- * empfohlenen Breite; die Datei liegt in public/mail. Michroma und IBM Plex Mono kommen über
+ * das Hauptlogo (Hoku in Cyan, HOKU / HEALTH HUB weiß, freigestellt) in 300 px (Brand-Guide:
+ * ab 240 px); die Datei liegt in public/mail. Michroma und IBM Plex Mono kommen über
  * Google Fonts — Apple Mail lädt sie, andere Programme nehmen die Ersatzschriften.
  */
 const FARBE = {
@@ -262,8 +262,14 @@ const FARBE = {
 const SCHRIFT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
 const MONO = "'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"
 const MARKE = "Michroma,'Arial Black',Helvetica,Arial,sans-serif"
-/** Logo im Kopf: Datei 720 × 235 px (dreifach), angezeigt mit 240 px Breite */
-export const LOGO = { pfad: '/mail/hoku-health-hub-logo-720.png', breite: 240, hoehe: 78 }
+/**
+ * Logo im Kopf: Datei 720 × 235 px, angezeigt mit 300 px Breite (Nutzer 06.11.2026: größer). Es reist als
+ * eingebetteter Anhang mit (`cid:`), nicht als Link auf hokuhealth.app: Outlook zeigt
+ * nachgeladene Bilder neuer Absender erst nach einem Klick, eingebettete sofort.
+ * Resend holt die Datei beim Versand von `pfad` (unter APP_URL, aus public/mail) und hängt sie
+ * an (index.ts).
+ */
+export const LOGO = { cid: 'hoku-logo', datei: 'hoku-logo.png', pfad: '/mail/hoku-health-hub-logo-720.png', breite: 300, hoehe: 98 }
 
 function seite(sprache: Sprache, appUrl: string, vorschau: string, titel: string, inhalt: string): string {
   const r = RAHMEN[sprache]
@@ -285,7 +291,7 @@ function seite(sprache: Sprache, appUrl: string, vorschau: string, titel: string
 <tr><td align="center" style="padding:32px 16px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:${FARBE.karte};border:1px solid ${FARBE.rand};border-radius:24px;">
 <tr><td align="center" style="padding:24px 28px 16px;border-bottom:1px solid ${FARBE.rand};">
-<img src="${escape(basis + LOGO.pfad)}" width="${LOGO.breite}" height="${LOGO.hoehe}" alt="HOKU · HEALTH HUB" style="display:block;margin:0 auto;width:${LOGO.breite}px;max-width:100%;height:auto;border:0;outline:none;color:${FARBE.text};font-family:${MARKE};font-size:20px;letter-spacing:0.16em;">
+<img src="cid:${LOGO.cid}" width="${LOGO.breite}" height="${LOGO.hoehe}" alt="HOKU · HEALTH HUB" style="display:block;margin:0 auto;width:${LOGO.breite}px;max-width:100%;height:auto;border:0;outline:none;color:${FARBE.text};font-family:${MARKE};font-size:20px;letter-spacing:0.16em;">
 </td></tr>
 <tr><td style="padding:24px 28px 8px;font-family:${SCHRIFT};color:${FARBE.text};">
 <h1 style="margin:0;font-size:22px;line-height:1.3;font-weight:700;color:${FARBE.text};">${escape(titel)}</h1>
