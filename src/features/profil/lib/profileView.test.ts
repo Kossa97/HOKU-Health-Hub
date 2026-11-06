@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { isWebProgress, localProfileView, parseFields, parseProfileView, parseWebCard, profileUrl, shownFields } from './profileView'
+import {
+  isWebProgress, localProfileView, parseFields, parseProfileTitle, parseProfileView, parseTitleSettings, parseWebCard, profileUrl, shownFields,
+} from './profileView'
 
 describe('parseFields', () => {
   it('übernimmt nur bekannte Felder in erwarteter Form', () => {
@@ -166,3 +168,38 @@ describe('profileUrl', () => {
     expect(profileUrl('Mara.Lifts', 'https://hoku.app/')).toBe('https://hoku.app/u/mara.lifts')
   })
 })
+
+describe('Titel (Profil-Zusatz)', () => {
+  it('parseProfileTitle: Rang nur mit Rang-ID, Abzeichen nur tragbar, sonst nichts', () => {
+    expect(parseProfileTitle({ kind: 'rank', id: 'rank_4' })).toEqual({ kind: 'rank', id: 'rank_4' })
+    expect(parseProfileTitle({ kind: 'badge', id: 'run_50' })).toEqual({ kind: 'badge', id: 'run_50' })
+    expect(parseProfileTitle({ kind: 'badge', id: 'rank_4' })).toBeUndefined()
+    expect(parseProfileTitle({ kind: 'rank', id: 'run_50' })).toBeUndefined()
+    // verdient, aber nicht tragbar
+    expect(parseProfileTitle({ kind: 'badge', id: 'streak_7' })).toBeUndefined()
+    expect(parseProfileTitle({ kind: 'badge', id: '<b>' })).toBeUndefined()
+    expect(parseProfileTitle('Legende')).toBeUndefined()
+  })
+
+  it('parseFields übernimmt nur einen gültigen Titel', () => {
+    expect(parseFields({ title: { kind: 'rank', id: 'rank_2' } }).title).toEqual({ kind: 'rank', id: 'rank_2' })
+    expect(parseFields({ title: { kind: 'badge', id: 'hack' } }).title).toBeUndefined()
+  })
+
+  it('parseTitleSettings: Wahl nur tragbar, Bestätigungen nur persönlich mit Tag; fehlende Spalten = Standard', () => {
+    expect(parseTitleSettings({})).toEqual({ choice: null, personalAllowed: false, consents: {} })
+    expect(parseTitleSettings({
+      title_choice: 'body_fat_5', personal_titles: true,
+      title_consents: { body_fat_5: '2026-11-06', run_10: '2026-11-06', weight_5: 'gestern' },
+    })).toEqual({ choice: 'body_fat_5', personalAllowed: true, consents: { body_fat_5: '2026-11-06' } })
+    expect(parseTitleSettings({ title_choice: 'rank_1' }).choice).toBeNull()
+  })
+
+  it('parseProfileView: Titel-Einstellungen nur, wenn der Server sie schickt (eigene Sicht)', () => {
+    expect(parseProfileView({ username: 'mara', fields: {} })!.titleSettings).toBeNull()
+    expect(parseProfileView({ username: 'mara', fields: {}, personal_titles: false, title_consents: {} })!.titleSettings)
+      .toEqual({ choice: null, personalAllowed: false, consents: {} })
+    expect(localProfileView({ username: 'mara' }, null).titleSettings).toEqual({ choice: null, personalAllowed: false, consents: {} })
+  })
+})
+

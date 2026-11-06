@@ -11,7 +11,8 @@
 import { MEASUREMENT_SITES, type MeasurementSite } from '../../fortschritt/lib/measurements'
 import { GOAL_TAGS, isProfileGender, knownCountry, type GoalTag, type ProfileGender } from './profileFields'
 import type { ProfileSnapshotData, SnapshotNumber } from './profileSnapshot'
-import { isBadgeId, parseWebBadges, type WebBadgeOverrides } from './badgeIds'
+import { isBadgeId, isRankId, parseWebBadges, type WebBadgeOverrides } from './badgeIds'
+import { isPersonalTitle, isTitleBadgeId, type ProfileTitle, type TitleSettings } from './titles'
 import { PROGRESS_AREAS, type ProgressArea, type ProgressSnapshot } from './progressScore'
 import { isDay } from './progressSettings'
 import { fieldsOfSection, parseVisibilityMap, type ProfileField, type ProfileSection, type VisibilityMap } from './profileVisibility'
@@ -42,6 +43,8 @@ export type ProfileViewFields = Omit<ProfileSnapshotData, 'progress' | 'reviews'
   progress?: ProgressSnapshot | WebProgress
   /** In der Stufe web nur die Anzahl, ohne Bewertung. */
   reviews?: { count: number; avgRating?: number }
+  /** Titel unter dem Namen (Profil-Zusatz Titel): bestimmt allein der Server. */
+  title?: ProfileTitle
 }
 
 /** Mitgliedschaft als Dauer, abgerundet (`profile_web_member_for`); das Datum kommt nie. */
@@ -92,6 +95,8 @@ export interface ProfileView {
   webIndexable: boolean | null
   /** Nur in der eigenen Sicht: Abweichungen vom Standard der Abzeichen im Web. */
   webBadges: WebBadgeOverrides | null
+  /** Nur in der eigenen Sicht: Wahl, Schalter und Bestätigungen des Titels. */
+  titleSettings: TitleSettings | null
 }
 
 // ─── Prüfen ─────────────────────────────────────────────────────────────────
@@ -222,7 +227,34 @@ export function parseFields(raw: unknown): ProfileViewFields {
     const badges = [...new Set(raw.badges.filter(isBadgeId))]
     if (badges.length > 0) out.badges = badges
   }
+  const title = parseProfileTitle(raw.title)
+  if (title) out.title = title
   return out
+}
+
+/** `{kind, id}`: Rang nur mit Rang-ID, Abzeichen nur mit tragbarer ID; sonst nichts. */
+export function parseProfileTitle(raw: unknown): ProfileTitle | undefined {
+  if (!isObj(raw) || !isBadgeId(raw.id)) return undefined
+  if (raw.kind === 'rank' && isRankId(raw.id)) return { kind: 'rank', id: raw.id }
+  if (raw.kind === 'badge' && isTitleBadgeId(raw.id)) return { kind: 'badge', id: raw.id }
+  return undefined
+}
+
+const DAY = /^\d{4}-\d{2}-\d{2}$/
+
+/** Titel-Spalten der eigenen Profilzeile (fehlen vor der Titel-Migration → Standard). */
+export function parseTitleSettings(row: Obj): TitleSettings {
+  const consents: TitleSettings['consents'] = {}
+  if (isObj(row.title_consents)) {
+    for (const [k, v] of Object.entries(row.title_consents)) {
+      if (isBadgeId(k) && isPersonalTitle(k) && typeof v === 'string' && DAY.test(v)) consents[k] = v
+    }
+  }
+  return {
+    choice: isTitleBadgeId(row.title_choice) ? row.title_choice : null,
+    personalAllowed: row.personal_titles === true,
+    consents,
+  }
 }
 
 const bool = (v: unknown): boolean | null => (typeof v === 'boolean' ? v : null)
@@ -267,6 +299,7 @@ export function parseProfileView(raw: unknown): ProfileView | null {
     card: parseWebCard(raw.card),
     webIndexable: bool(raw.web_indexable),
     webBadges: isObj(raw.web_badges) ? parseWebBadges(raw.web_badges) : null,
+    titleSettings: 'personal_titles' in raw ? parseTitleSettings(raw) : null,
   }
 }
 
@@ -302,6 +335,7 @@ export function localProfileView(row: Obj, snapshot: ProfileSnapshotData | null)
     // vor der Migration 2c fehlen beide Spalten
     webIndexable: bool(row.web_indexable),
     webBadges: isObj(row.web_badges) ? parseWebBadges(row.web_badges) : null,
+    titleSettings: parseTitleSettings(row),
   }
 }
 

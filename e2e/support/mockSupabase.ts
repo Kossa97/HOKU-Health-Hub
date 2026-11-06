@@ -4,7 +4,8 @@ import { SUBSTANCE_CATALOG } from '../../scripts/substance-catalog-source.mjs'
 import { TERMS_VERSION } from '../../src/features/compliance/lib/consent'
 import { consentCoversLabels } from '../../supabase/functions/label-extract/prompt'
 import { hatZugang } from '../../supabase/functions/coach/prompt'
-import { isBadgeId, parseWebBadges, webBadgeOn } from '../../src/features/profil/lib/badgeIds'
+import { isBadgeId, parseWebBadges, RANK_IDS, webBadgeOn } from '../../src/features/profil/lib/badgeIds'
+import { isTitleBadgeId, ladderOf, personalTitleSource, TITLE_LADDERS } from '../../src/features/profil/lib/titles'
 import { MELDEGRUENDE } from '../../src/features/compliance/lib/moderation'
 
 /**
@@ -183,7 +184,7 @@ function schnappschussFuerAndere(snap: Record<string, unknown>): Record<string, 
 }
 
 /** profile_web_fields() (2c): was es ueberhaupt ins Web schaffen kann. */
-const WEB_FIELDS = ['cover', 'country', 'goals', 'bio', 'streak', 'progress', 'badges', 'reviews']
+const WEB_FIELDS = ['cover', 'country', 'goals', 'bio', 'streak', 'progress', 'badges', 'reviews', 'title']
 
 /** profile_web_progress_tier: groesste Stufe <= total, sonst keine. */
 function webTier(total: unknown): number | null {
@@ -1275,7 +1276,26 @@ export class MockSupabase {
       const roh = (this.table('profile_snapshots').find(row => row.user_id === p.id)?.data ?? {}) as Record<string, unknown>
       const snap = stufe === 'owner' ? roh : schnappschussFuerAndere(roh)
       for (const [key, value] of Object.entries({ ...snap, ...zeile })) {
-        if (value !== undefined && erlaubt(key)) fields[key] = value
+        // "title" bestimmt allein der Server, nie der Schnappschuss
+        if (value !== undefined && key !== 'title' && erlaubt(key)) fields[key] = value
+      }
+      // Titel wie supabase-profil-titel.sql: verdiente Wahl (Leiter: hoechste Stufe),
+      // persoenliche nur mit Schalter + Einwilligung + sichtbarem Quellfeld, nie im Web; sonst Rang.
+      if (erlaubt('title')) {
+        const verdient = (this.table('progress_settings').find(row => row.user_id === p.id)?.earned_badges ?? {}) as Record<string, unknown>
+        const hat = (id: string) => Object.hasOwn(verdient, id)
+        let wahl: string | null = isTitleBadgeId(p.title_choice) ? p.title_choice as string : null
+        const quelle = wahl ? personalTitleSource(wahl as never) : null
+        const einw = (p.title_consents ?? {}) as Record<string, unknown>
+        if (wahl && quelle && !(p.personal_titles === true && Object.hasOwn(einw, wahl) && stufe !== 'web'
+          && (stufe === 'owner' || erlaubt(quelle)))) wahl = null
+        if (wahl) {
+          const leiter = ladderOf(wahl as never)
+          wahl = leiter ? [...TITLE_LADDERS[leiter]].reverse().find(hat) ?? null : hat(wahl) ? wahl : null
+        }
+        const rang = [...RANK_IDS].reverse().find(hat)
+        if (wahl) fields.title = { kind: 'badge', id: wahl }
+        else if (rang) fields.title = { kind: 'rank', id: rang }
       }
       let card: Record<string, unknown> | undefined
       if (stufe === 'web') {
@@ -1314,6 +1334,7 @@ export class MockSupabase {
         ...(stufe === 'owner' ? {
           visibility: vis, profile_private: p.profile_private === true, web_link_enabled: p.web_link_enabled === true,
           avatar_status: p.avatar_status ?? null, cover_status: p.cover_status ?? null, web_badges: p.web_badges ?? {},
+          title_choice: p.title_choice ?? null, personal_titles: p.personal_titles === true, title_consents: p.title_consents ?? {},
         } : {}),
       }
     })
