@@ -10,13 +10,17 @@ import { BADGE_BY_ID, badgeName, needsFriends } from '../lib/badges'
 import { SHOWN_BADGE_IDS, type BadgeId } from '../lib/badgeIds'
 import { formatDay } from '../lib/progressFormat'
 
-export function AbzeichenKachel({ id, earned, on, stand }: {
+export function AbzeichenKachel({ id, earned, on, stand, titel, onClick }: {
   id: BadgeId
   earned: boolean
   /** Tag des Erhalts (nur verdient). */
   on?: string | null
   /** Stand eines nicht verdienten (nur eigene Sicht). */
   stand?: string | null
+  /** Titelname eines tragbaren Abzeichens (Seite „Alle Abzeichen“). */
+  titel?: string | null
+  /** Tragbar und verdient: öffnet „Als Titel tragen“. */
+  onClick?: () => void
 }) {
   const { t, i18n } = useTranslation()
   const locale = i18n?.language || 'de'
@@ -25,13 +29,8 @@ export function AbzeichenKachel({ id, earned, on, stand }: {
   const name = badgeName(id, lang)
   const freunde = !earned && needsFriends(id)
   const zusatz = freunde ? t('pf_abz_ab_freunde') : earned ? null : stand
-  return (
-    <div
-      className="flex min-w-0 flex-col items-center text-center"
-      data-badge={id}
-      data-badge-earned={earned ? 'true' : 'false'}
-      title={earned && on ? t('pf_abz_verdient_am', { datum: formatDay(on, locale) }) : undefined}
-    >
+  const inhalt = (
+    <>
       <div
         className={`grid h-14 w-14 place-items-center rounded-[16px] text-[26px] ${earned ? '' : 'opacity-45 grayscale'}`}
         style={{
@@ -47,9 +46,27 @@ export function AbzeichenKachel({ id, earned, on, stand }: {
       <span lang={lang.toLowerCase().startsWith('de') ? 'de' : 'en'} className={`mt-1.5 text-[12px] leading-tight [hyphens:auto] [overflow-wrap:break-word] ${earned ? 'text-[var(--lg-text)]' : 'text-[var(--lg-text-3)]'}`}>
         {name}
       </span>
+      {titel && (
+        // Lange Namen („Kilometerfresser“) umbrechen statt abschneiden
+        <span lang={lang.toLowerCase().startsWith('de') ? 'de' : 'en'} className="mt-1 max-w-full font-mono text-[9.5px] font-medium uppercase leading-tight tracking-[0.04em] text-[var(--lg-text-3)] [hyphens:auto] [overflow-wrap:anywhere]" data-badge-title>
+          {titel}
+        </span>
+      )}
       {zusatz && <span className="mt-0.5 text-[11px] tabular-nums text-[var(--lg-text-3)]" data-badge-progress>{zusatz}</span>}
       <span className="sr-only">{earned ? t('pf_abz_verdient') : t('pf_abz_nicht_verdient')}</span>
-    </div>
+    </>
+  )
+  const props = {
+    'data-badge': id,
+    'data-badge-earned': earned ? 'true' : 'false',
+    title: earned && on ? t('pf_abz_verdient_am', { datum: formatDay(on, locale) }) : undefined,
+  }
+  return onClick ? (
+    <button type="button" aria-haspopup="dialog" onClick={onClick} className="flex min-w-0 flex-col items-center text-center transition-transform duration-150 active:scale-[0.96]" {...props}>
+      {inhalt}
+    </button>
+  ) : (
+    <div className="flex min-w-0 flex-col items-center text-center" {...props}>{inhalt}</div>
   )
 }
 

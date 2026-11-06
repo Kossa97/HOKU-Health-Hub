@@ -3,7 +3,8 @@
  * und Herkunft (Flagge + Kürzel), @nick; darunter Bio, Ziel-Tags als wischbare
  * Zeile, Streak · Mitglied seit, Zahlenzeile (Workouts · Berichte) und Platz
  * für Knöpfe. Zeigt nur, was in `fields` steht; mit `visibility` (eigene
- * Sicht) trägt jeder Wert seinen Stufen-Chip.
+ * Sicht) trägt jeder Wert seinen Stufen-Chip. Unter dem Namen steht der Titel
+ * (`TitleChip`), in der eigenen Sicht darunter der nächste Rang-Schritt.
  */
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -15,6 +16,8 @@ import { visibilityOf, type ProfileField, type Visibility, type VisibilityMap } 
 import { useSignedUrl } from '../hooks/useSignedUrl'
 import { SichtbarkeitsChip } from './SichtbarkeitsChip'
 import { PrueftMarke } from './PrueftMarke'
+import { RangHinweis, TitleChip } from './TitleChip'
+import type { ProfileTitle } from '../lib/titles'
 
 export interface ProfilKopfProps {
   name: string
@@ -26,11 +29,17 @@ export interface ProfilKopfProps {
   onChangeVisibility?: (field: ProfileField, next: Visibility) => void
   /** Nur eigene Sicht: Stand des Bild-Checks; `pending` zeigt „wird geprüft“ am Bild. */
   bildStatus?: { avatar: MediaStatus | null; cover: MediaStatus | null }
+  /**
+   * Nur eigene Sicht: getragener Titel (lokal gerechnet, frischer als der
+   * Server), Öffnen von „Dein Titel“ und Tage mit Eintrag (`null` = lädt noch).
+   * Ohne steht `fields.title` vom Server da, mit Erklärung beim Antippen.
+   */
+  ownTitle?: { title: ProfileTitle | null; entryDays: number | null; onOpen: () => void }
   /** Knöpfe unter der Zahlenzeile (eigenes Profil: Teilen, Bearbeiten). */
   children?: ReactNode
 }
 
-export function ProfilKopf({ name, username, avatarPath, fields, visibility, onChangeVisibility, bildStatus, children }: ProfilKopfProps) {
+export function ProfilKopf({ name, username, avatarPath, fields, visibility, onChangeVisibility, bildStatus, ownTitle, children }: ProfilKopfProps) {
   const { t, i18n } = useTranslation()
   const locale = i18n?.language || 'de'
   const { n } = numberFormat(locale)
@@ -86,9 +95,14 @@ export function ProfilKopf({ name, username, avatarPath, fields, visibility, onC
               </span>
             )}
           </p>
+          {ownTitle
+            ? <TitleChip title={ownTitle.title} own={{ onOpen: ownTitle.onOpen, visibilityChip: chip('title') }} />
+            : <TitleChip title={fields.title ?? null} />}
           <p className="truncate text-[15px] text-[var(--lg-text-2)]" data-profile-nick>@{username}</p>
         </div>
       </div>
+
+      {ownTitle && ownTitle.entryDays !== null && <RangHinweis entryDays={ownTitle.entryDays} />}
 
       {fields.bio && (
         <p className="mt-3 whitespace-pre-line px-1 text-[15px] leading-snug text-[var(--lg-text)]" data-profile-bio>

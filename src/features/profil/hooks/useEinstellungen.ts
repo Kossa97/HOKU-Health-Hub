@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { parseWebBadges, type WebBadgeOverrides } from '../lib/badgeIds'
 import { parseVisibilityMap } from '../lib/profileVisibility'
+import { parseTitleSettings } from '../lib/profileView'
+import type { TitleSettings } from '../lib/titles'
 
 /**
  * Die eigene Profilzeile für die Einstellungen (2a) und ihre Unterseiten:
@@ -16,6 +18,8 @@ export interface Einstellungen {
   /** `null` = Spalte fehlt (vor der Migration 2c): dann nicht schaltbar. */
   webBadges: WebBadgeOverrides | null
   webIndexable: boolean | null
+  /** Titel: Wahl, Schalter, Bestätigungen (vor der Titel-Migration der Standard). */
+  titleSettings: TitleSettings
 }
 
 export function useEinstellungen(userId: string | undefined) {
@@ -36,6 +40,7 @@ export function useEinstellungen(userId: string | undefined) {
         // Vor der Migration 2c fehlen beide Spalten in der Zeile
         webBadges: data.web_badges == null ? null : parseWebBadges(data.web_badges),
         webIndexable: typeof data.web_indexable === 'boolean' ? data.web_indexable : null,
+        titleSettings: parseTitleSettings(data as Record<string, unknown>),
       })
     })
     return () => { aktiv = false }

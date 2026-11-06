@@ -30,6 +30,8 @@ export interface ProgressState {
   snapshot: ProgressSnapshot | undefined
   /** Verdiente Abzeichen, zuletzt verdiente zuerst. */
   badgeIds: BadgeId[]
+  /** Tage mit eigenem Eintrag, ohne Doppelte (Rang des Titels). */
+  entryDays: number
 }
 
 export function computeProgressState(data: ProgressData, today: string): ProgressState {
@@ -45,6 +47,8 @@ export function computeProgressState(data: ProgressData, today: string): Progres
     badges,
     snapshot: result && setup ? progressSnapshot(result, setup.startOn) : undefined,
     badgeIds: earnedOrder(badges.earned),
+    // wie die Rang-Abzeichen (`rank` in badges.ts)
+    entryDays: facts.ownEntryDays.length,
   }
 }
 
