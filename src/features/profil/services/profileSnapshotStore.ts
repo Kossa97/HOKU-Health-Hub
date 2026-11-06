@@ -22,6 +22,8 @@ import {
   type ProfileSnapshotData, type ProfileSnapshotInput, type SnapshotDoseLog,
 } from '../lib/profileSnapshot'
 import { computeProgressState } from '../lib/progressState'
+import { titleMomentFor } from '../lib/titleMoment'
+import { titleMomentStore } from '../lib/titleMomentStore'
 import { loadProgressParts, persistProgress } from './progressStore'
 
 type QueryError = { code?: string; message?: string } | null
@@ -208,7 +210,8 @@ export async function writeProfileSnapshot(userId: string, data: ProfileSnapshot
 
 /**
  * Gesamtfortschritt und Abzeichen (2b) in den Schnappschuss: rechnen, Wochenreihe
- * und neu verdiente Abzeichen in `progress_settings` festhalten. Scheitert das
+ * und neu verdiente Abzeichen in `progress_settings` festhalten; ist darunter ein
+ * neuer Rang oder Titel, den Moment ablegen (Titel, Task 5). Scheitert das
  * (etwa vor der Migration 2b), bleibt der Schnappschuss ohne beides.
  */
 async function withProgress(userId: string, input: ProfileSnapshotInput, data: ProfileSnapshotData, now: Date): Promise<ProfileSnapshotData> {
@@ -219,7 +222,10 @@ async function withProgress(userId: string, input: ProfileSnapshotInput, data: P
     const out: ProfileSnapshotData = { ...data }
     if (state.snapshot) out.progress = state.snapshot
     if (state.badgeIds.length > 0) out.badges = state.badgeIds
-    await persistProgress(userId, progressData, state).catch(() => undefined)
+    const saved = await persistProgress(userId, progressData, state).then(() => true, () => false)
+    // Erst nach dem Speichern: sonst käme derselbe Moment beim nächsten Lauf wieder.
+    const moment = saved ? titleMomentFor(state.badges.added, parts.settings.earnedBadges) : null
+    if (moment) titleMomentStore.announce(userId, moment)
     return out
   } catch {
     return data
