@@ -159,6 +159,9 @@ VITE_APP_STORE_ID muss in Vercel auch zur Laufzeit gesetzt sein (api/u.js liest 
 Erledigt: Apple Team-ID 5K69NY3K6F in der AASA (gepusht); Vercel `VITE_PUBLIC_SITE_URL=https://hokuhealth.app`
 (nur Production, wirkt ab dem nächsten Deploy); Domain hokuhealth.app ist Hauptdomain, www/meethoku leiten per 308 um.
 Offen, beim nächsten Gespräch am Rechner ansprechen:
+0. Android-Release aufgeschoben (Nutzer 06.11.): erst Kleingewerbe anmelden, dann D-U-N-S, dann Play-Konto als
+   ORGANISATION (kein 12-Tester/14-Tage-Test, kein Risiko „Medical“ nur für Organisationen). Noch kein Play-Konto
+   vorhanden. Apple bleibt Einzelperson (Team 5K69NY3K6F). Impressum/Rechtstexte mit Gewerbeadresse.
 1. SHA-256 Play App Signing + Upload aus der Play Console (App-Integrität → App-Signatur) → `assetlinks.json`,
    danach `npm run applinks:check`. Geht auch am Handy im Browser (Desktop-Ansicht), falls die App schon in der
    Play Console liegt; sonst erst nach dem ersten Upload eines App-Bundles.
