@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 import { PAGE_CACHE, buildPage, createHandler, renderPage, requestedName } from '../u.js'
 import { cardMeta, cardVersion } from './profileCard.js'
-import { FRIEDA, MARA } from './profileViewWeb.fixtures.js'
+import { FRIEDA, FRIEDA_TITEL, MARA, MARA_TITEL } from './profileViewWeb.fixtures.js'
 import { SUPABASE_ANON_KEY, toCardInput } from './profileViewWeb.js'
 
 // Die Vite-Vorlage hat dieselbe Form wie das gebaute dist/index.html (head, title, root).
@@ -77,6 +77,21 @@ describe('api/u.js: Treffer', () => {
     const head = body.split('\n').filter(l => l.includes('data-hoku-card') || l.includes('<title>')).join('\n')
     for (const leak of ['muskelaufbau', 'ausdauer', 'Laufe gern', 'streak_7', 'workouts_10', 'cover-', 'avatar-', '00000000-', 'content="DE"', 'Bericht', 'review', 'Streak']) {
       expect(head, leak).not.toContain(leak)
+    }
+  })
+
+  it('Titel auf „Alle“: Meta-Texte unverändert, nur die Bild-Fassung ist neu', async () => {
+    for (const [name, ohne, mit] of [['mara', MARA, MARA_TITEL], ['frieda', FRIEDA, FRIEDA_TITEL]]) {
+      for (const lang of ['de-DE', 'en-US']) {
+        const a = (await call({ name, lang, views: { [name]: ohne } })).body
+        const b = (await call({ name, lang, views: { [name]: mit } })).body
+        for (const key of ['og:title', 'og:description', 'description', 'og:image:alt', 'twitter:title', 'twitter:description']) {
+          expect(metaContent(b, key), `${name} ${lang} ${key}`).toBe(metaContent(a, key))
+        }
+        expect(b.match(/<title>[^<]*<\/title>/)[0]).toBe(a.match(/<title>[^<]*<\/title>/)[0])
+        expect(metaContent(b, 'og:image')).not.toBe(metaContent(a, 'og:image'))
+        expect(b).not.toMatch(/Läufer|Runner|Routinier|Steady|run_50|rank_4/)
+      }
     }
   })
 

@@ -61,3 +61,9 @@ export const IDA = {
   card: { member_since: { unit: 'days', n: 15 } },
   web_indexable: false,
 }
+
+/** Wie MARA, Feld `title` auf „Alle“: getragen „Läufer“ (Leiter Laufen, Stufe 2). */
+export const MARA_TITEL = { ...MARA, fields: { ...MARA.fields, title: { kind: 'badge', id: 'run_50' } } }
+
+/** Wie FRIEDA (Rückfall), Feld `title` auf „Alle“: Rang 4 „Routinier“. */
+export const FRIEDA_TITEL = { ...FRIEDA, fields: { title: { kind: 'rank', id: 'rank_4' } } }

@@ -17,7 +17,8 @@
 //     `id` = Storage-Objekt für die Fassung, damit HTML und Bild denselben Hash bilden),
 //   tier 10|20|30|50|75|100|null, member { unit: 'days'|'months'|'years', n } | null,
 //   entryCount number|null, webValueCount number|null, areas string[] (koerper/training/erholung),
-//   title string|null (fertig übersetzt), patternFeature boolean,
+//   title string|null (fertig übersetzt, `titleNames.js`; nur Fortschritt und Rückfall,
+//     nie im Meta-Text), patternFeature boolean,
 //   webLinkOn boolean, private boolean, found boolean
 
 import { createHash } from 'node:crypto'
@@ -456,12 +457,27 @@ function nameBlock(m, size, maxW, cx) {
   }
 }
 
+/**
+ * Titel-Chip in einer Zeile (`.ttl`: nowrap). Alle Titelnamen aus `titleNames.js`
+ * passen in der Grundgröße (längster: „GELEGENHEITSRADLER“ / „YEAR-ROUND ATHLETE“);
+ * für alles Längere erst bis auf 80 % verkleinern, dann mit „…“ kürzen.
+ */
+const TITLE_MIN_SCALE = 0.8
+export function fitTitle(text, o, maxW) {
+  const avail = maxW - 2 * o.padX
+  const w = textWidth('mono', o.size, text, o.size * o.ls)
+  if (w <= avail) return { text, size: o.size }
+  const size = Math.max(o.size * TITLE_MIN_SCALE, o.size * avail / w)
+  // + 1e-6: verkleinert passt der Text genau, Rundung darf ihn nicht kürzen
+  return { text: ellipsize('mono', size, text, avail + 1e-6, size * o.ls), size }
+}
+
 function titleBlock(m, o, maxW, cx) {
   // `.ttl`: IBM Plex Mono 500, Großbuchstaben, Ring .1cqw, Pille; margin-top -.4cqw
   if (!m.title) return null
-  const ls = o.size * o.ls
-  const text = ellipsize('mono', o.size, m.title.toLocaleUpperCase(m.lang), maxW - 2 * o.padX, ls)
-  const w = textWidth('mono', o.size, text, ls) + 2 * o.padX
+  const fit = fitTitle(m.title.toLocaleUpperCase(m.lang), o, maxW)
+  const ls = fit.size * o.ls
+  const w = textWidth('mono', fit.size, fit.text, ls) + 2 * o.padX
   const h = o.size + 2 * o.padY
   return {
     h,
@@ -469,7 +485,7 @@ function titleBlock(m, o, maxW, cx) {
     draw(top) {
       const ring = 1.2
       return `<rect x="${r(cx - w / 2 + ring / 2)}" y="${r(top + ring / 2)}" width="${r(w - ring)}" height="${r(h - ring)}" rx="${r((h - ring) / 2)}" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="${ring}"/>`
-        + textEl({ font: 'mono', size: o.size, x: cx + ls / 2, y: baseline('mono', o.size, o.size, top + o.padY), fill: C.t2, text, anchor: 'middle', ls })
+        + textEl({ font: 'mono', size: fit.size, x: cx + ls / 2, y: baseline('mono', fit.size, o.size, top + o.padY), fill: C.t2, text: fit.text, anchor: 'middle', ls })
     },
   }
 }

@@ -10,6 +10,18 @@ import { RpcError, type MockSupabase } from './support/mockSupabase'
 
 const MARA_ID = '00000000-0000-4000-8000-0000000000c2'
 
+/** Sichtbarkeit in `mara`: alle Web-Felder auf „Alle“ (ohne Titel), dazu Felder, die nie ins Web dürfen. */
+const FELDER_ALLE: Record<string, string> = {
+  cover: 'all', country: 'all', goals: 'all', bio: 'all', streak: 'all', progress: 'all', badges: 'all', reviews: 'all',
+  // nie im Web, auch auf „Alle“
+  age: 'all', weight: 'all', markers: 'all', adherence: 'all', gender: 'all', member_since: 'all',
+}
+
+/** Verdiente Abzeichen (und Ränge) wie `progress_settings.earned_badges`. */
+function verdient(mock: MockSupabase, ids: string[]) {
+  mock.insert('progress_settings', { user_id: MARA_ID, earned_badges: Object.fromEntries(ids.map(id => [id, '2026-10-01'])) })
+}
+
 /** Mara: alle Web-Felder auf „Alle“, dazu Felder auf „Alle“, die nie ins Web dürfen. */
 function mara(mock: MockSupabase, extra: Record<string, unknown> = {}, snap: Record<string, unknown> = {}) {
   const avatar = `${MARA_ID}/avatar-1.jpg`
@@ -18,11 +30,7 @@ function mara(mock: MockSupabase, extra: Record<string, unknown> = {}, snap: Rec
   mock.insert('profiles', {
     id: MARA_ID, username: 'mara', display_name: 'Mara Muster', public_bio: 'Laufen, Heben, Schlafen.',
     goals: ['kraft', 'ausdauer'], country: 'DE', profile_gender: 'female', created_at: '2026-03-01T09:00:00.000Z',
-    field_visibility: {
-      cover: 'all', country: 'all', goals: 'all', bio: 'all', streak: 'all', progress: 'all', badges: 'all', reviews: 'all',
-      // nie im Web, auch auf „Alle“
-      age: 'all', weight: 'all', markers: 'all', adherence: 'all', gender: 'all', member_since: 'all',
-    },
+    field_visibility: FELDER_ALLE,
     profile_private: false, web_link_enabled: true, web_indexable: false, web_badges: {},
     avatar_path: avatar, avatar_status: 'approved', avatar_object_id: mock.objektId('profile-media', avatar),
     cover_path: cover, cover_status: 'approved', cover_object_id: mock.objektId('profile-media', cover),
@@ -119,6 +127,60 @@ test.describe('ohne Anmeldung', () => {
     // Titelbild nur auf „Alle“: dieselbe ruhige Fläche ohne Bild
     await expect(web.locator('[data-web-cover]')).toBeVisible()
     await expect(web.locator('[data-web-cover] img')).toHaveCount(0)
+  })
+
+  test('Titel: Chip unter dem Namen nur bei Feld „Titel“ auf „Alle“', async ({ page, mock }) => {
+    // Gewählt ist die erste Stufe der Leiter Laufen; getragen wird die höchste verdiente
+    mara(mock, { field_visibility: { ...FELDER_ALLE, title: 'all' }, title_choice: 'run_10' })
+    verdient(mock, ['rank_1', 'rank_2', 'rank_3', 'run_10', 'run_50'])
+    await page.goto('/u/mara')
+    const web = page.locator('[data-web-profile]')
+    const chip = web.locator('[data-profile-title]')
+    await expect(chip).toHaveAttribute('data-profile-title', 'run_50')
+    await expect(chip).toContainText('Läufer')
+    await expect(chip.locator('span[lang="de"]')).toHaveCSS('text-transform', 'uppercase')
+    // unter dem Namen, über @mara
+    const [name, titel, nick] = await Promise.all(['[data-profile-name] >> ..', '[data-profile-title]', '[data-profile-nick]']
+      .map(async sel => (await web.locator(sel).boundingBox())!))
+    expect(titel.y).toBeGreaterThanOrEqual(name.y + name.height - 1)
+    expect(nick.y).toBeGreaterThanOrEqual(titel.y + titel.height - 1)
+    // passt in die Spalte, auch auf schmalen Geräten
+    const kopf = (await chip.locator('..').boundingBox())!
+    expect(titel.x + titel.width).toBeLessThanOrEqual(kopf.x + kopf.width + 1)
+  })
+
+  // „Nur ich“ ist gespeichert als fehlender Eintrag (Standard)
+  for (const [stufe, vis] of [['Freunde', { ...FELDER_ALLE, title: 'friends' }], ['Nur ich', FELDER_ALLE]] as const) {
+    test(`Titel: auf „${stufe}“ fehlt der Chip ohne Lücke`, async ({ page, mock }) => {
+      mara(mock, { field_visibility: vis, title_choice: 'run_50' })
+      verdient(mock, ['rank_1', 'rank_2', 'run_10', 'run_50'])
+      await page.goto('/u/mara')
+      const web = page.locator('[data-web-profile]')
+      await expect(web.locator('[data-profile-name]')).toHaveText('Mara Muster')
+      await expect(web.locator('[data-profile-title]')).toHaveCount(0)
+      await expect(web).not.toContainText('Läufer')
+      await expect(web).not.toContainText('Entdecker')
+      // keine Lücke: @mara steht direkt unter der Zeile mit Name und Land
+      const name = (await web.locator('[data-profile-name]').locator('..').boundingBox())!
+      const nick = (await web.locator('[data-profile-nick]').boundingBox())!
+      expect(nick.y - (name.y + name.height)).toBeLessThan(4)
+    })
+  }
+
+  test('Titel: nie ein persönlicher im Web, auch mit Schalter, Einwilligung und Quellfeld auf „Alle“', async ({ page, mock }) => {
+    mara(mock, {
+      field_visibility: { ...FELDER_ALLE, title: 'all', body_fat: 'all', progress: 'all' },
+      title_choice: 'body_fat_10', personal_titles: true, title_consents: { body_fat_10: '2026-10-01' },
+    })
+    verdient(mock, ['rank_1', 'rank_2', 'rank_3', 'body_fat_5', 'body_fat_10'])
+    await page.goto('/u/mara')
+    const chip = page.locator('[data-web-profile] [data-profile-title]')
+    // statt des persönlichen Titels der höchste Rang
+    await expect(chip).toHaveAttribute('data-profile-title', 'rank_3')
+    await expect(chip).toHaveAttribute('data-profile-title-kind', 'rank')
+    await expect(chip).toContainText('Dranbleiber')
+    await expect(page.locator('[data-web-profile]')).not.toContainText('Formwandler')
+    await expect(page.locator('[data-web-profile]')).not.toContainText('In Form')
   })
 
   test('Schutzregel: trägt nur Blut den Fortschritt, gibt es keine Stufe', async ({ page, mock }) => {

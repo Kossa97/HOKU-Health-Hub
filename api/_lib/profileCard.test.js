@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { BENUTZERNAME } from '../../src/features/auth/lib/pruefung'
 import {
   cardMeta, cardModel, cardSvg, cardVersion, chooseCard, ellipsize, entriesText, escapeXml,
-  fitName, isValidNickname, memberText, textWidth, wrapWords,
+  fitName, fitTitle, isValidNickname, memberText, textWidth, wrapWords,
 } from './profileCard.js'
+import { BADGE_TITLE_NAMES, RANK_TITLE_NAMES } from './titleNames.js'
 
 const MARA = {
   lang: 'de', name: 'Mara K.', nickname: 'mara', avatar: null, tier: 30,
@@ -340,5 +341,100 @@ describe('cardSvg', () => {
     expect(svg).toContain('>Hoku verbindet.<')
     expect(svg).toContain('kann Muster finden')
     expect(cardSvg({ ...MARA, tier: null, patternFeature: false })).toMatch(/zeigt dir,.*verändert hat\.<\/text>/)
+  })
+})
+
+describe('Titel-Chip', () => {
+  // Linke Spalte und Grundgröße je Karte (Mockup `.ttl`, `.og.t-c .ttl`)
+  const CARDS = [
+    ['Fortschritt', 30, { left: 60, right: 420, size: 22.8 }],
+    ['Rückfall', null, { left: 48, right: 348, size: 20.4 }],
+  ]
+  const chipRect = svg => {
+    const m = svg.match(/<rect x="([\d.]+)" y="[\d.]+" width="([\d.]+)" height="[\d.]+" rx="[\d.]+" fill="none" stroke="rgba\(255,255,255,\.28\)"/)
+    return m ? { x: Number(m[1]), w: Number(m[2]) } : null
+  }
+  const chipText = svg => svg.match(/<text [^>]*font-family="IBM Plex Mono"[^>]*font-size="([\d.]+)"[^>]*>([^<]*)<\/text>/)
+
+  it.each(CARDS)('%s: Mono, Großbuchstaben, umrandet, unter dem Namen', (_, tier, col) => {
+    for (const [lang, title, shown] of [['de', 'Läufer', 'LÄUFER'], ['en', 'Runner', 'RUNNER']]) {
+      const svg = cardSvg({ ...MARA, tier, lang, title })
+      const text = chipText(svg)
+      expect(text?.[2]).toBe(shown)
+      expect(Number(text?.[1])).toBe(col.size)
+      expect(chipRect(svg)).not.toBeNull()
+      // Reihenfolge wie im Mockup: Name, Titel, dann „Seit … dabei“
+      expect(svg.indexOf('>Mara K.<')).toBeLessThan(svg.indexOf(`>${shown}<`))
+      expect(svg.indexOf(`>${shown}<`)).toBeLessThan(svg.indexOf(lang === 'de' ? '>Seit 7 Monaten dabei<' : '>Member for 7 months<'))
+    }
+  })
+
+  it.each(CARDS)('%s: ohne Titel kein Chip', (_, tier, col) => {
+    for (const title of [null, '', '   ']) {
+      const svg = cardSvg({ ...MARA, tier, title })
+      expect(chipRect(svg)).toBeNull()
+      expect(svg).not.toContain(`font-size="${col.size}"`)
+    }
+  })
+
+  it.each(CARDS)('%s: jeder Titelname passt ungekürzt in Grundgröße (de/en)', (_, tier, col) => {
+    const names = [...Object.values(RANK_TITLE_NAMES), ...Object.values(BADGE_TITLE_NAMES)]
+    for (const lang of ['de', 'en']) {
+      for (const name of names) {
+        const svg = cardSvg({ ...MARA, tier, lang, title: name[lang] })
+        const text = chipText(svg)
+        expect(text?.[2], name[lang]).toBe(escapeXml(name[lang].toLocaleUpperCase(lang)))
+        expect(Number(text?.[1]), name[lang]).toBe(col.size)
+        const rect = chipRect(svg)
+        expect(rect.x, name[lang]).toBeGreaterThanOrEqual(col.left)
+        expect(rect.x + rect.w, name[lang]).toBeLessThanOrEqual(col.right)
+      }
+    }
+  })
+
+  it('längste Namen: Trainingsmaschine, Gelegenheitsradler, Year-Round Athlete', () => {
+    for (const [lang, title] of [['de', 'Trainingsmaschine'], ['de', 'Gelegenheitsradler'], ['en', 'Year-Round Athlete']]) {
+      for (const [, tier] of CARDS) expect(chipText(cardSvg({ ...MARA, tier, lang, title }))?.[2]).toBe(title.toLocaleUpperCase(lang))
+    }
+  })
+
+  it('Längeres (kein bekannter Titel): erst kleiner, dann „…“, nie breiter als die Spalte', () => {
+    const o = { size: 20.4, ls: 0.08, padX: 14.4, padY: 7.2 }
+    const etwas = fitTitle('GELEGENHEITSRADLERIN', o, 300)
+    expect(etwas.text).toBe('GELEGENHEITSRADLERIN')
+    expect(etwas.size).toBeLessThan(20.4)
+    const viel = fitTitle('X'.repeat(40), o, 300)
+    expect(viel.size).toBeCloseTo(20.4 * 0.8)
+    expect(viel.text.endsWith('…')).toBe(true)
+    for (const fit of [etwas, viel]) expect(textWidth('mono', fit.size, fit.text, fit.size * o.ls) + 2 * o.padX).toBeLessThanOrEqual(300.01)
+    for (const [, tier, col] of CARDS) {
+      const rect = chipRect(cardSvg({ ...MARA, tier, title: 'X'.repeat(40) }))
+      expect(rect.x).toBeGreaterThanOrEqual(col.left)
+      expect(rect.x + rect.w).toBeLessThanOrEqual(col.right)
+    }
+  })
+
+  it('neutrale Karte: nie ein Titel', () => {
+    expect(cardSvg({ ...MARA, webLinkOn: false, title: 'Läufer' })).toBe(cardSvg({ lang: 'de', found: false }))
+    expect(cardVersion({ ...MARA, found: false, title: 'Läufer' })).toBe(cardVersion({ ...MARA, found: false }))
+  })
+
+  it('Fassung ändert sich mit dem Titel, auch von Titel zu Titel', () => {
+    for (const [, tier] of CARDS) {
+      const ohne = cardVersion({ ...MARA, tier })
+      const a = cardVersion({ ...MARA, tier, title: 'Läufer' })
+      const b = cardVersion({ ...MARA, tier, title: 'Ausdauerläufer' })
+      expect(new Set([ohne, a, b]).size).toBe(3)
+    }
+  })
+
+  it('Meta-Texte (og:title, description, alt) ohne Titel', () => {
+    for (const lang of ['de', 'en']) {
+      for (const [, tier] of CARDS) {
+        const mit = cardMeta({ ...MARA, tier, lang, title: 'Trainingsmaschine' })
+        expect(mit).toEqual(cardMeta({ ...MARA, tier, lang }))
+        expect(JSON.stringify(mit)).not.toMatch(/Trainingsmaschine/i)
+      }
+    }
   })
 })

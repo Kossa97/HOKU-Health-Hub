@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 import { cardMeta, chooseCard } from './profileCard.js'
-import { FRIEDA, GUSTAV, IDA, MARA, MARA_AVATAR } from './profileViewWeb.fixtures.js'
+import { FRIEDA, FRIEDA_TITEL, GUSTAV, IDA, MARA, MARA_AVATAR, MARA_TITEL } from './profileViewWeb.fixtures.js'
 import {
   SUPABASE_ANON_KEY, SUPABASE_URL, fetchAvatar, fetchProfileView, isAvatarPath, isIndexable,
   patternFeatureOn, pickLang, siteOrigin, toCardInput,
@@ -122,6 +122,30 @@ describe('toCardInput (Fixtures aus dem Trockenlauf)', () => {
       card: { member_since: { unit: 'weeks', n: 3 }, web_value_count: -1, entry_count: 2.5 },
     })
     expect(input).toMatchObject({ avatar: null, tier: null, member: null, webValueCount: null, entryCount: null })
+  })
+
+  it('Titel: bekannte Rang- oder tragbare ID → Name in der Sprache der Karte', () => {
+    expect(toCardInput(MARA_TITEL, { lang: 'de' }).title).toBe('Läufer')
+    expect(toCardInput(MARA_TITEL, { lang: 'en' }).title).toBe('Runner')
+    expect(toCardInput(FRIEDA_TITEL, { lang: 'de' }).title).toBe('Routinier')
+    expect(toCardInput(FRIEDA_TITEL, { lang: 'en' }).title).toBe('Steady')
+    expect(toCardInput(MARA, { lang: 'de' }).title).toBeNull()
+  })
+
+  it.each([
+    ['unbekannte ID', { kind: 'badge', id: 'gibts_nicht' }],
+    ['Abzeichen ohne Titel', { kind: 'badge', id: 'streak_7' }],
+    ['persönlicher Titel', { kind: 'badge', id: 'body_fat_10' }],
+    ['persönlicher Titel als Rang', { kind: 'rank', id: 'progress_50' }],
+    ['Rang als Abzeichen', { kind: 'badge', id: 'rank_4' }],
+    ['Abzeichen als Rang', { kind: 'rank', id: 'run_50' }],
+    ['unbekannte Art', { kind: 'personal', id: 'run_50' }],
+    ['Freitext', 'Läufer'],
+    ['ohne ID', { kind: 'rank' }],
+    ['Prototyp', { kind: 'badge', id: '__proto__' }],
+    ['null', null],
+  ])('Titel: %s → kein Chip', (_, title) => {
+    expect(toCardInput({ ...MARA, fields: { ...MARA.fields, title } }, { lang: 'de' }).title).toBeNull()
   })
 
   it('Schalter Musterfunktion kommt an', () => {

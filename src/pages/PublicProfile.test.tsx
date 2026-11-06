@@ -168,6 +168,35 @@ describe('PublicProfile ohne Anmeldung', () => {
     expect(document.head.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe('noindex, nofollow')
   })
 
+  it('Titel: Chip unter dem Namen, wenn die Stufe web ihn liefert', async () => {
+    db.view = { username: 'max', display_name: 'Max Muster', own: false, fields: { title: { kind: 'badge', id: 'run_50' } } }
+    const { container } = renderAt('/u/max')
+    await waitFor(() => expect(container.querySelector('[data-web-profile]')).toBeTruthy())
+    const chip = container.querySelector('[data-profile-title="run_50"]')
+    expect(chip?.getAttribute('data-profile-title-kind')).toBe('badge')
+    expect(chip?.textContent).toContain('Läufer')
+    expect(chip?.querySelector('.uppercase.font-mono')).toBeTruthy()
+    // Reihenfolge: Name, Titel, @nick
+    const name = container.querySelector('[data-profile-name]')!
+    const nick = container.querySelector('[data-profile-nick]')!
+    expect(name.compareDocumentPosition(chip!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(chip!.compareDocumentPosition(nick) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('Titel: Rang ebenso; unbekannte oder persönliche IDs und fehlender Titel → kein Chip', async () => {
+    db.view = { username: 'max', own: false, fields: { title: { kind: 'rank', id: 'rank_5' } } }
+    const rang = renderAt('/u/max')
+    await waitFor(() => expect(rang.container.querySelector('[data-profile-title="rank_5"]')?.textContent).toContain('Veteran'))
+    cleanup()
+    for (const title of [undefined, { kind: 'badge', id: 'gibts_nicht' }, { kind: 'rank', id: 'run_50' }, { kind: 'badge', id: 'streak_7' }, { kind: 'badge', id: 'body_fat_10' }, 'Läufer']) {
+      db.view = { username: 'max', own: false, fields: title === undefined ? {} : { title } }
+      const { container } = renderAt('/u/max')
+      await waitFor(() => expect(container.querySelector('[data-web-profile]')).toBeTruthy())
+      expect(container.querySelector('[data-profile-title]'), JSON.stringify(title)).toBeNull()
+      cleanup()
+    }
+  })
+
   it('ohne Berichte keine Zeile über Verborgenes; web_indexable hebt noindex auf', async () => {
     db.view = { username: 'max', own: false, fields: {}, web_indexable: true }
     const { container } = renderAt('/u/max')

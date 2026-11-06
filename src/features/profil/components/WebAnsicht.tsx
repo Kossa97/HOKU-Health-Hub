@@ -27,6 +27,7 @@ import type { BadgeId } from '../lib/badgeIds'
 import { flagOf } from '../lib/profileFields'
 import { numberFormat } from '../lib/profileFormat'
 import { WEB_PROGRESS_TIERS, type ProfileView, type WebProgressTier } from '../lib/profileView'
+import { isPersonalTitle, titleName } from '../lib/titles'
 import { firstName, memberForText, webBadgeRow } from '../lib/webProfile'
 import { useSignedUrl } from '../hooks/useSignedUrl'
 import { HokuCode } from './HokuCode'
@@ -315,6 +316,25 @@ function WebAbzeichen({ ids, username }: { ids: readonly BadgeId[]; username: st
   )
 }
 
+/**
+ * Titel unter dem Namen (Spec Titel 4, Mockup `profil-titel.html` › Web-Vorschau):
+ * leise Marke, Mono, Großbuchstaben, umrandet; im Web nur zum Lesen.
+ */
+function WebTitel({ id, kind, name, locale }: { id: BadgeId; kind: 'rank' | 'badge'; name: string; locale: string }) {
+  const { t } = useTranslation()
+  return (
+    <p className="my-[5px] flex min-w-0" data-profile-title={id} data-profile-title-kind={kind}>
+      <span
+        lang={locale.toLowerCase().startsWith('de') ? 'de' : 'en'}
+        className="inline-block max-w-full truncate whitespace-nowrap rounded-full px-2.5 py-[5px] font-mono text-[11px] font-medium uppercase leading-none tracking-[0.1em] text-[var(--lg-text-2)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.28)]"
+      >
+        <span className="sr-only">{t('profil_feld_title')}: </span>
+        {name}
+      </span>
+    </p>
+  )
+}
+
 // ─── Profil melden ohne Konto ──────────────────────────────────────────────
 
 /** Fehler der Web-Meldung: Code aus `report_public_profile_web` → Hinweis. */
@@ -393,6 +413,9 @@ export function WebAnsicht({ view, band }: { view: ProfileView; band?: ReactNode
   const tier = f.progress && 'tier' in f.progress ? f.progress.tier : null
   const member = view.card?.memberFor ? memberForText(view.card.memberFor) : null
   const werte = view.card?.webValueCount ?? null
+  // Titel nur, wenn die Stufe web ihn liefert (Feld `title` auf „Alle“). Persönliche
+  // schickt der Server im Web nie; käme doch einer, fehlt er wie auf der Link-Karte.
+  const titel = f.title && !isPersonalTitle(f.title.id) ? titleName(f.title.id, locale) : null
 
   return (
     <WebRahmen
@@ -431,6 +454,7 @@ export function WebAnsicht({ view, band }: { view: ProfileView; band?: ReactNode
               </span>
             )}
           </div>
+          {titel && f.title && <WebTitel id={f.title.id} kind={f.title.kind} name={titel} locale={locale} />}
           <p className="truncate text-[14px] text-[var(--lg-text-2)]" data-profile-nick>@{view.username}</p>
         </div>
       </div>

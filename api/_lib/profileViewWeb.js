@@ -11,6 +11,7 @@
 // niemand versehentlich einen Dienstschlüssel eintragen.
 
 import { isValidNickname } from './profileCard.js'
+import { webTitleName } from './titleNames.js'
 
 export const SUPABASE_URL = 'https://xcskcojakolphtbuqfbw.supabase.co'
 export const SUPABASE_ANON_KEY = 'sb_publishable_yeAVlq8miTc20FLsPqKCwQ_xAGKHLV1'
@@ -114,7 +115,9 @@ function memberOrNull(m) {
 /**
  * anon-Antwort von `profile_view` → `CardInput` (`api/_lib/profileCard.js`).
  * `view` null/kaputt → `found: false` (neutrale Karte). Bereiche liefert die
- * Web-Stufe nicht (Entscheidung 04.11.), also `areas: []`; Titel gibt es noch nicht.
+ * Web-Stufe nicht (Entscheidung 04.11.), also `areas: []`. Den Titel liefert sie
+ * als `{kind, id}`: nur eine bekannte Rang- oder tragbare ID wird zum Namen in
+ * `lang` (`titleNames.js`), alles andere zu `null` (kein Chip).
  * `avatar.id` = Pfad im Bucket: dieselbe Kennung in `api/u.js` und `api/og.js`,
  * damit beide dieselbe Fassung `v` bilden.
  */
@@ -139,6 +142,7 @@ export function toCardInput(view, { lang = 'en', patternFeature = false } = {}) 
     member: memberOrNull(card.member_since),
     entryCount: intOrNull(card.entry_count),
     webValueCount: intOrNull(card.web_value_count),
+    title: webTitleName(fields.title, lang),
   }
 }
 

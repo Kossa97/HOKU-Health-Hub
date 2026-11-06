@@ -7,7 +7,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { IMAGE_CACHE, createHandler, requestParams } from '../og.js'
 import { createHandler as createPage } from '../u.js'
 import { CARD_HEIGHT, CARD_WIDTH } from './profileCard.js'
-import { FRIEDA, GUSTAV, MARA, MARA_AVATAR } from './profileViewWeb.fixtures.js'
+import { FRIEDA, FRIEDA_TITEL, GUSTAV, MARA, MARA_AVATAR, MARA_TITEL } from './profileViewWeb.fixtures.js'
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from './profileViewWeb.js'
 
 const TEMPLATE = readFileSync(new URL('../../index.html', import.meta.url), 'utf8')
@@ -74,6 +74,17 @@ describe('api/og.js: Treffer', () => {
       const url = await ogUrl(name, { [name]: view })
       const { body } = await image(url, { views: { [name]: view } })
       expect(Buffer.compare(body, neutral.body), name).not.toBe(0)
+    }
+  })
+
+  it('Titel: HTML und Bild bilden dieselbe Fassung, das Bild ist ein anderes als ohne Titel', async () => {
+    for (const [name, ohne, mit] of [['mara', MARA, MARA_TITEL], ['frieda', FRIEDA, FRIEDA_TITEL]]) {
+      const urlMit = await ogUrl(name, { [name]: mit })
+      expect(urlMit).not.toBe(await ogUrl(name, { [name]: ohne }))
+      const a = await image(await ogUrl(name, { [name]: ohne }), { views: { [name]: ohne } })
+      const b = await image(urlMit, { views: { [name]: mit } })
+      expect(b.headers['cache-control'], name).toBe(IMAGE_CACHE)
+      expect(Buffer.compare(a.body, b.body), name).not.toBe(0)
     }
   })
 
