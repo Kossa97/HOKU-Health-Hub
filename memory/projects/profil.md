@@ -167,8 +167,11 @@ Offen, beim nächsten Gespräch am Rechner ansprechen:
    Play Console liegt; sonst erst nach dem ersten Upload eines App-Bundles.
 2. Store-Adressen und `VITE_APP_STORE_ID` erst, wenn die Apps veröffentlicht sind (sonst führt der Knopf zu /auth).
 3. `HOKU_PATTERN_FEATURE=1` erst mit der Musterfunktion.
-4. Am Rechner: `npx cap sync`, iOS in Xcode Team 5K69NY3K6F wählen (Associated Domains), QR-Test mit echtem Handy,
-   `graphify update .`.
+4. `npx cap sync` erledigt (06.11., @capacitor/app + haptics eingetragen). Noch kein Mac (Nutzer 06.11.):
+   Xcode-Schritte warten — Team 5K69NY3K6F wählen (Associated Domains), iOS-Build, QR-Test mit echtem iPhone.
+   Auffällig: @perfood/capacitor-healthkit fehlt in CapApp-SPM/Package.swift (kein Package.swift) — Apple-Health-
+   Import in iOS vermutlich nicht verlinkt; Aufgabe vorgeschlagen. Ohne Mac prüfbar über einen macOS-Runner in
+   GitHub Actions (xcodebuild ohne Signatur). `graphify update .` nur lokal (Cloud verliert 105 Dateien).
 5. Rechtliche Platzhalter `[[…]]` (Web-Link Art. 9, Aufbewahrung Meldungen, Rechtsgrundlage) juristisch füllen.
 
 ## Offen
