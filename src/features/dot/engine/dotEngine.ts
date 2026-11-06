@@ -22,6 +22,7 @@ import { istSchreibfeld, schreibmarke, schreibmarkeAufraeumen } from './schreibm
 import { FREUDE, GESTE_FERN, GESTE_N, STILL, formMitAuge, gestenBild, gestenVorbereiten, naechsterFehler, neueGestenKugel, type DotForm, type GestenBild, type GestenWahl } from './gesten'
 import { IRIS_ANTEIL, augePunkt, augeSchritt, blickZu, blinzle as blinzleAuge, neuesAuge } from './auge'
 import { PALETTEN, aktiveHokuFarbe, beobachteHokuFarbe, tonInTiefe, type HokuFarbe } from '../lib/hokuFarbe'
+import { STUFEN, erstelleQualitaet } from './qualitaet'
 import { beobachteHokuEinstellungen, leseHokuEinstellungen } from '../lib/hokuEinstellungen'
 import { LOOKS, type Look } from '../../../lib/look'
 
@@ -308,6 +309,9 @@ export function createDot(host: DotHost): DotApi {
 
   /* ── Geometrie der Umgebung ───────────────────────────────────────────── */
   let W = 0, H = 0, dpr = 1, CR = 0, TAB = 0, CAPX = 0, OBEN = 0
+  // Automatische Qualität (qualitaet.ts): Anteil der vollen Auflösung
+  const qualitaet = erstelleQualitaet()
+  let aufloesung = 1
   /** Ist die Tor-Zeichenfläche in der Leiste gerade leer (Tor zu)? */
   let torLeer = false
   let ENT = { x: window.innerWidth / 2, w: 44 }
@@ -421,7 +425,7 @@ export function createDot(host: DotHost): DotApi {
   document.body.appendChild(sonde)
 
   function vermessen() {
-    W = window.innerWidth; H = window.innerHeight; dpr = Math.min(2, window.devicePixelRatio || 1)
+    W = window.innerWidth; H = window.innerHeight; dpr = Math.min(2, window.devicePixelRatio || 1) * aufloesung
     // Zeichenflächen nur bei neuer Größe neu anlegen: jedes Setzen leert sie und legt ihren Speicher neu an
     const cw = Math.round(W * dpr), ch = Math.round(H * dpr)
     if (canvas.width !== cw || canvas.height !== ch) { canvas.width = cw; canvas.height = ch }
@@ -2570,9 +2574,11 @@ export function createDot(host: DotHost): DotApi {
 
   /* ── Schleife ─────────────────────────────────────────────────────────── */
   let raf = 0, last = 0, laeuft = false, zerstoert = false
+  // Automatische Qualität: Abstand der Bilder, ausgelassene Bilder auf Stufe 2
+  let letztesBild = 0, ausgelassen = false, renderDt = 0
   function laufen() {
     if (laeuft || zerstoert || document.hidden) return
-    laeuft = true; last = performance.now()
+    laeuft = true; last = performance.now(); letztesBild = 0
     raf = requestAnimationFrame(schritt)
   }
   function schritt(now: number) {
@@ -2580,11 +2586,22 @@ export function createDot(host: DotHost): DotApi {
     // ein negativer Schritt würde jede Dämpfung zur Verstärkung machen
     const dt = clamp((now - last) / 1000, 0, 0.05)
     last = now
+    const iv = letztesBild ? now - letztesBild : 0
+    letztesBild = now
+    const neueStufe = qualitaet.bild(iv)
+    if (neueStufe !== null) {
+      aufloesung = STUFEN[neueStufe].aufloesung
+      document.documentElement.dataset.hokuStufe = String(neueStufe)
+      vermessen()
+    }
     messeBuehne()
     // Ohne Zeitschritt keine Physik: sie teilt durch ihn (Geschwindigkeiten, Heilen des Rands). Ein
     // einziges NaN bliebe sonst für immer und machte in WebGL (Chrome am Desktop) alle Punkte unsichtbar
     if (dt > 0) physics(dt, now / 1000)
-    render(now / 1000, dt)
+    renderDt += dt
+    // Stufe 2 bei 120 Hz: jedes zweite Bild zeichnen, die Physik läuft weiter in jedem
+    ausgelassen = STUFEN[qualitaet.stufe].halb && iv > 0 && iv < 12 && !ausgelassen
+    if (!ausgelassen) { render(now / 1000, renderDt); renderDt = 0 }
     // Drinnen und Tür zu: nichts mehr zu tun, bis jemand klingelt
     if (B.mode === 'house' && B.door < 0.005 && !B.sparks.length) {
       laeuft = false

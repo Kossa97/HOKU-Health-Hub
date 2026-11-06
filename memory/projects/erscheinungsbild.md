@@ -248,3 +248,9 @@ Frost war davon betroffen und ist korrigiert; im Browser nachgemessen
 - iPhone-Messung 05.11. (`?messen=an`): Home 120/s, 0 % Ruck, Skript 84 ms/s. MyStack 42–60/s, 8–29 % Ruck, max 100–120 ms, Skript nur 54–64 ms/s → Malarbeit, nicht Hokus Rechnung.
 - Verdacht: Bläschen (`.tyd-liquid-bubble`, CSS-Animation auf SVG-Kreisen) zwingen WebKit, das Fläschchen-SVG (Verläufe, SVG-Filter shellSoft) jedes Bild neu zu malen. Prüfschalter `?blasen=aus` und `?buehne=still` (alle Dauer-Animationen in main + Flüssigkeit).
 - Homescreen-App startet ohne Adresszusätze und hat eigenen Speicher → Prüfschalter jetzt im Profil (nur Vorschau/Dev: VITE_DEPLOY_ENV preview), gespeichert unter tyd.pruef (src/lib/pruef.ts, components/pruef/PruefSchalter.tsx). In Produktion gilt nur die Adresse, ohne Speichern.
+
+### 2026-11-06 Branch claude/leistung (Vergleich mit claude/glas-linse)
+- iPhone: „alles angehalten" (`?buehne=still`) → MyStack 118/s, 1 % Ruck; nur Bläschen aus oder nur Flüssigkeit aus half nicht: beide malen dasselbe SVG neu.
+- Ruhe: sloshEngine hält nach RUHE_NACH_MS (5 s) ohne Regung an, `data-fluessig-ruht` hält die Bläschen an; Regung = pointerdown/scroll/wheel/keydown in <main> oder am Dokument, Stöße wecken. Hoku (außerhalb main) weckt nicht.
+- Automatische Qualität (engine/qualitaet.ts): Stufe 0 voll, 1 = 0,75 Auflösung, 2 = dazu bei 120 Hz jedes 2. Bild. Herunter nach 2 schlechten Sekunden (>15 % Ruck), hinauf nach 5 guten (<3 %). Messanzeige zeigt „Stufe".
+- Kleinere Zeichenfläche für Hoku zurückgestellt: Home läuft mit Vollbild-Flächen 120/s; Umbau berührte Strahl, Linsen-Kopien, Masken – Risiko > Nutzen.
