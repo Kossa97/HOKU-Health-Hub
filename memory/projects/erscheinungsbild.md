@@ -254,3 +254,4 @@ Frost war davon betroffen und ist korrigiert; im Browser nachgemessen
 - Ruhe: sloshEngine hält nach RUHE_NACH_MS (5 s) ohne Regung an, `data-fluessig-ruht` hält die Bläschen an; Regung = pointerdown/scroll/wheel/keydown in <main> oder am Dokument, Stöße wecken. Hoku (außerhalb main) weckt nicht.
 - Automatische Qualität (engine/qualitaet.ts): Stufe 0 voll, 1 = 0,75 Auflösung, 2 = dazu bei 120 Hz jedes 2. Bild. Herunter nach 2 schlechten Sekunden (>15 % Ruck), hinauf nach 5 guten (<3 %). Messanzeige zeigt „Stufe".
 - Kleinere Zeichenfläche für Hoku zurückgestellt: Home läuft mit Vollbild-Flächen 120/s; Umbau berührte Strahl, Linsen-Kopien, Masken – Risiko > Nutzen.
+- 06.11. iPhone: mit Ruhe (nur Flüssigkeit+Bläschen) noch schwammig → Ruhe hält jetzt auch Aktiv-Puls, Haltbarkeitswechsel, Ablauf-Glühen/-Symbol/-Knopf in main an (wie Bewegung reduzieren). Messanzeige zeigt „Ruhe ja/nein“.

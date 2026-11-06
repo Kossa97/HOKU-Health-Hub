@@ -8,6 +8,7 @@
  *   Skript  Rechenzeit aller Bild-Schleifen (Hoku, Licht, Leiste) in ms je Sekunde
  *   max     längstes Bild der letzten Sekunde in ms
  *   Stufe   Hokus automatische Qualität (0 voll, 1 weniger Auflösung, 2 dazu 60 Bilder/s)
+ *   Ruhe    ob die Bühne (MyStack) gerade ruht: Flüssigkeit und Dauer-Animationen stehen
  * Viel Ruck bei wenig Skript heißt: die Grafik (GPU) kommt nicht hinterher.
  * Viel Skript heißt: der Rechenkern ist ausgelastet.
  */
@@ -39,7 +40,7 @@ export function installMessAnzeige(): void {
     if (vergangen >= 1000) {
       const fps = Math.round(bilder * 1000 / vergangen)
       const anteil = Math.round(ruck / Math.max(1, bilder) * 100)
-      feld.textContent = `${location.pathname}\nBilder ${fps}/s\nRuck   ${anteil} %\nSkript ${Math.round(skript * 1000 / vergangen)} ms/s\nmax    ${Math.round(max)} ms\nStufe  ${document.documentElement.dataset.hokuStufe ?? '0'}`
+      feld.textContent = `${location.pathname}\nBilder ${fps}/s\nRuck   ${anteil} %\nSkript ${Math.round(skript * 1000 / vergangen)} ms/s\nmax    ${Math.round(max)} ms\nStufe  ${document.documentElement.dataset.hokuStufe ?? '0'}\nRuhe   ${'fluessigRuht' in document.documentElement.dataset ? 'ja' : 'nein'}`
       bilder = 0; ruck = 0; max = 0; skript = 0; start = t
     }
     original(takt)
