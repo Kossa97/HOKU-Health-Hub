@@ -7,5 +7,10 @@
 	<array>
 		<string>applinks:hokuhealth.app</string>
 	</array>
+	<!-- Apple Health lesen (src/lib/health.ts, Plugin @perfood/capacitor-healthkit) -->
+	<key>com.apple.developer.healthkit</key>
+	<true/>
+	<key>com.apple.developer.healthkit.access</key>
+	<array/>
 </dict>
 </plist>

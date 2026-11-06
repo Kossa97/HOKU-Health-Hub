@@ -196,7 +196,7 @@ Mockup: https://claude.ai/artifact/A1i3nr5H3aqc9ruQcXpg8J (Variante 1).
 |---|---|
 | Kalorientracker | nicht im Repo gefunden; GLP-1-Protein (`Glp1Card avgProteinG`) und Trainings-kcal brauchen ihn — Schnittstelle `trainingEnergyForDay` (`lib/energy.ts`) steht bereit |
 | Android-Workouts | `capacitor-health-connect` 0.7 kann keine ExerciseSession lesen; anderes Plugin nötig. AndroidManifest hat bisher **keine** Health-Berechtigungen (betrifft auch Gewicht/Schritte) — bewusst nicht geändert (Play-Erklärung nötig) |
-| iOS HealthKit | Entitlement/Capability fehlt im Xcode-Projekt; Info.plist-Text nennt Workouts/Ruhepuls nicht |
+| iOS HealthKit | Plugin fehlte im SPM-Build, Entitlement fehlte (06.11.2026 behoben, `docs/ios-healthkit.md`); **Xcode-Build auf dem Mac steht aus** |
 | HRV | liefert keins der Plugins; Bereitschaft nutzt Schlaf, Ruhepuls, Tagesform, Last |
 | Hevy/Strong-CSV | Formate aus Sekundärquellen; mit echten Exportdateien gegenprüfen |
 | Hyrox | Mixed Doubles fehlt (Quellen widersprüchlich); Women-Open-Wall-Balls 100 angenommen |

@@ -7,6 +7,7 @@
     "node": "24.x"
   },
   "scripts": {
+    "postinstall": "node scripts/capacitor-healthkit-spm.mjs",
     "dev": "vite",
     "build": "tsc -b && vite build && tsx --tsconfig tsconfig.app.json scripts/prerender-peptipedia.ts",
     "lint": "eslint .",
@@ -28,7 +29,8 @@
     "effects:duration:sql": "node scripts/generate-effect-duration-sql.mjs",
     "peptipedia:audit": "tsx --tsconfig tsconfig.app.json scripts/audit-peptipedia.ts",
     "model:optimize": "node scripts/optimize-torso-model.mjs",
-    "bls:json": "python3 -I scripts/generate-bls-json.py"
+    "bls:json": "python3 -I scripts/generate-bls-json.py",
+    "ios:sync": "node scripts/capacitor-healthkit-spm.mjs && cap sync ios"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
