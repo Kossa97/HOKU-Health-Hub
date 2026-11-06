@@ -5,10 +5,11 @@ const SloshContext = createContext<SloshEngine | null>(null)
 
 // Mehrere Bühnen können gleichzeitig stehen (MyStack und darüber der Assistent).
 // Die Bläschen halten erst an, wenn keine mehr wach ist.
+const alle = new Set<SloshEngine>()
 const wach = new Set<SloshEngine>()
 function zeigeRuhe() {
   const html = document.documentElement
-  if (wach.size === 0) html.dataset.fluessigRuht = ''
+  if (alle.size > 0 && wach.size === 0) html.dataset.fluessigRuht = ''
   else delete html.dataset.fluessigRuht
 }
 
@@ -39,16 +40,16 @@ export function useSloshEngine(): SloshEngine {
     const optionen = { capture: true, passive: true } as const
     for (const typ of ['pointerdown', 'scroll', 'wheel', 'keydown'] as const) document.addEventListener(typ, regung, optionen)
     // Bläschen sind CSS-Animationen: in Ruhe hält sie index.css an
-    wach.add(engine); zeigeRuhe()
+    alle.add(engine); wach.add(engine); zeigeRuhe()
     const ruheAb = engine.beiRuhe(r => { if (r) wach.delete(engine); else wach.add(engine); zeigeRuhe() })
     return () => {
       mq?.removeEventListener?.('change', apply)
       document.removeEventListener('visibilitychange', apply)
       for (const typ of ['pointerdown', 'scroll', 'wheel', 'keydown'] as const) document.removeEventListener(typ, regung, optionen)
       ruheAb()
-      wach.delete(engine)
-      // Ohne Bühne gibt es nichts anzuhalten: Merkmal weg, damit es nicht hängen bleibt
-      if (wach.size === 0) delete document.documentElement.dataset.fluessigRuht
+      alle.delete(engine); wach.delete(engine)
+      // Ohne Bühne gibt es nichts anzuhalten; stehen andere noch, gilt ihre Ruhe weiter
+      zeigeRuhe()
       engine.destroy()
     }
   }, [engine])

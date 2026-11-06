@@ -164,6 +164,8 @@ export function createSloshEngine(): SloshEngine {
         angle = 0
         vel = 0
         notify()
+        // Abgeschaltet steht die Flüssigkeit: auch die Bläschen dürfen ruhen
+        setzeRuhe(true)
       } else {
         wecke()
       }
