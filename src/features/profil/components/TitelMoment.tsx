@@ -90,7 +90,14 @@ export function TitelMoment({ moment, userId, onDone, laden = ladeTitelStand }: 
     zu.current = true
     const root = rootRef.current as Animierbar | null
     // erst weiter (Titel ansehen), dann den Moment aus dem Briefkasten nehmen
-    const fertig = () => { danach?.(); onDone() }
+    let einmal = false
+    const fertig = () => {
+      // Abbrechen beim Aushängen meldet sich auch noch: nur einmal weiter
+      if (einmal) return
+      einmal = true
+      danach?.()
+      onDone()
+    }
     if (!root?.animate) { fertig(); return }
     root.setAttribute('data-closing', '')
     if (typeof root.getAnimations === 'function') root.getAnimations({ subtree: true }).forEach(a => a.finish())

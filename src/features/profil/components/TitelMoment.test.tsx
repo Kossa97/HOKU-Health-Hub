@@ -148,6 +148,28 @@ describe('TitelMoment', () => {
     expect(document.activeElement).toBe(letzter)
   })
 
+  it('Schließen mit Animation: weiter nur einmal, auch wenn das Aushängen sie abbricht', async () => {
+    const handlers: { onfinish: (() => void) | null; oncancel: (() => void) | null }[] = []
+    // jsdom kennt keine Web Animations API
+    Object.defineProperty(HTMLElement.prototype, 'animate', {
+      configurable: true,
+      value: () => {
+        const a = { onfinish: null as (() => void) | null, oncancel: null as (() => void) | null }
+        handlers.push(a)
+        return a
+      },
+    })
+    try {
+      const { onDone } = await zeige({ kind: 'rank', id: 'rank_2' })
+      fireEvent.click(document.querySelector('[data-titel-moment-act="fertig"]')!)
+      const aus = handlers.at(-1)!
+      act(() => { aus.onfinish?.(); aus.oncancel?.() })
+      expect(onDone).toHaveBeenCalledTimes(1)
+    } finally {
+      delete (HTMLElement.prototype as { animate?: unknown }).animate
+    }
+  })
+
   it('Titel ansehen öffnet das Profil', async () => {
     await zeige({ kind: 'rank', id: 'rank_2' })
     fireEvent.click(document.querySelector('[data-titel-moment-act="ansehen"]')!)
