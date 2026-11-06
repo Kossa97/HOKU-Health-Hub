@@ -97,8 +97,8 @@ export const BADGES_WEB_BORDERLINE: readonly BadgeId[] = [
   'weighed_weeks_8', 'first_measurement', 'first_progress_photo',
   'wearable_connected', 'steps_week_10k',
   'progress_10', 'progress_25', 'progress_50',
-  // Titel-Zusatz: Schlaf überhaupt getrackt (Wearable)
-  'sleep_tracked_30',
+  // Titel-Zusatz: Schlaf überhaupt getrackt, Schritte über Wochen (Wearable)
+  'sleep_tracked_30', 'steps_weeks_12',
 ]
 
 /** `profiles.web_badges`: nur Abweichungen vom Standard (`true` = zeigen, `false` = verbergen). */

@@ -15,6 +15,7 @@
  */
 import { BADGE_IDS, BADGES_NEED_FRIENDS, SHOWN_BADGE_GROUPS, SHOWN_BADGE_IDS, type BadgeGroup, type BadgeId } from './badgeIds'
 import type { SessionKind } from '../../training/types'
+import { RANKS } from './titles'
 import { addDays, weekOf, type BloodReport, type DatedValue, type ProgressHistoryEntry } from './progressScore'
 
 // ─── Fakten ─────────────────────────────────────────────────────────────────
@@ -173,15 +174,15 @@ const sessionsOf = (f: BadgeFacts, ...kinds: SessionKind[]) => kinds.flatMap(k =
 /** Rang: Tage mit eigenem Eintrag, zusammengezaehlt, Luecken erlaubt. */
 const rank = (n: number) => (f: BadgeFacts) => nth(uniqueSorted(f.ownEntryDays), n)
 
-/** Sportarten fuer „Allrounder“ (ohne „Sonstiges“). */
-const ALLROUNDER_KINDS: readonly SessionKind[] = [
-  'strength', 'run', 'cycle', 'swim', 'row', 'walk', 'hike', 'hiit', 'hyrox', 'yoga', 'mobility', 'sport',
+/** Sportarten fuer „Allrounder“ (ohne „Sonstiges“); Yoga und Mobility sind eine, wie in ihrer Leiter. */
+const ALLROUNDER_SPORTS: readonly (readonly SessionKind[])[] = [
+  ['strength'], ['run'], ['cycle'], ['swim'], ['row'], ['walk'], ['hike'], ['hiit'], ['hyrox'], ['yoga', 'mobility'], ['sport'],
 ]
 
 /** Fuenf Sportarten mit je mindestens zehn Einheiten; verdient, wenn die fuenfte die zehnte erreicht. */
 function allrounder(f: BadgeFacts): BadgeCheck {
-  const tenth = ALLROUNDER_KINDS
-    .map(k => [...(f.sessionsByKind[k] ?? [])].sort()[9])
+  const tenth = ALLROUNDER_SPORTS
+    .map(kinds => sessionsOf(f, ...kinds).sort()[9])
     .filter((d): d is string => d !== undefined)
     .sort()
   return { earnedOn: tenth.length >= 5 ? tenth[4] : null, have: Math.min(tenth.length, 5), need: 5, unit: 'count' }
@@ -297,12 +298,7 @@ const DEFS: readonly BadgeDef[] = [
   b('yoga_150', 'sport', '🧘', '150 Yoga- oder Mobility-Einheiten', '150 yoga or mobility sessions', f => nth(sessionsOf(f, 'yoga', 'mobility'), 150)),
   b('allrounder', 'sport', '🎽', '5 Sportarten mit je 10 Einheiten', '5 sports with 10 sessions each', allrounder),
   // Ränge (Spec Titel 2): Tage mit eigenem Eintrag; erscheinen nie in der Abzeichen-Liste
-  b('rank_1', 'rang', '✦', 'Neuling', 'Newcomer', rank(1)),
-  b('rank_2', 'rang', '✦', 'Entdecker', 'Explorer', rank(10)),
-  b('rank_3', 'rang', '✦', 'Dranbleiber', 'Committed', rank(50)),
-  b('rank_4', 'rang', '✦', 'Routinier', 'Steady', rank(100)),
-  b('rank_5', 'rang', '✦', 'Veteran', 'Veteran', rank(200)),
-  b('rank_6', 'rang', '✦', 'Legende', 'Legend', rank(365)),
+  ...RANKS.map(r => b(r.id, 'rang', '✦', r.name.de, r.name.en, rank(r.days))),
 ]
 
 export const BADGE_BY_ID: Readonly<Record<BadgeId, BadgeDef>> =

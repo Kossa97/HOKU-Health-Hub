@@ -1293,6 +1293,8 @@ export class MockSupabase {
           const leiter = ladderOf(wahl as never)
           wahl = leiter ? [...TITLE_LADDERS[leiter]].reverse().find(hat) ?? null : hat(wahl) ? wahl : null
         }
+        // im Web nur mit Web-Freigabe des Abzeichens (web_badges bzw. Standard)
+        if (wahl && stufe === 'web' && isBadgeId(wahl) && !webBadgeOn(wahl, parseWebBadges(p.web_badges))) wahl = null
         const rang = [...RANK_IDS].reverse().find(hat)
         if (wahl) fields.title = { kind: 'badge', id: wahl }
         else if (rang) fields.title = { kind: 'rank', id: rang }

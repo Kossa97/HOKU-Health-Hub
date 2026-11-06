@@ -56,13 +56,13 @@ describe('Abzeichen im Web (2c)', () => {
     expect(sqlListe('supabase-profil-titel.sql', 'profile_badge_web_borderline')).toEqual([...BADGES_WEB_BORDERLINE])
   })
 
-  it('10 heikle und 8 Grenzfaelle aus Spec 6.1 plus Schlaf aus dem Titel-Zusatz, bekannt, ohne Ueberschneidung', () => {
+  it('10 heikle und 8 Grenzfaelle aus Spec 6.1 plus Schlaf und Schritte aus dem Titel-Zusatz, bekannt, ohne Ueberschneidung', () => {
     expect(BADGES_WEB_SENSITIVE).toHaveLength(12)
-    expect(BADGES_WEB_BORDERLINE).toHaveLength(9)
+    expect(BADGES_WEB_BORDERLINE).toHaveLength(10)
     expect(BADGES_WEB_SENSITIVE).toEqual(expect.arrayContaining(['sleep_rested_30', 'sleep_rested_100']))
-    expect(BADGES_WEB_BORDERLINE).toContain('sleep_tracked_30')
+    expect(BADGES_WEB_BORDERLINE).toEqual(expect.arrayContaining(['sleep_tracked_30', 'steps_weeks_12']))
     const alle = [...BADGES_WEB_SENSITIVE, ...BADGES_WEB_BORDERLINE]
-    expect(new Set(alle).size).toBe(21)
+    expect(new Set(alle).size).toBe(22)
     expect(alle.every(isBadgeId)).toBe(true)
   })
 
@@ -70,7 +70,7 @@ describe('Abzeichen im Web (2c)', () => {
     expect(webBadgeDefault('first_bloodwork')).toBe(false)
     expect(webBadgeDefault('progress_25')).toBe(false)
     expect(webBadgeDefault('streak_30')).toBe(true)
-    expect(BADGE_IDS.filter(webBadgeDefault)).toHaveLength(81 - 21)
+    expect(BADGE_IDS.filter(webBadgeDefault)).toHaveLength(81 - 22)
   })
 
   it('webBadgeOn wie profile_web_badge_on: Abweichung, sonst Standard; Nicht-Bool zaehlt nicht', () => {

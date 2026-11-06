@@ -7,6 +7,7 @@ import { isMissingColumn } from '../../../lib/dbErrors'
 import { badgeName } from '../lib/badges'
 import { parseVisibilityMap, visibilityOf, type Visibility, type VisibilityMap } from '../lib/profileVisibility'
 import type { TitleMoment } from '../lib/titleMoment'
+import { meldeProfilGeaendert } from '../lib/titleMomentStore'
 import { isTitleBadgeId, RANKS, titleName, type TitleBadgeId } from '../lib/titles'
 import { useFieldVisibility } from '../hooks/useFieldVisibility'
 import { prefersReducedMotion, spieleMoment, stufen, traegtSchon, type Animierbar } from './titelMomentAblauf'
@@ -85,6 +86,7 @@ export function TitelMoment({ moment, userId, onDone, laden = ladeTitelStand }: 
     }
   }, [bereit])
 
+  const geschrieben = useRef(false)
   const schliessen = useCallback((danach?: () => void) => {
     if (zu.current) return
     zu.current = true
@@ -95,6 +97,8 @@ export function TitelMoment({ moment, userId, onDone, laden = ladeTitelStand }: 
       // Abbrechen beim Aushängen meldet sich auch noch: nur einmal weiter
       if (einmal) return
       einmal = true
+      // Die offene Profilseite soll Wahl und Sichtbarkeit aus dem Moment übernehmen
+      if (geschrieben.current) meldeProfilGeaendert()
       danach?.()
       onDone()
     }
@@ -134,6 +138,7 @@ export function TitelMoment({ moment, userId, onDone, laden = ladeTitelStand }: 
       .update({ title_choice: moment.kind === 'rank' ? null : moment.id }).eq('id', userId)
     setBusy(false)
     if (error) { toast.error(t('fehler_speichern')); return }
+    geschrieben.current = true
     toast.success(t('titel_moment_getragen', { name }))
     schliessen()
   }
@@ -192,7 +197,7 @@ export function TitelMoment({ moment, userId, onDone, laden = ladeTitelStand }: 
                     aria-pressed={vis === v}
                     data-vis-option={v}
                     title={v === 'friends' ? `${t('profil_stufe_friends')} — ${t('profil_stufe_freunde_hinweis')}` : undefined}
-                    onClick={() => { if (vis !== v) void setField('title', v) }}
+                    onClick={() => { if (vis !== v) { geschrieben.current = true; void setField('title', v) } }}
                   >
                     {t(`profil_stufe_${v}`)}
                   </button>

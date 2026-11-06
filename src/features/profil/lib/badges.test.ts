@@ -139,6 +139,11 @@ describe('Titel-Zusatz: Ränge', () => {
     expect(check('rank_2', f)).toMatchObject({ earnedOn: null, have: 1 })
   })
 
+  it('Namen und Schwellen kommen aus RANKS (titles.ts)', () => {
+    expect(BADGE_BY_ID.rank_4.name).toEqual({ de: 'Routinier', en: 'Steady' })
+    expect(check('rank_6', facts({ ownEntryDays: range('2025-01-01', 365) })).earnedOn).toBe(addDays('2025-01-01', 364))
+  })
+
   it('erscheinen nicht in earnedOrder (Schnappschuss, Profilzeile)', () => {
     expect(earnedOrder({ rank_3: '2026-05-01', streak_7: '2026-03-21' })).toEqual(['streak_7'])
   })
@@ -160,6 +165,17 @@ describe('Titel-Zusatz: Sportarten und weitere', () => {
     expect(check('allrounder', f).earnedOn).toBe(addDays(addDays('2026-01-01', 4), 45))
     const vier = facts({ sessionsByKind: Object.fromEntries(kinds.slice(0, 4).map(k => [k, range('2026-01-01', 10)])) })
     expect(check('allrounder', vier)).toMatchObject({ earnedOn: null, have: 4, need: 5 })
+    // Yoga und Mobility sind eine Sportart (wie in ihrer Leiter): 10 + 10 zählt einmal, 5 + 5 erreicht 10
+    const yoga = facts({ sessionsByKind: {
+      ...Object.fromEntries(kinds.slice(0, 3).map(k => [k, range('2026-01-01', 10)])),
+      yoga: range('2026-01-01', 10), mobility: range('2026-02-01', 10),
+    } })
+    expect(check('allrounder', yoga)).toMatchObject({ earnedOn: null, have: 4 })
+    const halb = facts({ sessionsByKind: {
+      ...Object.fromEntries(kinds.slice(0, 4).map(k => [k, range('2026-01-01', 10)])),
+      yoga: range('2026-03-01', 5), mobility: range('2026-03-10', 5),
+    } })
+    expect(check('allrounder', halb).earnedOn).toBe(addDays('2026-03-10', 4))
   })
 
   it('Bestleistungen 5/25/100, Tagebuch nur Tage, 1.000 Einträge zählen Doppelte mit', () => {

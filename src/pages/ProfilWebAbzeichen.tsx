@@ -83,7 +83,7 @@ export function ProfilWebAbzeichen() {
               ? t('profil_webabz_zaehler', {
                 // Mit Hinweis erscheint im Web gar keins, auch nicht die eingeschalteten
                 n: hinweis ? 0 : SHOWN_BADGE_IDS.filter(id => earned.has(id) && web.isBadgeOn(id)).length,
-                gesamt: earned.size,
+                gesamt: SHOWN_BADGE_IDS.filter(id => earned.has(id)).length,
               })
               : '…'}
           </span>

@@ -40,3 +40,15 @@ export const titleMomentStore = {
 export function usePendingTitleMoment(): PendingTitleMoment | null {
   return useSyncExternalStore(titleMomentStore.subscribe, titleMomentStore.get, titleMomentStore.get)
 }
+
+/**
+ * Der Moment schreibt Titel und Sichtbarkeit selbst in die Profilzeile. Eine
+ * offene Profilseite hält aber ihren eigenen Stand: ohne Nachricht schriebe ihr
+ * nächster Tipp den alten Stand zurück. Sie hört darauf und lädt neu.
+ */
+export const PROFIL_GEAENDERT = 'hoku:profil-geaendert'
+
+export function meldeProfilGeaendert() {
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(PROFIL_GEAENDERT))
+}
+

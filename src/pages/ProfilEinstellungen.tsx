@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, type ReactNode } from 'react'
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
@@ -26,7 +26,8 @@ import { useWebSettings } from '../features/profil/hooks/useWebSettings'
 import { useEigenerFortschritt } from '../features/profil/hooks/useEigenerFortschritt'
 import { useEigenerTitel } from '../features/profil/hooks/useTitleSettings'
 import { profileUrl } from '../features/profil/lib/profileView'
-import { titleName } from '../features/profil/lib/titles'
+import { titleName, wornTitle } from '../features/profil/lib/titles'
+import type { BadgeId } from '../features/profil/lib/badgeIds'
 import { importWithReload } from '../lib/staleChunkReload'
 import type { Einstellungen } from '../features/profil/hooks/useEinstellungen'
 
@@ -274,13 +275,27 @@ function TitelZeile({ userId, werte }: { userId: string | undefined; werte: Eins
   const { t, i18n } = useTranslation()
   const lang = i18n?.resolvedLanguage ?? i18n?.language ?? 'de'
   const [offen, setOffen] = useState(false)
-  const { fortschritt } = useEigenerFortschritt(userId)
+  // Den ganzen Fortschritt (alle Einträge, Abzeichen rechnen) erst laden, wenn das
+  // Sheet einmal aufgeht; für die Zeile reichen die gespeicherten Abzeichen.
+  const [geoeffnet, setGeoeffnet] = useState(false)
+  const { fortschritt } = useEigenerFortschritt(geoeffnet ? userId : undefined)
+  const [gespeichert, setGespeichert] = useState<ReadonlySet<BadgeId> | null>(null)
+  useEffect(() => {
+    if (!userId) return
+    let aktiv = true
+    void import('../features/profil/services/progressStore')
+      .then(m => m.loadProgressSettings(userId))
+      .then(s => { if (aktiv) setGespeichert(new Set(Object.keys(s.earnedBadges) as BadgeId[])) })
+      .catch(() => undefined)
+    return () => { aktiv = false }
+  }, [userId])
   const titel = useEigenerTitel(userId, werte?.titleSettings ?? null, fortschritt, null)
   const sichtbarkeit = useFieldVisibility(userId, werte?.visibility ?? null)
-  const name = titel.worn ? titleName(titel.worn.id, lang) : null
+  const worn = titel.worn ?? (gespeichert ? wornTitle(titel.settings, gespeichert) : null)
+  const name = worn ? titleName(worn.id, lang) : null
   return (
     <>
-      <button type="button" className={zeile} aria-haspopup="dialog" disabled={!werte} onClick={() => setOffen(true)} data-setting-title>
+      <button type="button" className={zeile} aria-haspopup="dialog" disabled={!werte} onClick={() => { setGeoeffnet(true); setOffen(true) }} data-setting-title>
         <Unterzeile titel={t('profil_feld_title')} sub={t('titel_einst_sub')} />
         <Weiter wert={name ? <span className="max-w-[45vw] truncate" data-setting-title-name>{name}</span> : undefined} />
       </button>

@@ -149,4 +149,8 @@ describe('profile_view (Titel-Block in der Migration)', () => {
     expect(sqlListe('profile_web_fields')).toContain('title')
     expect(view).toContain("and stufe <> 'web'")
   })
+
+  it('Web: ein Abzeichen-Titel nur mit Web-Freigabe des Abzeichens (Grenzfälle wie Schlafbeobachter ab Werk nicht)', () => {
+    expect(view).toContain("if wahl is not null and stufe = 'web' and not public.profile_web_badge_on(wahl, p.web_badges) then")
+  })
 })

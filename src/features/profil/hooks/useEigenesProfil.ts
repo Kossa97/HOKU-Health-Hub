@@ -3,6 +3,7 @@ import i18n from 'i18next'
 import { supabase } from '../../../lib/supabase'
 import { localProfileView, parseProfileView, type ProfileView } from '../lib/profileView'
 import type { ProfileSnapshotData } from '../lib/profileSnapshot'
+import { PROFIL_GEAENDERT } from '../lib/titleMomentStore'
 
 export type ProfilZeile = Record<string, unknown>
 
@@ -53,7 +54,11 @@ export function useEigenesProfil(userId: string | undefined) {
     if (!userId) return
     let aktiv = true
     void ladeProfil(userId).then(next => { if (aktiv) setState(next) })
-    return () => { aktiv = false }
+    // Der Titel-Moment schreibt Wahl und Sichtbarkeit selbst: dann neu laden (der
+    // alte Stand bleibt sichtbar, bis der neue da ist; ein Fehler ersetzt ihn nicht)
+    const neu = () => { void ladeProfil(userId).then(next => { if (aktiv && next.status === 'ok') setState(next) }) }
+    window.addEventListener(PROFIL_GEAENDERT, neu)
+    return () => { aktiv = false; window.removeEventListener(PROFIL_GEAENDERT, neu) }
   }, [userId])
 
   return { state, setState }

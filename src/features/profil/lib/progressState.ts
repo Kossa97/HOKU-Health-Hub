@@ -5,6 +5,7 @@
 import type { ProfileSnapshotInput } from './profileSnapshot'
 import { badgeFacts, type BadgeExtras } from './badgeFacts'
 import { earnedOrder, evaluateBadges, type BadgeEvaluation } from './badges'
+import { RANKS } from './titles'
 import type { BadgeId } from './badgeIds'
 import { progressSetup, type ProgressSetup } from './progressInput'
 import {
@@ -48,7 +49,9 @@ export function computeProgressState(data: ProgressData, today: string): Progres
     snapshot: result && setup ? progressSnapshot(result, setup.startOn) : undefined,
     badgeIds: earnedOrder(badges.earned),
     // wie die Rang-Abzeichen (`rank` in badges.ts)
-    entryDays: facts.ownEntryDays.length,
+    // Einnahmen laedt der Schnappschuss nur fuer 366 Tage: nie weniger Tage zeigen,
+    // als der hoechste schon verdiente Rang verlangt (verdient bleibt verdient)
+    entryDays: Math.max(facts.ownEntryDays.length, ...RANKS.filter(r => badges.earned[r.id]).map(r => r.days)),
   }
 }
 

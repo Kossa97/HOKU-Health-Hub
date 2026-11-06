@@ -44,8 +44,9 @@ describe('titleMomentFor', () => {
     const before = stored('streak_7', 'streak_30', 'workouts_50')
     const added: BadgeId[] = ['rank_1', 'rank_2', 'rank_3', 'rank_4', 'run_10', 'run_50', 'streak_100']
     expect(titleMomentFor(added, before)).toEqual({ kind: 'rank', id: 'rank_4' })
-    // noch kein Rang verdient (keine Tage mit Eintrag): gar kein Moment, auch kein Titel
-    expect(titleMomentFor(['run_10'], before)).toBeNull()
+    // nur eingeführte Einheiten, nie ein Rang: der Titel kommt trotzdem (sonst nie ein Moment)
+    expect(titleMomentFor(['run_10'], before)).toEqual({ kind: 'badge', id: 'run_10' })
+    expect(titleMomentFor(['run_10', 'run_50'], {})).toEqual({ kind: 'badge', id: 'run_50' })
   })
 
   it('erster Eintrag überhaupt: Neuling', () => {

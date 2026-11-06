@@ -28,7 +28,7 @@ Produktivlauf nur nach ausdrücklichem Ja, Reihenfolge 2a → 2b → 2c → Tite
 | Prüfungen `profiles_title_choice_check`, `profiles_title_consents_check` | 0 | 2 | 2 | 2 |
 | neue Funktionen (5 Namen) | 0 | 5 | 5 | 5 |
 | Abzeichen-IDs / Felder / Web-Felder | 39 / 32 / 8 | 81 / 33 / 9 | 81 / 33 / 9 | 81 / 33 / 9 |
-| heikel / Grenzfall | 10 / 8 | 12 / 9 | 12 / 9 | 12 / 9 |
+| heikel / Grenzfall | 10 / 8 | 12 / 10 | 12 / 10 | 12 / 10 |
 | ungültige `earned_badges` / Sichtbarkeit / `web_badges` | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 |
 | Titel gesetzt (Wahl, Schalter oder Einwilligung) | – | 0 | 0 | 1 (Proben) |
 
@@ -57,6 +57,8 @@ Titel für irgendwen, solange die App keine Ränge geschrieben hat und `title` a
   kaputtes Datum, Liste statt Objekt, Stufe `public` für `title`.
 - **T15** RLS: Mara schreibt ihre eigene Wahl; cleo kann Gustavs nicht ändern (0 Zeilen).
 - **T16** Gustav ohne Ränge und ohne Titel-Freigabe: kein Titel. **T17** Privat sperrt den Titel für andere.
+- **T18** Web-Freigabe gilt auch für den Titel: „Schlafbeobachter“ (Grenzfall, ab Werk aus) → anon sieht den
+  Rang, cleo den Titel; nach Freigabe in `web_badges` auch anon. **T19** `steps_weeks_12` ist Grenzfall (10 Grenzfälle).
 
 ## Vertrauen
 

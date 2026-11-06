@@ -136,6 +136,12 @@ describe('Titel-Fakten aus den eigenen Daten', () => {
     expect(f.entryDays).toContain('2026-10-02')
   })
 
+  it('Tage mit Eintrag nie unter der Schwelle des schon verdienten Rangs (Einnahmen nur 366 Tage geladen)', () => {
+    const state = computeProgressState(data(empty(), { settings: { ...EMPTY_PROGRESS_SETTINGS, earnedBadges: { rank_4: '2026-01-01' } } }), TODAY)
+    expect(state.entryDays).toBe(100)
+    expect(computeProgressState(data(empty()), TODAY).entryDays).toBe(0)
+  })
+
   it('Schlafnächte aus healthDaily, nur mit Minuten > 0, bis heute', () => {
     const input = { ...empty(), healthDaily: [
       health('2026-10-01', { sleep_min: 450 }), health('2026-10-02', { sleep_min: 0 }),

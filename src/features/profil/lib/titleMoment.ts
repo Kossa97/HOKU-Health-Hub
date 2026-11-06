@@ -7,9 +7,10 @@
  * - Sonst ein neues tragbares Abzeichen (auch eine neue Stufe einer Leiter);
  *   bei mehreren die höchste Stufe, bei Gleichstand das erste in der Liste.
  * - Persönliche Titel nie (ab Werk aus, nur stiller Hinweis im Sheet).
- * - Erster Start nach dem Titel-Update (vorher kein Rang gespeichert): nur der
- *   aktuelle Rang, keine Zwischenstufen und keine Abzeichen-Titel, die schon
- *   lange verdient waren.
+ * - Erster Start nach dem Titel-Update: Wer schon Tage mit Eintrag hat, bekommt
+ *   den aktuellen Rang (der neue Rang geht vor), keine Zwischenstufen und keine
+ *   Abzeichen-Titel daneben. Wer nur eingeführte Einheiten hat (nie ein Rang),
+ *   bekommt Abzeichen-Titel trotzdem — sonst sähe er nie einen Moment.
  */
 import { RANK_IDS, type BadgeId } from './badgeIds'
 import { isPersonalTitle, isTitleBadgeId, ladderOf, TITLE_BADGE_IDS, TITLE_LADDERS, type TitleBadgeId } from './titles'
@@ -17,8 +18,6 @@ import { isPersonalTitle, isTitleBadgeId, ladderOf, TITLE_BADGE_IDS, TITLE_LADDE
 export type TitleMoment =
   | { kind: 'rank'; id: BadgeId }
   | { kind: 'badge'; id: TitleBadgeId }
-
-const RANK_SET: ReadonlySet<BadgeId> = new Set(RANK_IDS)
 
 /** Stufe in der Leiter (1–3), ohne Leiter 1. */
 function stage(id: TitleBadgeId): number {
@@ -34,8 +33,6 @@ export function titleMomentFor(added: readonly BadgeId[], before: Partial<Record
   const fresh = new Set(added.filter(id => !before[id]))
   const rank = [...RANK_IDS].reverse().find(id => fresh.has(id))
   if (rank) return { kind: 'rank', id: rank }
-  const firstStart = !Object.keys(before).some(id => RANK_SET.has(id as BadgeId))
-  if (firstStart) return null
   let best: TitleBadgeId | null = null
   for (const id of TITLE_BADGE_IDS) {
     if (!fresh.has(id) || !isTitleBadgeId(id) || isPersonalTitle(id)) continue

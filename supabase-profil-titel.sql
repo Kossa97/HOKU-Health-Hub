@@ -33,7 +33,8 @@
 --   Sicht, in der das Feld title sichtbar ist. Gewaehlt gilt nur verdient (aus
 --   progress_settings.earned_badges; bei Leitern die hoechste verdiente Stufe),
 --   persoenliche nur mit Schalter + Einwilligung + Quellfeld in dieser Sicht sichtbar,
---   im Web nie, sonst der hoechste verdiente Rang. Eigentuemer zusaetzlich
+--   im Web nie; im Web ausserdem nur, wenn das Abzeichen dort freigegeben ist
+--   (profile_web_badge_on); sonst der hoechste verdiente Rang. Eigentuemer zusaetzlich
 --   title_choice, personal_titles, title_consents. Sonst wie 2c.
 --
 -- Ausfuehren: Supabase -> SQL Editor -> diese Datei einfuegen -> Run.
@@ -145,7 +146,7 @@ set search_path = ''
 as $$
   select array[
     'weighed_weeks_8','first_measurement','first_progress_photo','wearable_connected','steps_week_10k','progress_10',
-    'progress_25','progress_50','sleep_tracked_30']::text[];
+    'progress_25','progress_50','sleep_tracked_30','steps_weeks_12']::text[];
 $$;
 
 -- 4. Titel-Listen ---------------------------------------------------------------
@@ -432,6 +433,12 @@ begin
         wahl := (select s.x from unnest(stufen) with ordinality as s(x, nr)
                   where verdient ? s.x order by s.nr desc limit 1);
       end if;
+    end if;
+    -- Im Web gilt fuer den Titel dieselbe Freigabe wie fuer das Abzeichen selbst
+    -- (web_badges bzw. Standard): ein Grenzfall wie "Schlafbeobachter" erscheint
+    -- dort nur, wenn das Abzeichen fuers Web eingeschaltet ist.
+    if wahl is not null and stufe = 'web' and not public.profile_web_badge_on(wahl, p.web_badges) then
+      wahl := null;
     end if;
     if wahl is not null then
       titel := jsonb_build_object('kind', 'badge', 'id', wahl);

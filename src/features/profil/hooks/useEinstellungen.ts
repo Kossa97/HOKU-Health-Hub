@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { PROFIL_GEAENDERT } from '../lib/titleMomentStore'
 import { supabase } from '../../../lib/supabase'
 import { parseWebBadges, type WebBadgeOverrides } from '../lib/badgeIds'
 import { parseVisibilityMap } from '../lib/profileVisibility'
@@ -28,9 +29,9 @@ export function useEinstellungen(userId: string | undefined) {
   useEffect(() => {
     if (!userId) return
     let aktiv = true
-    void supabase.from('profiles').select('*').eq('id', userId).single().then(({ data, error }) => {
+    const lade = (erstesMal: boolean) => void supabase.from('profiles').select('*').eq('id', userId).single().then(({ data, error }) => {
       if (!aktiv) return
-      if (error || !data) { setFehler(true); return }
+      if (error || !data) { if (erstesMal) setFehler(true); return }
       setWerte({
         username: typeof data.username === 'string' ? data.username : '',
         privat: data.profile_private === true,
@@ -43,7 +44,11 @@ export function useEinstellungen(userId: string | undefined) {
         titleSettings: parseTitleSettings(data as Record<string, unknown>),
       })
     })
-    return () => { aktiv = false }
+    lade(true)
+    // Der Titel-Moment schreibt Wahl und Sichtbarkeit selbst (siehe titleMomentStore)
+    const neu = () => lade(false)
+    window.addEventListener(PROFIL_GEAENDERT, neu)
+    return () => { aktiv = false; window.removeEventListener(PROFIL_GEAENDERT, neu) }
   }, [userId])
   return { werte, setWerte, fehler }
 }

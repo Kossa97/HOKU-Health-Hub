@@ -85,7 +85,7 @@ describe('Abzeichen im Web', () => {
       expect(!!schalter(container, id).querySelector('[data-web-badge-borderline]'), id).toBe(BADGES_WEB_BORDERLINE.includes(id))
     }
     expect(container.querySelector('[data-web-badge-group="bestaendigkeit"] [data-web-badge-group-count]')?.textContent)
-      .toBe('profil_webabz_gruppe_an:{"n":11,"gesamt":14}')
+      .toBe('profil_webabz_gruppe_an:{"n":10,"gesamt":14}')
     expect(container.querySelector<HTMLButtonElement>('[data-web-badges-reset]')!.disabled).toBe(true)
     expect(container.querySelector('[data-web-badges-scope]')).not.toBeNull()
     // Adresse ohne Schema, wie unter dem Web-Link-Schalter
