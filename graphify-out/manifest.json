@@ -300,9 +300,9 @@
     "semantic_hash": ""
   },
   "src/components/SloshContext.tsx": {
-    "mtime": 1793839455.5999248,
-    "seen": 1793839577.8811684,
-    "ast_hash": "64d062acda5b40a131fd44dfebcd1958",
+    "mtime": 1793945006.4452248,
+    "seen": 1793945361.2652204,
+    "ast_hash": "7f59f75493a5bdc3fcbe5e279870231b",
     "semantic_hash": ""
   },
   "src/components/WorkflowBanner.tsx": {
@@ -372,15 +372,15 @@
     "semantic_hash": ""
   },
   "src/components/sloshEngine.test.ts": {
-    "mtime": 1792570285.968899,
-    "seen": 1793833825.2074785,
-    "ast_hash": "e24989d28271e4b9419d6dd03d8d4396",
+    "mtime": 1793945006.450364,
+    "seen": 1793945361.2664526,
+    "ast_hash": "20e26245c792d672c4ad96ed4d2ccc59",
     "semantic_hash": ""
   },
   "src/components/sloshEngine.ts": {
-    "mtime": 1792570285.968899,
-    "seen": 1793833825.2074804,
-    "ast_hash": "9c03565a8621b7ee7517a983beff1211",
+    "mtime": 1793944932.625756,
+    "seen": 1793945361.2664554,
+    "ast_hash": "f6a0fd30f8894a696f9399415ec3a9c1",
     "semantic_hash": ""
   },
   "src/components/ui/DesignSystem.tsx": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793834943.5340133,
-    "seen": 1793835067.158487,
+    "mtime": 1793945058.5858905,
+    "seen": 1793945361.303228,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7716,9 +7716,9 @@
     "semantic_hash": ""
   },
   "memory/projects/erscheinungsbild.md": {
-    "mtime": 1793910096.8461666,
-    "seen": 1793910118.7196677,
-    "ast_hash": "2e95c8df71fe4410d3adf1e030ec98b0",
+    "mtime": 1793945324.2938786,
+    "seen": 1793945361.3128324,
+    "ast_hash": "600ab1b516e8a345f199bc9fecb90e5e",
     "semantic_hash": ""
   },
   "src/features/my-stack/components/FormUndFarbe.tsx": {
@@ -7812,9 +7812,9 @@
     "semantic_hash": ""
   },
   "src/features/dot/engine/dotEngine.ts": {
-    "mtime": 1793834742.4705515,
-    "seen": 1793835067.1397424,
-    "ast_hash": "13b40eeb91322b0cae49443971f4085c",
+    "mtime": 1793945201.3778765,
+    "seen": 1793945361.271467,
+    "ast_hash": "a099fdc0d2acfb402effeda8842e027a",
     "semantic_hash": ""
   },
   "src/features/dot/engine/geometry.test.ts": {
@@ -21906,9 +21906,9 @@
     "semantic_hash": ""
   },
   "src/lib/messAnzeige.ts": {
-    "mtime": 1793890369.1682193,
-    "seen": 1793890543.2876616,
-    "ast_hash": "2a360702b60bdbed8a02c24e235ae83d",
+    "mtime": 1793945236.9494944,
+    "seen": 1793945361.2976663,
+    "ast_hash": "48a4ec2e6086ea86c51b5b1e88f10e41",
     "semantic_hash": ""
   },
   "src/components/pruef/PruefSchalter.tsx": {
@@ -21921,6 +21921,18 @@
     "mtime": 1793910002.121187,
     "seen": 1793910118.7108884,
     "ast_hash": "cd691ed48627eb0f46a9f9319b5e4a43",
+    "semantic_hash": ""
+  },
+  "src/features/dot/engine/qualitaet.test.ts": {
+    "mtime": 1793945187.8498847,
+    "seen": 1793945361.2716565,
+    "ast_hash": "24a90b4a1bce5a7289a9dcf944bb4d2c",
+    "semantic_hash": ""
+  },
+  "src/features/dot/engine/qualitaet.ts": {
+    "mtime": 1793945181.2338848,
+    "seen": 1793945361.2716599,
+    "ast_hash": "bb1414b01a9c79f5abb2f73d5bb519b0",
     "semantic_hash": ""
   }
 }
