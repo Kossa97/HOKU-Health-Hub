@@ -21960,9 +21960,9 @@
     "semantic_hash": ""
   },
   "supabase/functions/auth-mail/auth-mail.test.ts": {
-    "mtime": 1793889182.9879053,
-    "seen": 1793889545.499644,
-    "ast_hash": "ff5fab9fd930a93b3ee62dfa33262ab4",
+    "mtime": 1793939728.5193596,
+    "seen": 1793943843.831345,
+    "ast_hash": "345222eb9c5b2a194fbc9b4d70bc2c4b",
     "semantic_hash": ""
   },
   "supabase/functions/auth-mail/index.ts": {
@@ -21984,9 +21984,9 @@
     "semantic_hash": ""
   },
   "supabase/functions/auth-mail/vorlagen.ts": {
-    "mtime": 1793889182.9879053,
-    "seen": 1793889545.499695,
-    "ast_hash": "e9ec340cc0db2f4a69e44f3b4cd7c485",
+    "mtime": 1793939728.517351,
+    "seen": 1793943843.8314052,
+    "ast_hash": "9e4b1251fcdc14ca347fa31eca416fa8",
     "semantic_hash": ""
   },
   "docs/registrierung/APP-LINKS.md": {
