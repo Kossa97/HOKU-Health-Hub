@@ -51,35 +51,43 @@ Baut auf 2b (PR Kossa97/HOKU-Health-Hub#128) und 2c (Web, Link-Karte) auf; vorhe
   nie im Web (auch nicht bei Quellfeld auf „Alle“), weil `progress` dort nur als Stufe mit Schutzregel steht.
 
 ### Task 3: Titel im Profil
-- [ ] `TitleChip` unter dem Namen (eigenes Profil mit Pfeil und Sichtbarkeits-Chip; Freunde und
+- [x] `TitleChip` unter dem Namen (eigenes Profil mit Pfeil und Sichtbarkeits-Chip; Freunde und
   App-Nutzer mit Erklärung beim Antippen), Hinweis „noch X Tage mit Eintrag bis …“.
-- [ ] Sichtbarkeit über die bestehende Feld-Logik aus 2a (`useFieldVisibility`), Standard „Alle“.
+- [x] Sichtbarkeit über die bestehende Feld-Logik aus 2a (`useFieldVisibility`), Standard „Alle“.
 
 ### Task 4: Sheet „Dein Titel“
-- [ ] Bottom-Sheet nach Mockup: getragener Titel, Rang mit Leiter, Titel aus Abzeichen (Sportarten
+- [x] Bottom-Sheet nach Mockup: getragener Titel, Rang mit Leiter, Titel aus Abzeichen (Sportarten
   mit Stufe, fünf offene), persönliche Titel (Schalter, Bestätigungsdialog), „Sichtbar für“, Fußnote.
   Schreiben von `title_choice` (null = Rang), `personal_titles`, `title_consents`.
-- [ ] Einstieg auch aus Profil › Einstellungen › Titel.
-- [ ] Abzeichen-Seite: tragbare zeigen Titelnamen und „Als Titel tragen“.
+- [x] Einstieg auch aus Profil › Einstellungen › Titel.
+- [x] Abzeichen-Seite: tragbare zeigen Titelnamen und „Als Titel tragen“.
 
 ### Task 5: Moment „Neuer Rang“ / „Neuer Titel freigeschaltet“
-- [ ] Nach dem Speichern eines Eintrags: neu verdiente Rang- bzw. tragbare Abzeichen erkennen
+- [x] Nach dem Speichern eines Eintrags: neu verdiente Rang- bzw. tragbare Abzeichen erkennen
   (vorher/nachher), Moment zeigen; jedes Mal „Wer soll deinen Titel sehen?“; Knöpfe je nach getragenem Titel.
-- [ ] Erster Start: nur der aktuelle Rang, ein Moment, keine Zwischenstufen.
-- [ ] Web Animations API, nur `transform`/`opacity`, Abbruch bei erneutem Abspielen,
+- [x] Erster Start: nur der aktuelle Rang, ein Moment, keine Zwischenstufen.
+- [x] Web Animations API, nur `transform`/`opacity`, Abbruch bei erneutem Abspielen,
   „Bewegung reduzieren“ nur Einblenden.
 
 ### Task 6: Web und Link-Karte (nach 2c)
-- [ ] Web-Vorschau: Chip unter dem Namen, wenn `title` in der Web-Stufe vorhanden.
-- [ ] `api/_lib/profileCard.js`: Titel-Chip auf Fortschritt- und Rückfall-Karte
+- [x] Web-Vorschau: Chip unter dem Namen, wenn `title` in der Web-Stufe vorhanden.
+- [x] `api/_lib/profileCard.js`: Titel-Chip auf Fortschritt- und Rückfall-Karte
   (Mono, Großbuchstaben, umrandet; Varianten wie in der Canva-Vorlage Folie 5), Meta-Text ohne Titel.
 
 ### Task 7: Texte, Datenschutz, Tests
-- [ ] de/en für Ränge, Titelnamen, Sheet, Moment; Platzhalter in den zwölf anderen Sprachen.
-- [ ] Datenschutztext „Profil und Sichtbarkeit“: Titel, Standard „Nur ich“, woraus er entsteht,
+- [x] de/en für Ränge, Titelnamen, Sheet, Moment; Platzhalter in den zwölf anderen Sprachen.
+- [x] Datenschutztext „Profil und Sichtbarkeit“: Titel, Standard „Nur ich“, woraus er entsteht,
   persönliche Titel als Einwilligung nach Art. 9 (juristisch prüfen).
-- [ ] E2E: Chip und Sichtbarkeit je Sicht (ich, Freunde, App-Nutzer, Web), Sheet-Wahl, Moment
+- [x] E2E: Chip und Sichtbarkeit je Sicht (ich, Freunde, App-Nutzer, Web), Sheet-Wahl, Moment
   bei Schwelle, Web zeigt Titel nur auf „Alle“ + Web-Link.
+
+## Stand 06.11.2026
+Alle Tasks gebaut (Branch `profil-titel`, auf 2c gestapelt). Unit 4437 grün, E2E 862 grün (2 wackelige
+außerhalb der Titel, bei Wiederholung grün), code-review: 9 von 10 Funden behoben (graphify lokal),
+security-review ohne Fund. Abweichungen: persönliche Titel nie im Web; Abzeichen-Titel im Web nur mit
+Web-Freigabe des Abzeichens; `steps_weeks_12` als Grenzfall. Offen: Moment kommt bei Einträgen außerhalb
+des Fortschritt-Sheets erst beim nächsten Lauf (App-Start, Profil öffnen); juristische Prüfung
+Bestätigungstext und Namen; Produktivlauf der Migration nach 2a → 2b → 2c, direkt vor dem Merge.
 
 ## Offene Punkte vor dem Bau
 Siehe Spec „Offene Fragen“ (Titelnamen, Schwellen, Feier für Abzeichen, juristische Freigabe

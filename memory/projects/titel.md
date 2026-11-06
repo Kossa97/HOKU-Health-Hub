@@ -74,3 +74,14 @@ Art der Einheit prüfen) · Motivator/Motivator (5 Freunde).
   (Fitnessfan 50 → Trainingstier 100 → Trainingsmaschine 250), Bestleistungen (Rekordjäger 5 → Kraftpaket 25 →
   Kraftmeister 100), Tagebuch (Tagebuchschreiber 30 → Chronist 100 → Lebensbuch 365, nur Tage), Schlaf: Schlafbeobachter
   (30 Nächte getrackt, normal) + persönlich Ausgeschlafen (30 Nächte 7–9 h) / Schlafprofi (100), Quellfeld Schlaf.
+
+## Gebaut 06.11.2026 (Branch `profil-titel`, auf `profil-p2c-web`, kein PR)
+- 81 Abzeichen-IDs (Gruppen `sport`, `rang`), `titles.ts`, Migration `supabase-profil-titel.sql` mit Trockenlauf
+  (`docs/profil/profil-titel-trockenlauf.md`, T1–T19), NICHT gegen Produktion. Reihenfolge 2a → 2b → 2c → Titel,
+  2a/2b/2c danach nicht erneut laufen lassen.
+- Chip + Sheet „Dein Titel“ + Einstellungen + Abzeichen-Seite, Moment „Neuer Rang“, Web-Chip + Link-Karten-Chip.
+- Entschieden von Claude (Nutzer bestätigen lassen): persönliche Titel nie im Web; Abzeichen-Titel im Web nur mit
+  Web-Freigabe; `steps_weeks_12` Grenzfall; bei neuer Stufe einer getragenen Leiter zeigt der Moment „Fertig“.
+- Offen: Moment bei Einträgen außerhalb des Fortschritt-Sheets erst beim nächsten Lauf; Plex Mono 500 für den
+  Web-Chip (index.html) falls gewünscht; juristisch: Bestätigungstext, `titel_verraet_*`, Namen, Datenschutzabsatz.
+
