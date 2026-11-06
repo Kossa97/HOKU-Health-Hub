@@ -12,7 +12,7 @@
  * Ohne Schalter an der Substanz trägt Dot dann nicht ein, das bleibt beim Haken.
  */
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { AUTO_MISSED_NOTE, type ResolvedTimelineIntake } from '../../../lib/intakeSchedule'
+import { istSystemNotiz, type ResolvedTimelineIntake } from '../../../lib/intakeSchedule'
 import { localSlotInstant } from '../../../lib/planTimeline'
 import { applyInventoryConfirmation, reverseInventoryConfirmation } from '../../my-stack/services/stackInventory'
 import { buildIntakeRpcEntries, type SavedDoseLog } from '../../routines/services/intakeConfirmation'
@@ -70,7 +70,7 @@ async function oeffne(client: Client, eintrag: Eintrag, item: AutoItem) {
     await reverseInventoryConfirmation(client as never, eintrag.id, 'undo')
     return
   }
-  const aenderung = eintrag.notes === AUTO_MISSED_NOTE ? { taken: null, notes: null } : { taken: null }
+  const aenderung = istSystemNotiz(eintrag.notes) ? { taken: null, notes: null } : { taken: null }
   const { error } = await client.from('dose_logs').update(aenderung).eq('id', eintrag.id)
   if (error) throw new Error(error.message)
 }
