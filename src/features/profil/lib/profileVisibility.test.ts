@@ -7,9 +7,9 @@ import {
 } from './profileVisibility'
 
 describe('Felder und Stufen', () => {
-  it('hat 32 Felder, jedes genau einem Bereich zugeordnet', () => {
-    expect(PROFILE_FIELDS).toHaveLength(32)
-    expect(new Set(PROFILE_FIELDS).size).toBe(32)
+  it('hat 33 Felder (32 aus 2a/2b, dazu title), jedes genau einem Bereich zugeordnet', () => {
+    expect(PROFILE_FIELDS).toHaveLength(33)
+    expect(new Set(PROFILE_FIELDS).size).toBe(33)
     const ausBereichen = PROFILE_SECTIONS.flatMap(fieldsOfSection)
     expect([...ausBereichen].sort()).toEqual([...PROFILE_FIELDS].sort())
   })
@@ -25,14 +25,16 @@ describe('Felder und Stufen', () => {
     return [...block![1].matchAll(/'([a-z_0-9]+)'/g)].map(m => m[1])
   }
 
-  it('Feldliste stimmt mit profile_fields() in der Migration 2b ueberein', () => {
-    const ausSql = sqlListe('supabase-profil-p2b-fortschritt.sql', /function public\.profile_fields\(\)[\s\S]*?array\[([\s\S]*?)\]::text\[\]/)
-    expect([...ausSql].sort()).toEqual([...PROFILE_FIELDS].sort())
+  it('Feldliste stimmt mit profile_fields() in der Titel-Migration ueberein (gleiche Reihenfolge)', () => {
+    const ausSql = sqlListe('supabase-profil-titel.sql', /function public\.profile_fields\(\)[\s\S]*?array\[([\s\S]*?)\]::text\[\]/)
+    expect(ausSql).toEqual([...PROFILE_FIELDS])
   })
 
-  it('2b = Feldliste aus 2a plus progress und badges', () => {
+  it('Titel = 2b plus title; 2b = Feldliste aus 2a plus progress und badges', () => {
     const aus2a = sqlListe('supabase-profil-p2a-sichtbarkeit.sql', /profile_visibility_ok[\s\S]*?array\[([\s\S]*?)\]\)/)
-    expect([...aus2a, 'progress', 'badges'].sort()).toEqual([...PROFILE_FIELDS].sort())
+    const aus2b = sqlListe('supabase-profil-p2b-fortschritt.sql', /function public\.profile_fields\(\)[\s\S]*?array\[([\s\S]*?)\]::text\[\]/)
+    expect([...aus2a, 'progress', 'badges'].sort()).toEqual([...aus2b].sort())
+    expect([...aus2b, 'title']).toEqual([...PROFILE_FIELDS])
   })
 
   it('Standard ist „Nur ich“, auch bei Unbekanntem', () => {

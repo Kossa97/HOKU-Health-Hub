@@ -8,7 +8,7 @@ import { useEigenerFortschritt } from '../features/profil/hooks/useEigenerFortsc
 import { useEinstellungen, type Einstellungen } from '../features/profil/hooks/useEinstellungen'
 import { useWebSettings } from '../features/profil/hooks/useWebSettings'
 import {
-  BADGE_IDS, BADGE_IDS_BY_GROUP, BADGES_WEB_BORDERLINE, BADGES_WEB_SENSITIVE, type BadgeId,
+  BADGE_IDS_BY_GROUP, BADGES_WEB_BORDERLINE, BADGES_WEB_SENSITIVE, SHOWN_BADGE_IDS, type BadgeId,
 } from '../features/profil/lib/badgeIds'
 import { BADGE_BY_ID, BADGE_GROUPS, badgeName, needsFriends } from '../features/profil/lib/badges'
 import { profileUrl } from '../features/profil/lib/profileView'
@@ -82,7 +82,7 @@ export function ProfilWebAbzeichen() {
             {earned
               ? t('profil_webabz_zaehler', {
                 // Mit Hinweis erscheint im Web gar keins, auch nicht die eingeschalteten
-                n: hinweis ? 0 : BADGE_IDS.filter(id => earned.has(id) && web.isBadgeOn(id)).length,
+                n: hinweis ? 0 : SHOWN_BADGE_IDS.filter(id => earned.has(id) && web.isBadgeOn(id)).length,
                 gesamt: earned.size,
               })
               : '…'}

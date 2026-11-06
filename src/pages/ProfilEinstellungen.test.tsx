@@ -233,9 +233,9 @@ describe('Einstellungen', () => {
     expect([...document.querySelectorAll('[data-ansehen-als]')].map(e => e.getAttribute('data-ansehen-als'))).toEqual(['friends', 'all', 'web'])
   })
 
-  it('Wer sieht was: alle 32 Felder, Bereich „Alle auf Alle“ speichert; privat sperrt', async () => {
+  it('Wer sieht was: alle 33 Felder, Bereich „Alle auf Alle“ speichert; privat sperrt', async () => {
     const { container, unmount } = renderAt('/profil/sichtbarkeit')
-    await waitFor(() => expect(container.querySelectorAll('[data-wer-feld]')).toHaveLength(32))
+    await waitFor(() => expect(container.querySelectorAll('[data-wer-feld]')).toHaveLength(33))
     await act(async () => { fireEvent.click(container.querySelector('[data-bereich-alle="ueber:all"]')!) })
     expect(db.updates.at(-1)).toEqual({ field_visibility: { age: 'all', height: 'all', weight: 'all' } })
     unmount()

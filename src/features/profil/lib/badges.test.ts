@@ -9,6 +9,7 @@ const facts = (x: Partial<BadgeFacts> = {}): BadgeFacts => ({
   today: TODAY, entryDays: [], sessionDays: [], weightDays: [], intakeDays: [], dailyLogDays: [], measurementDays: [],
   bloodReports: [], cycleEndDays: [], wearableSince: null, profileChecks: { have: 0, need: 9 }, photoDays: [],
   reviewDays: [], bodyFat: [], weight: [], prDays: [], restingHr: null, stepWeeks: [], progressTotal: null, history: [],
+  ownEntryDays: [], entryStamps: [], sessionsByKind: {}, sleepNights: [],
   ...x,
 })
 
@@ -16,8 +17,8 @@ const range = (from: string, n: number, step = 1) => Array.from({ length: n }, (
 const check = (id: keyof typeof BADGE_BY_ID, f: BadgeFacts) => BADGE_BY_ID[id].check(f)
 
 describe('Liste', () => {
-  it('39 Abzeichen, genau die IDs aus badgeIds.ts, in ihrer Gruppe, mit Symbol und Namen de/en', () => {
-    expect(BADGES).toHaveLength(39)
+  it('81 Abzeichen (39 aus 2b, 42 Titel-Zusatz), genau die IDs aus badgeIds.ts, in ihrer Gruppe, mit Symbol und Namen de/en', () => {
+    expect(BADGES).toHaveLength(81)
     expect(BADGES.map(b => b.id)).toEqual([...BADGE_IDS])
     for (const b of BADGES) {
       expect((BADGE_IDS_BY_GROUP[b.group] as readonly string[]).includes(b.id)).toBe(true)
@@ -111,7 +112,7 @@ describe('evaluateBadges', () => {
     expect(r.earned).toEqual({ progress_10: '2026-05-10', profile_shared: '2026-06-01', streak_7: TODAY })
     expect(r.states.find(s => s.id === 'progress_10')).toMatchObject({ earned: true, on: '2026-05-10' })
     expect(r.states.find(s => s.id === 'first_friend')).toMatchObject({ earned: false, on: null })
-    expect(r.states).toHaveLength(39)
+    expect(r.states).toHaveLength(81)
   })
 
   it('earnedOrder: zuletzt verdiente zuerst', () => {
@@ -119,3 +120,73 @@ describe('evaluateBadges', () => {
       .toEqual(['first_pr', 'streak_30', 'streak_7'])
   })
 })
+
+describe('Titel-Zusatz: Ränge', () => {
+  it('zählen Tage mit eigenem Eintrag zusammen, Lücken erlaubt (1 · 10 · 50 · 100 · 200 · 365)', () => {
+    const tage = range('2025-01-01', 100, 3) // jeder dritte Tag
+    const f = facts({ ownEntryDays: tage })
+    expect(check('rank_1', f).earnedOn).toBe(tage[0])
+    expect(check('rank_2', f).earnedOn).toBe(tage[9])
+    expect(check('rank_3', f).earnedOn).toBe(tage[49])
+    expect(check('rank_4', f).earnedOn).toBe(tage[99])
+    expect(check('rank_5', f)).toMatchObject({ earnedOn: null, have: 100, need: 200 })
+    expect(check('rank_6', f).need).toBe(365)
+  })
+
+  it('doppelte Tage zählen einmal; Wearable-Tage (nur entryDays) zählen nicht', () => {
+    const f = facts({ ownEntryDays: ['2026-01-01', '2026-01-01'], entryDays: range('2025-01-01', 400) })
+    expect(check('rank_1', f).earnedOn).toBe('2026-01-01')
+    expect(check('rank_2', f)).toMatchObject({ earnedOn: null, have: 1 })
+  })
+
+  it('erscheinen nicht in earnedOrder (Schnappschuss, Profilzeile)', () => {
+    expect(earnedOrder({ rank_3: '2026-05-01', streak_7: '2026-03-21' })).toEqual(['streak_7'])
+  })
+})
+
+describe('Titel-Zusatz: Sportarten und weitere', () => {
+  it('Sportart-Stufen zählen Einheiten der Art, Yoga und Mobility zusammen', () => {
+    const f = facts({ sessionsByKind: { run: range('2026-01-01', 50), yoga: range('2026-01-01', 6), mobility: range('2026-02-01', 4) } })
+    expect(check('run_10', f).earnedOn).toBe(addDays('2026-01-01', 9))
+    expect(check('run_50', f).earnedOn).toBe(addDays('2026-01-01', 49))
+    expect(check('run_150', f)).toMatchObject({ earnedOn: null, have: 50 })
+    expect(check('yoga_10', f).earnedOn).toBe(addDays('2026-02-01', 3))
+    expect(check('cycle_10', f).earnedOn).toBeNull()
+  })
+
+  it('Allrounder: fünf Sportarten mit je zehn Einheiten, verdient mit der zehnten der fünften', () => {
+    const kinds = ['run', 'cycle', 'swim', 'row', 'hike'] as const
+    const f = facts({ sessionsByKind: Object.fromEntries(kinds.map((k, i) => [k, range(addDays('2026-01-01', i), 10, 5)])) })
+    expect(check('allrounder', f).earnedOn).toBe(addDays(addDays('2026-01-01', 4), 45))
+    const vier = facts({ sessionsByKind: Object.fromEntries(kinds.slice(0, 4).map(k => [k, range('2026-01-01', 10)])) })
+    expect(check('allrounder', vier)).toMatchObject({ earnedOn: null, have: 4, need: 5 })
+  })
+
+  it('Bestleistungen 5/25/100, Tagebuch nur Tage, 1.000 Einträge zählen Doppelte mit', () => {
+    const f = facts({
+      prDays: range('2026-01-01', 25),
+      dailyLogDays: [...range('2026-01-01', 30), '2026-01-01'],
+      entryStamps: Array.from({ length: 1000 }, (_, i) => addDays('2024-01-01', Math.floor(i / 3))),
+    })
+    expect(check('prs_5', f).earnedOn).toBe(addDays('2026-01-01', 4))
+    expect(check('prs_25', f).earnedOn).toBe(addDays('2026-01-01', 24))
+    expect(check('journal_30', f).earnedOn).toBe(addDays('2026-01-01', 29))
+    expect(check('entries_1000', f).earnedOn).toBe(addDays('2024-01-01', 333))
+  })
+
+  it('Schlaf: 30 Nächte getrackt; 7–9 Stunden für die persönlichen Schlaf-Titel', () => {
+    const naechte = range('2026-01-01', 30).map((day, i) => ({ day, min: i % 2 === 0 ? 480 : 300 }))
+    const f = facts({ sleepNights: naechte })
+    expect(check('sleep_tracked_30', f).earnedOn).toBe(addDays('2026-01-01', 29))
+    expect(check('sleep_rested_30', f)).toMatchObject({ earnedOn: null, have: 15 })
+  })
+
+  it('12 Wochen in Folge Ø ≥ 10.000 Schritte, verdient am Sonntag der zwölften', () => {
+    const wochen = range('2026-01-05', 12, 7).map(week => ({ week, avg: 11_000, days: 7 }))
+    const f = facts({ stepWeeks: wochen, today: '2026-12-31' })
+    expect(check('steps_weeks_12', f).earnedOn).toBe(addDays(wochen[11].week, 6))
+    const luecke = facts({ stepWeeks: wochen.map((w, i) => i === 5 ? { ...w, avg: 8_000 } : w), today: '2026-12-31' })
+    expect(check('steps_weeks_12', luecke).earnedOn).toBeNull()
+  })
+})
+

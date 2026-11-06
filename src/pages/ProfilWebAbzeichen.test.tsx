@@ -3,7 +3,7 @@
 import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { BADGE_IDS, BADGES_WEB_BORDERLINE, BADGES_WEB_SENSITIVE, type BadgeId } from '../features/profil/lib/badgeIds'
+import { BADGE_IDS, BADGES_WEB_BORDERLINE, BADGES_WEB_SENSITIVE, SHOWN_BADGE_IDS, type BadgeId } from '../features/profil/lib/badgeIds'
 
 /**
  * „Abzeichen im Web“ (Profil 2c, Spec 6.2): Standard (heikle und Grenzfälle
@@ -75,15 +75,17 @@ const zaehler = (c: HTMLElement) => c.querySelector('[data-web-badges-count]')!.
 describe('Abzeichen im Web', () => {
   it('Standard: heikle und Grenzfälle aus (mit Hinweis), alles andere an; Zurücksetzen ohne Abweichung gesperrt', async () => {
     const { container } = await oeffne()
-    expect(container.querySelectorAll('[data-web-badge]')).toHaveLength(BADGE_IDS.length)
-    for (const id of BADGE_IDS) {
+    // Ränge sind kein Abzeichen und erscheinen hier nicht
+    expect(container.querySelectorAll('[data-web-badge]')).toHaveLength(SHOWN_BADGE_IDS.length)
+    expect(container.querySelector('[data-web-badge="rank_1"]')).toBeNull()
+    for (const id of SHOWN_BADGE_IDS) {
       const aus = BADGES_WEB_SENSITIVE.includes(id) || BADGES_WEB_BORDERLINE.includes(id)
       expect(an(container, id), id).toBe(!aus)
       expect(!!schalter(container, id).querySelector('[data-web-badge-sensitive]'), id).toBe(BADGES_WEB_SENSITIVE.includes(id))
       expect(!!schalter(container, id).querySelector('[data-web-badge-borderline]'), id).toBe(BADGES_WEB_BORDERLINE.includes(id))
     }
     expect(container.querySelector('[data-web-badge-group="bestaendigkeit"] [data-web-badge-group-count]')?.textContent)
-      .toBe('profil_webabz_gruppe_an:{"n":7,"gesamt":9}')
+      .toBe('profil_webabz_gruppe_an:{"n":11,"gesamt":14}')
     expect(container.querySelector<HTMLButtonElement>('[data-web-badges-reset]')!.disabled).toBe(true)
     expect(container.querySelector('[data-web-badges-scope]')).not.toBeNull()
     // Adresse ohne Schema, wie unter dem Web-Link-Schalter

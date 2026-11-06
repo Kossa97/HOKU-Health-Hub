@@ -7,7 +7,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { BADGE_BY_ID, badgeName, needsFriends } from '../lib/badges'
-import { BADGE_IDS, type BadgeId } from '../lib/badgeIds'
+import { SHOWN_BADGE_IDS, type BadgeId } from '../lib/badgeIds'
 import { formatDay } from '../lib/progressFormat'
 
 export function AbzeichenKachel({ id, earned, on, stand }: {
@@ -71,7 +71,7 @@ export function AbzeichenKarte({ ids, earnedDays, chip, own }: {
           {chip}
         </div>
         <span className="shrink-0 text-[13px] tabular-nums text-[var(--lg-text-3)]" data-badges-count>
-          {own ? t('pf_abz_von', { n: ids.length, gesamt: BADGE_IDS.length }) : ids.length}
+          {own ? t('pf_abz_von', { n: ids.length, gesamt: SHOWN_BADGE_IDS.length }) : ids.length}
         </span>
       </div>
       {shown.length > 0 ? (

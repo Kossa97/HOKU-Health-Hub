@@ -35,6 +35,8 @@ export const PROFILE_FIELDS = [
   'workouts', 'routine', 'favorite_exercise', 'e1rm',
   'reviews',
   'progress', 'badges',
+  // Profil-Zusatz Titel (supabase-profil-titel.sql)
+  'title',
 ] as const
 
 export type ProfileField = typeof PROFILE_FIELDS[number]
@@ -51,6 +53,7 @@ export const FIELD_SECTION: Readonly<Record<ProfileField, ProfileSection>> = {
   workouts: 'training', routine: 'training', favorite_exercise: 'training', e1rm: 'training',
   reviews: 'berichte',
   progress: 'fortschritt', badges: 'fortschritt',
+  title: 'kopf',
 }
 
 export const isProfileField = (v: unknown): v is ProfileField =>

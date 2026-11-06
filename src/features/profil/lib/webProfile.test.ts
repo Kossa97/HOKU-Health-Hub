@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { BADGE_IDS } from './badgeIds'
+import { SHOWN_BADGE_IDS } from './badgeIds'
 import { BADGES_WEB_RANK, firstName, memberForText, webBadgeRow } from './webProfile'
 
 describe('Rangfolge der Abzeichen im Web', () => {
   it('enthält jedes Abzeichen genau einmal', () => {
     expect(new Set(BADGES_WEB_RANK).size).toBe(BADGES_WEB_RANK.length)
-    expect([...BADGES_WEB_RANK].sort()).toEqual([...BADGE_IDS].sort())
+    expect([...BADGES_WEB_RANK].sort()).toEqual([...SHOWN_BADGE_IDS].sort())
   })
 
   it('bis drei: alle offen, schwerste zuerst', () => {

@@ -1,5 +1,7 @@
 /**
- * Die Abzeichen (Teilprojekt 2b, Spec Abschnitt 4): erster Satz, 39 Stueck.
+ * Die Abzeichen (Teilprojekt 2b, Spec Abschnitt 4): erster Satz, 39 Stueck;
+ * dazu der Titel-Zusatz (Spec Titel 2 und 3): sechs Ränge, Sportarten mit
+ * drei Stufen und weitere tragbare Abzeichen. Titelnamen stehen in `titles.ts`.
  *
  * Diese Datei ist zum Pflegen gedacht: je Abzeichen Gruppe, Symbol, Name
  * (de/en) und Bedingung. Die Bedingung ist eine reine Funktion ueber
@@ -11,7 +13,8 @@
  * Einmal verdient bleibt verdient (`evaluateBadges`): ein Rueckschritt nimmt
  * nichts weg. Andere sehen nur verdiente Abzeichen.
  */
-import { BADGE_IDS, BADGE_IDS_BY_GROUP, BADGES_NEED_FRIENDS, type BadgeGroup, type BadgeId } from './badgeIds'
+import { BADGE_IDS, BADGES_NEED_FRIENDS, SHOWN_BADGE_GROUPS, SHOWN_BADGE_IDS, type BadgeGroup, type BadgeId } from './badgeIds'
+import type { SessionKind } from '../../training/types'
 import { addDays, weekOf, type BloodReport, type DatedValue, type ProgressHistoryEntry } from './progressScore'
 
 // ─── Fakten ─────────────────────────────────────────────────────────────────
@@ -48,6 +51,18 @@ export interface BadgeFacts {
   stepWeeks: { week: string; avg: number; days: number }[]
   progressTotal: number | null
   history: ProgressHistoryEntry[]
+  // ── Titel-Zusatz ──
+  /**
+   * Tage mit eigenem Eintrag fuer den Rang: wie `entryDays`, aber ohne Einheiten
+   * aus Apple Health / Health Connect (Spec Titel 2: nur eigene Einträge).
+   */
+  ownEntryDays: string[]
+  /** Ein Tag je eigenem Eintrag (Doppelte zaehlen mit), fuer „1.000 Einträge“. */
+  entryStamps: string[]
+  /** Tage der Einheiten je Art, eigene und eingefuehrte (ohne Doppelte ueber `externalId`). */
+  sessionsByKind: Partial<Record<SessionKind, string[]>>
+  /** Naechte mit Schlaf (Minuten, auch aus Wearables), je Tag eine. */
+  sleepNights: { day: string; min: number }[]
 }
 
 /** Ergebnis einer Bedingung. `unit` sagt, wie der Stand gezeigt wird. */
@@ -152,12 +167,46 @@ function totalAtLeast(f: BadgeFacts, pct: number): BadgeCheck {
 
 const never = (): BadgeCheck => ({ earnedOn: null })
 
+/** Einheiten einer oder mehrerer Arten (Yoga und Mobility zaehlen zusammen). */
+const sessionsOf = (f: BadgeFacts, ...kinds: SessionKind[]) => kinds.flatMap(k => f.sessionsByKind[k] ?? [])
+
+/** Rang: Tage mit eigenem Eintrag, zusammengezaehlt, Luecken erlaubt. */
+const rank = (n: number) => (f: BadgeFacts) => nth(uniqueSorted(f.ownEntryDays), n)
+
+/** Sportarten fuer „Allrounder“ (ohne „Sonstiges“). */
+const ALLROUNDER_KINDS: readonly SessionKind[] = [
+  'strength', 'run', 'cycle', 'swim', 'row', 'walk', 'hike', 'hiit', 'hyrox', 'yoga', 'mobility', 'sport',
+]
+
+/** Fuenf Sportarten mit je mindestens zehn Einheiten; verdient, wenn die fuenfte die zehnte erreicht. */
+function allrounder(f: BadgeFacts): BadgeCheck {
+  const tenth = ALLROUNDER_KINDS
+    .map(k => [...(f.sessionsByKind[k] ?? [])].sort()[9])
+    .filter((d): d is string => d !== undefined)
+    .sort()
+  return { earnedOn: tenth.length >= 5 ? tenth[4] : null, have: Math.min(tenth.length, 5), need: 5, unit: 'count' }
+}
+
+/** Woche (Montag) mit mindestens 5 Tagen Daten und Mittel ≥ Ziel. */
+const goodStepWeek = (w: BadgeFacts['stepWeeks'][number], goal: number) => w.days >= 5 && w.avg >= goal
+
+/** n Wochen in Folge mit Ø ≥ Ziel; verdient am Sonntag der n-ten (hoechstens heute). */
+function stepWeeksRun(f: BadgeFacts, n: number, goal: number): BadgeCheck {
+  const r = run(f.stepWeeks.filter(w => goodStepWeek(w, goal)).map(w => w.week), n, 7, f.today, weekOf(f.today))
+  if (r.earnedOn === null) return r
+  const sunday = addDays(r.earnedOn, 6)
+  return { ...r, earnedOn: sunday > f.today ? f.today : sunday }
+}
+
+/** Naechte mit 7–9 Stunden Schlaf. */
+const restedNights = (f: BadgeFacts) => f.sleepNights.filter(s => s.min >= 7 * 60 && s.min <= 9 * 60).map(s => s.day)
+
 // ─── Die Liste ──────────────────────────────────────────────────────────────
 
 const b = (id: BadgeId, group: BadgeGroup, icon: string, de: string, en: string, check: BadgeDef['check']): BadgeDef =>
   ({ id, group, icon, name: { de, en }, check })
 
-export const BADGES: readonly BadgeDef[] = [
+const DEFS: readonly BadgeDef[] = [
   // Beständigkeit
   b('streak_7', 'bestaendigkeit', '🔥', '7 Tage ohne Lücke', '7 days in a row', f => dayRun(f.entryDays, 7, f.today)),
   b('streak_30', 'bestaendigkeit', '🔥', '30 Tage ohne Lücke', '30 days in a row', f => dayRun(f.entryDays, 30, f.today)),
@@ -208,12 +257,62 @@ export const BADGES: readonly BadgeDef[] = [
   b('profile_shared', 'gemeinschaft', '🔗', 'Profil geteilt', 'Profile shared', never),
   b('first_friend', 'gemeinschaft', '👥', 'Erster Freund', 'First friend', never),
   b('friends_10', 'gemeinschaft', '👥', '10 Freunde', '10 friends', never),
+
+  // ── Titel-Zusatz (Spec Titel 3) ──
+  b('steps_weeks_12', 'bestaendigkeit', '🚶', '12 Wochen Ø 10.000 Schritte', '12 weeks averaging 10,000 steps', f => stepWeeksRun(f, 12, 10_000)),
+  b('journal_30', 'bestaendigkeit', '📔', '30 Tage Tagebuch', '30 journal days', f => nth(uniqueSorted(f.dailyLogDays), 30)),
+  b('journal_100', 'bestaendigkeit', '📔', '100 Tage Tagebuch', '100 journal days', f => nth(uniqueSorted(f.dailyLogDays), 100)),
+  b('journal_365', 'bestaendigkeit', '📔', '365 Tage Tagebuch', '365 journal days', f => nth(uniqueSorted(f.dailyLogDays), 365)),
+  b('sleep_tracked_30', 'bestaendigkeit', '🌙', '30 Nächte Schlaf getrackt', '30 nights of sleep tracked', f => nth(f.sleepNights.map(s => s.day), 30)),
+  b('entries_1000', 'meilensteine', '🗂️', '1.000 Einträge', '1,000 entries', f => nth(f.entryStamps, 1000)),
+  b('prs_5', 'fortschritt', '🏆', '5 Bestleistungen', '5 personal records', f => nth(f.prDays, 5)),
+  b('prs_25', 'fortschritt', '🏆', '25 Bestleistungen', '25 personal records', f => nth(f.prDays, 25)),
+  b('prs_100', 'fortschritt', '🏆', '100 Bestleistungen', '100 personal records', f => nth(f.prDays, 100)),
+  b('sleep_rested_30', 'fortschritt', '😴', '30 Nächte mit 7–9 Stunden Schlaf', '30 nights with 7–9 hours of sleep', f => nth(restedNights(f), 30)),
+  b('sleep_rested_100', 'fortschritt', '😴', '100 Nächte mit 7–9 Stunden Schlaf', '100 nights with 7–9 hours of sleep', f => nth(restedNights(f), 100)),
+  // Sportarten: eigene und aus Apple Health / Health Connect eingefuehrte Einheiten
+  b('run_10', 'sport', '🏃', '10 Läufe', '10 runs', f => nth(sessionsOf(f, 'run'), 10)),
+  b('run_50', 'sport', '🏃', '50 Läufe', '50 runs', f => nth(sessionsOf(f, 'run'), 50)),
+  b('run_150', 'sport', '🏃', '150 Läufe', '150 runs', f => nth(sessionsOf(f, 'run'), 150)),
+  b('cycle_10', 'sport', '🚴', '10 Radfahrten', '10 rides', f => nth(sessionsOf(f, 'cycle'), 10)),
+  b('cycle_50', 'sport', '🚴', '50 Radfahrten', '50 rides', f => nth(sessionsOf(f, 'cycle'), 50)),
+  b('cycle_150', 'sport', '🚴', '150 Radfahrten', '150 rides', f => nth(sessionsOf(f, 'cycle'), 150)),
+  b('swim_10', 'sport', '🏊', '10 Schwimmeinheiten', '10 swims', f => nth(sessionsOf(f, 'swim'), 10)),
+  b('swim_30', 'sport', '🏊', '30 Schwimmeinheiten', '30 swims', f => nth(sessionsOf(f, 'swim'), 30)),
+  b('swim_100', 'sport', '🏊', '100 Schwimmeinheiten', '100 swims', f => nth(sessionsOf(f, 'swim'), 100)),
+  b('row_10', 'sport', '🚣', '10 Rudereinheiten', '10 rowing sessions', f => nth(sessionsOf(f, 'row'), 10)),
+  b('row_30', 'sport', '🚣', '30 Rudereinheiten', '30 rowing sessions', f => nth(sessionsOf(f, 'row'), 30)),
+  b('row_100', 'sport', '🚣', '100 Rudereinheiten', '100 rowing sessions', f => nth(sessionsOf(f, 'row'), 100)),
+  b('hike_10', 'sport', '🥾', '10 Wanderungen', '10 hikes', f => nth(sessionsOf(f, 'hike'), 10)),
+  b('hike_25', 'sport', '🥾', '25 Wanderungen', '25 hikes', f => nth(sessionsOf(f, 'hike'), 25)),
+  b('hike_75', 'sport', '🥾', '75 Wanderungen', '75 hikes', f => nth(sessionsOf(f, 'hike'), 75)),
+  b('hyrox_5', 'sport', '🏁', '5 Hyrox-Einheiten', '5 Hyrox sessions', f => nth(sessionsOf(f, 'hyrox'), 5)),
+  b('hyrox_20', 'sport', '🏁', '20 Hyrox-Einheiten', '20 Hyrox sessions', f => nth(sessionsOf(f, 'hyrox'), 20)),
+  b('hyrox_60', 'sport', '🏁', '60 Hyrox-Einheiten', '60 Hyrox sessions', f => nth(sessionsOf(f, 'hyrox'), 60)),
+  b('hiit_10', 'sport', '⚡', '10 HIIT-Einheiten', '10 HIIT sessions', f => nth(sessionsOf(f, 'hiit'), 10)),
+  b('hiit_50', 'sport', '⚡', '50 HIIT-Einheiten', '50 HIIT sessions', f => nth(sessionsOf(f, 'hiit'), 50)),
+  b('hiit_150', 'sport', '⚡', '150 HIIT-Einheiten', '150 HIIT sessions', f => nth(sessionsOf(f, 'hiit'), 150)),
+  b('yoga_10', 'sport', '🧘', '10 Yoga- oder Mobility-Einheiten', '10 yoga or mobility sessions', f => nth(sessionsOf(f, 'yoga', 'mobility'), 10)),
+  b('yoga_50', 'sport', '🧘', '50 Yoga- oder Mobility-Einheiten', '50 yoga or mobility sessions', f => nth(sessionsOf(f, 'yoga', 'mobility'), 50)),
+  b('yoga_150', 'sport', '🧘', '150 Yoga- oder Mobility-Einheiten', '150 yoga or mobility sessions', f => nth(sessionsOf(f, 'yoga', 'mobility'), 150)),
+  b('allrounder', 'sport', '🎽', '5 Sportarten mit je 10 Einheiten', '5 sports with 10 sessions each', allrounder),
+  // Ränge (Spec Titel 2): Tage mit eigenem Eintrag; erscheinen nie in der Abzeichen-Liste
+  b('rank_1', 'rang', '✦', 'Neuling', 'Newcomer', rank(1)),
+  b('rank_2', 'rang', '✦', 'Entdecker', 'Explorer', rank(10)),
+  b('rank_3', 'rang', '✦', 'Dranbleiber', 'Committed', rank(50)),
+  b('rank_4', 'rang', '✦', 'Routinier', 'Steady', rank(100)),
+  b('rank_5', 'rang', '✦', 'Veteran', 'Veteran', rank(200)),
+  b('rank_6', 'rang', '✦', 'Legende', 'Legend', rank(365)),
 ]
 
 export const BADGE_BY_ID: Readonly<Record<BadgeId, BadgeDef>> =
-  Object.fromEntries(BADGES.map(d => [d.id, d])) as Record<BadgeId, BadgeDef>
+  Object.fromEntries(DEFS.map(d => [d.id, d])) as Record<BadgeId, BadgeDef>
 
-export const BADGE_GROUPS = Object.keys(BADGE_IDS_BY_GROUP) as BadgeGroup[]
+/** Alle Abzeichen in der Reihenfolge von `BADGE_IDS` (nach Gruppe). */
+export const BADGES: readonly BadgeDef[] = BADGE_IDS.map(id => BADGE_BY_ID[id])
+
+/** Gruppen der Abzeichen-Liste, ohne `rang`. */
+export const BADGE_GROUPS: readonly BadgeGroup[] = SHOWN_BADGE_GROUPS
 
 export const needsFriends = (id: BadgeId) => BADGES_NEED_FRIENDS.includes(id)
 
@@ -254,9 +353,9 @@ export function evaluateBadges(facts: BadgeFacts, stored: Partial<Record<BadgeId
   return { states, earned, added }
 }
 
-/** Verdiente Abzeichen, zuletzt verdiente zuerst (Schnappschuss und Profilzeile). */
+/** Verdiente Abzeichen, zuletzt verdiente zuerst (Schnappschuss und Profilzeile); ohne Ränge. */
 export function earnedOrder(earned: Partial<Record<BadgeId, string>>): BadgeId[] {
-  const order = new Map(BADGE_IDS.map((id, i) => [id, i]))
+  const order = new Map(SHOWN_BADGE_IDS.map((id, i) => [id, i]))
   return (Object.entries(earned) as [BadgeId, string][])
     .filter(([id]) => order.has(id))
     .sort(([a, da], [b2, db]) => db.localeCompare(da) || order.get(b2)! - order.get(a)!)

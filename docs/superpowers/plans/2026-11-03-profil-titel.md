@@ -25,26 +25,30 @@ Baut auf 2b (PR Kossa97/HOKU-Health-Hub#128) und 2c (Web, Link-Karte) auf; vorhe
 ## Tasks
 
 ### Task 1: Abzeichen-IDs und Migration
-- [ ] `badgeIds.ts`: Gruppe `rang` (`rank_1`…`rank_6`) und neue IDs (`prs_25`, `steps_weeks_12`,
+- [x] `badgeIds.ts`: Gruppe `rang` (`rank_1`…`rank_6`) und neue IDs (`prs_25`, `steps_weeks_12`,
   `entries_1000`, `run_50`, `cycle_50`, `swim_30`, `row_30`, `hike_25`, `hyrox_20`, `hiit_50`,
   `yoga_50`, `allrounder`; Leitern je drei Stufen: Workouts, Bestleistungen, Tagebuch, Sportarten, Spec 3.2;
   `sleep_tracked_30`; persönliche Schlaf-Titel); Test „IDs = SQL-Liste“ anpassen.
-- [ ] `supabase-profil-titel.sql`: `profile_badge_ids()` erweitern, `profile_title_badge_ids()`,
+- [x] `supabase-profil-titel.sql`: `profile_badge_ids()` erweitern, `profile_title_badge_ids()`,
   `profile_rank_ids()`, `profiles.title_choice` (add column if not exists, Check über die
   tragbaren IDs), `profiles.personal_titles boolean default false`, `profiles.title_consents jsonb`
   (ID → Datum), `profile_fields()` um `title` (Standard „Nur ich“ wie alle), `profile_view`: `title`
   je Stufe, nur verdiente Wahl, persönliche nur mit Schalter + Einwilligung und höchstens in der
   Stufe des Quellfelds, sonst höchster Rang.
-- [ ] Trockenlauf: Schema aus 2a/2b/2c nachbauen, Ist-Zustand mit Beispielzeilen, Migration
+- [x] Trockenlauf: Schema aus 2a/2b/2c nachbauen, Ist-Zustand mit Beispielzeilen, Migration
   zweimal, Zählungen (IDs, Spalten, `profile_view` je Stufe) festhalten.
 
 ### Task 2: Auswertung
-- [ ] `BadgeFacts` um `sessionsByKind` (eigene + eingeführte Einheiten) und `entryCount`.
-- [ ] `badges.ts`: Ränge (Tage mit Eintrag 1/10/50/100/200/365), neue Abzeichen, Sportart-Stufen,
+- [x] `BadgeFacts` um `sessionsByKind` (eigene + eingeführte Einheiten) und `entryCount`.
+- [x] `badges.ts`: Ränge (Tage mit Eintrag 1/10/50/100/200/365), neue Abzeichen, Sportart-Stufen,
   Feld `title: { de, en }` an tragbaren, `personal: { sourceField }` an persönlichen; `TITLE_BADGES` abgeleitet.
-- [ ] Tests: Schwellen, Lücken erlaubt, Wearable-Tage zählen nicht für den Rang, Importe zählen
+- [x] Tests: Schwellen, Lücken erlaubt, Wearable-Tage zählen nicht für den Rang, Importe zählen
   für Sportarten, Stufen steigen mit, „einmal verdient“, persönliche Titel nur mit Schalter und
   Einwilligung, Deckel durch das Quellfeld, `allrounder`.
+- Stand 06.11.: 42 neue IDs (zusammen 81, Gruppen `sport` und `rang`), `titles.ts` (Namen, Leitern,
+  Quellfelder, `wornTitle`), Fakten `ownEntryDays`/`entryStamps`/`sessionsByKind`/`sleepNights`,
+  Migration mit Trockenlauf (`docs/profil/profil-titel-trockenlauf.md`). Abweichung: persönliche Titel
+  nie im Web (auch nicht bei Quellfeld auf „Alle“), weil `progress` dort nur als Stufe mit Schutzregel steht.
 
 ### Task 3: Titel im Profil
 - [ ] `TitleChip` unter dem Namen (eigenes Profil mit Pfeil und Sichtbarkeits-Chip; Freunde und

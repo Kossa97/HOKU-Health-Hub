@@ -3,6 +3,7 @@
  * Schnappschuss) und dem Ergebnis der Fortschrittsrechnung. Rein.
  */
 import { entryDays, type ProfileSnapshotInput } from './profileSnapshot'
+import type { SessionKind, TrainingSession } from '../../training/types'
 import type { BadgeFacts } from './badges'
 import { dayOfStamp, type ProgressSetup } from './progressInput'
 import { weekOf, type ProgressHistoryEntry, type ProgressResult } from './progressScore'
@@ -22,6 +23,32 @@ export interface BadgeExtras {
 }
 
 const days = (xs: readonly (string | null)[]) => xs.filter((d): d is string => d !== null).sort()
+
+/** Von Apple Health / Health Connect uebertragen: zaehlt fuer Sportarten, nicht als eigener Eintrag. */
+const fromWearable = (s: TrainingSession) => s.source === 'healthkit' || s.source === 'health_connect'
+
+/** Einheiten ohne Doppelte: gleiche `externalId` (z. B. zweimal eingefuehrt) zaehlt einmal. */
+function distinctSessions(sessions: readonly TrainingSession[]): TrainingSession[] {
+  const seen = new Set<string>()
+  return sessions.filter(s => {
+    if (!s.externalId) return true
+    const key = `${s.source}:${s.externalId}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
+/** Eigene Eintraege mit Tag (wie `entryDays`, aber ohne eingefuehrte Einheiten; Doppelte zaehlen mit). */
+function ownEntryStamps(input: ProfileSnapshotInput): string[] {
+  return days([
+    ...input.doseLogs.filter(d => d.taken != null && !d.auto_logged).map(d => dayOfStamp(d.logged_at)),
+    ...input.dailyLogs.map(l => l.log_date),
+    ...input.weightLogs.map(w => dayOfStamp(w.logged_at)),
+    ...input.measurements.map(m => m.measured_on),
+    ...distinctSessions(input.sessions).filter(s => !fromWearable(s)).map(s => dayOfStamp(s.startedAt)),
+  ])
+}
 
 /** Tage neuer Bestleistungen: e1RM ueber allen frueheren derselben Uebung (nicht die erste Einheit). */
 export function prDays(e1rm: ProgressSetup['input']['e1rm']): string[] {
@@ -67,6 +94,14 @@ export function badgeFacts(
   const startOn = setup?.startOn ?? today
   const since = <T extends { day: string }>(xs: readonly T[]) => xs.filter(x => x.day >= startOn)
   const rhr = result?.values.find(v => v.id === 'resting_hr')
+  const stamps = ownEntryStamps(input).filter(d => d <= today)
+  const sessionsByKind: Partial<Record<SessionKind, string[]>> = {}
+  for (const s of distinctSessions(input.sessions)) {
+    const day = dayOfStamp(s.startedAt)
+    if (!day || day > today) continue
+    ;(sessionsByKind[s.kind] ??= []).push(day)
+  }
+  for (const k of Object.keys(sessionsByKind) as SessionKind[]) sessionsByKind[k]!.sort()
 
   return {
     today,
@@ -90,5 +125,12 @@ export function badgeFacts(
       .map(([week, w]) => ({ week, avg: w.sum / w.days, days: w.days })),
     progressTotal: result?.total ?? null,
     history: history.filter(e => e.week >= weekOf(startOn)),
+    ownEntryDays: [...new Set(stamps)],
+    entryStamps: stamps,
+    sessionsByKind,
+    sleepNights: input.healthDaily
+      .filter(r => r.day <= today && r.sleep_min != null && Number.isFinite(Number(r.sleep_min)) && Number(r.sleep_min) > 0)
+      .map(r => ({ day: r.day, min: Number(r.sleep_min) }))
+      .sort((a, b) => a.day.localeCompare(b.day)),
   }
 }

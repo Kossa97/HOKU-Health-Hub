@@ -87,7 +87,7 @@ describe('Eingabe aus den eigenen Daten', () => {
     const state = computeProgressState(data(empty()), TODAY)
     expect(state.setup).toBeNull()
     expect(state.snapshot).toBeUndefined()
-    expect(state.badges.states).toHaveLength(39)
+    expect(state.badges.states).toHaveLength(81)
   })
 
   it('gesetzter Start und Richtung des Nutzers rechnen; Bestleistung und Workouts werden Abzeichen', () => {
@@ -111,3 +111,37 @@ describe('Eingabe aus den eigenen Daten', () => {
     expect(merged.find(e => e.week === '2026-10-05')?.total).toBeNull()
   })
 })
+
+describe('Titel-Fakten aus den eigenen Daten', () => {
+  const ein = (id: string, day: string, kind: TrainingSession['kind'], source: TrainingSession['source'], externalId: string | null = null) =>
+    ({ ...session(id, day, 100), kind, source, externalId })
+
+  it('Rang zählt nur eigene Einträge; eingeführte Einheiten zählen für Sportarten, doppelte einmal', () => {
+    const input = {
+      ...empty(),
+      sessions: [
+        ein('a', '2026-10-01', 'run', 'manual'),
+        ein('b', '2026-10-02', 'run', 'healthkit', 'hk-1'),
+        ein('c', '2026-10-02', 'run', 'healthkit', 'hk-1'), // zweimal eingeführt
+        ein('d', '2026-10-03', 'cycle', 'health_connect', 'hc-1'),
+        ein('e', '2026-10-04', 'strength', 'import_hevy', 'hevy-1'),
+      ],
+      dailyLogs: [{ log_date: '2026-10-05' } as never],
+    }
+    const f = badgeFacts(input, extras(), null, null, [], TODAY)
+    expect(f.ownEntryDays).toEqual(['2026-10-01', '2026-10-04', '2026-10-05'])
+    expect(f.entryStamps).toEqual(['2026-10-01', '2026-10-04', '2026-10-05'])
+    expect(f.sessionsByKind).toEqual({ run: ['2026-10-01', '2026-10-02'], cycle: ['2026-10-03'], strength: ['2026-10-04'] })
+    // die Serie aus 2b bleibt, wie sie war (zählt alle Einheiten)
+    expect(f.entryDays).toContain('2026-10-02')
+  })
+
+  it('Schlafnächte aus healthDaily, nur mit Minuten > 0, bis heute', () => {
+    const input = { ...empty(), healthDaily: [
+      health('2026-10-01', { sleep_min: 450 }), health('2026-10-02', { sleep_min: 0 }),
+      health('2026-10-03', { sleep_min: null }), health(addDays(TODAY, 1), { sleep_min: 400 }),
+    ] }
+    expect(badgeFacts(input, extras(), null, null, [], TODAY).sleepNights).toEqual([{ day: '2026-10-01', min: 450 }])
+  })
+})
+
