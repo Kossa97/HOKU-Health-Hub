@@ -155,6 +155,19 @@ security-review 04.11.: keine Funde. Bewusst freigeben: Eintragszahl zeigt Aktiv
 Firewall-Regel „Profil-Links bremsen“ (100/min je IP, /u/ und /api/og, 429 für 1 min) vom Nutzer angelegt.
 VITE_APP_STORE_ID muss in Vercel auch zur Laufzeit gesetzt sein (api/u.js liest sie für den Banner).
 
+## Vorgemerkt für den Nutzer (06.11.2026, 2c-Einrichtung)
+Erledigt: Apple Team-ID 5K69NY3K6F in der AASA (gepusht); Vercel `VITE_PUBLIC_SITE_URL=https://hokuhealth.app`
+(nur Production, wirkt ab dem nächsten Deploy); Domain hokuhealth.app ist Hauptdomain, www/meethoku leiten per 308 um.
+Offen, beim nächsten Gespräch am Rechner ansprechen:
+1. SHA-256 Play App Signing + Upload aus der Play Console (App-Integrität → App-Signatur) → `assetlinks.json`,
+   danach `npm run applinks:check`. Geht auch am Handy im Browser (Desktop-Ansicht), falls die App schon in der
+   Play Console liegt; sonst erst nach dem ersten Upload eines App-Bundles.
+2. Store-Adressen und `VITE_APP_STORE_ID` erst, wenn die Apps veröffentlicht sind (sonst führt der Knopf zu /auth).
+3. `HOKU_PATTERN_FEATURE=1` erst mit der Musterfunktion.
+4. Am Rechner: `npx cap sync`, iOS in Xcode Team 5K69NY3K6F wählen (Associated Domains), QR-Test mit echtem Handy,
+   `graphify update .`.
+5. Rechtliche Platzhalter `[[…]]` (Web-Link Art. 9, Aufbewahrung Meldungen, Rechtsgrundlage) juristisch füllen.
+
 ## Offen
 - Migration `supabase-profil-p1-datenbasis.sql` lief am 31.10.2026 nach Freigabe gegen
   Produktion (Migration `profil_p1_datenbasis`): vorher 0 neue Spalten/Tabellen, 13 Profile;
