@@ -1829,6 +1829,10 @@ html:not([data-navbar='eigen']) .tyd-tabdock :is(.tyd-tabbar[data-gedrueckt='tru
     animation-iteration-count: infinite;
   }
 }
+/* Ruhe (sloshEngine.ts): steht die Flüssigkeit still, halten auch die
+   Bläschen an, wo sie gerade sind. Erst wenn beides steht, muss Safari das
+   Fläschchen nicht mehr in jedem Bild neu malen. */
+html[data-fluessig-ruht] .tyd-liquid-bubble { animation-play-state: paused; }
 
 /* Farbwahl wie in Erinnerungen/Kalender: runde Felder, das gewaehlte mit
    Ring im Abstand. Druck gibt sofort nach (scale), der Ring kommt mit

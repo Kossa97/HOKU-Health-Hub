@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, test } from 'vitest'
-import { createSloshEngine, stepSlosh, type SpringState } from './sloshEngine'
+import { createSloshEngine, stepSlosh, type SpringState, RUHE_NACH_MS } from './sloshEngine'
 
 const source = () => readFileSync(new URL('./sloshEngine.ts', import.meta.url), 'utf8')
 
@@ -126,6 +126,64 @@ describe('rest throttling', () => {
       calls = 0
       for (let i = 0; i < 30; i++) step(1000 / 60)
       expect(calls).toBe(30)
+      engine.destroy()
+    })
+  })
+})
+
+describe('Ruhe', () => {
+  type Frame = (ts: number) => void
+  function mitBildern(run: (step: (ms: number) => void, laeuft: () => boolean) => void) {
+    const g = globalThis as unknown as { requestAnimationFrame?: unknown; cancelAnimationFrame?: unknown }
+    const prevRaf = g.requestAnimationFrame, prevCancel = g.cancelAnimationFrame
+    let queued: Frame | null = null, now = 0
+    g.requestAnimationFrame = (cb: Frame) => { queued = cb; return 1 }
+    g.cancelAnimationFrame = () => { queued = null }
+    try {
+      run(ms => { now += ms; const cb = queued; queued = null; cb?.(now) }, () => queued !== null)
+    } finally {
+      g.requestAnimationFrame = prevRaf
+      g.cancelAnimationFrame = prevCancel
+    }
+  }
+
+  test('nach RUHE_NACH_MS ohne Regung steht die Schleife und meldet Ruhe', () => {
+    mitBildern((step, laeuft) => {
+      const engine = createSloshEngine()
+      const meldungen: boolean[] = []
+      engine.beiRuhe(r => meldungen.push(r))
+      engine.subscribe(() => {})
+      for (let i = 0; i < Math.ceil(RUHE_NACH_MS / 16) + 10; i++) step(16)
+      expect(laeuft()).toBe(false)
+      expect(meldungen).toEqual([true])
+      engine.destroy()
+    })
+  })
+
+  test('ein Stoß weckt die Bühne, sie läuft wieder', () => {
+    mitBildern((step, laeuft) => {
+      const engine = createSloshEngine()
+      const meldungen: boolean[] = []
+      engine.beiRuhe(r => meldungen.push(r))
+      let calls = 0
+      engine.subscribe(() => { calls++ })
+      for (let i = 0; i < Math.ceil(RUHE_NACH_MS / 16) + 10; i++) step(16)
+      engine.pushImpulse(1)
+      expect(laeuft()).toBe(true)
+      calls = 0
+      for (let i = 0; i < 10; i++) step(16)
+      expect(calls).toBe(10)
+      expect(meldungen).toEqual([true, false])
+      engine.destroy()
+    })
+  })
+
+  test('solange es schwappt, kommt keine Ruhe', () => {
+    mitBildern((step, laeuft) => {
+      const engine = createSloshEngine()
+      engine.subscribe(() => true)
+      for (let i = 0; i < Math.ceil(RUHE_NACH_MS / 16) + 10; i++) step(16)
+      expect(laeuft()).toBe(true)
       engine.destroy()
     })
   })

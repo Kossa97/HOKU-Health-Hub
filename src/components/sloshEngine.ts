@@ -32,6 +32,13 @@ const MAX_DT = 1 / 30 // clamp long frames so tab-switches don't explode the spr
 // every frame at once.
 export const REST_ENERGY = 0.004
 const REST_FRAME_MS = 1000 / 30 - 6 // slack for rAF timestamps that aren't snapped to vsync
+// Ruhe (Messung am iPhone 05.11.2026): Solange die Ruhewelle läuft, malt Safari
+// das ganze Fläschchen in jedem Bild neu, samt Verläufen und Bläschen; auf
+// MyStack fiel Hoku damit auf 40–55 Bilder/s, mit stehender Bühne liefen 118.
+// Ist eine Weile nichts passiert, steht die Flüssigkeit deshalb still und die
+// Schleife hält an, bis wieder jemand wischt, tippt oder rollt (wecke()).
+// `beiRuhe` meldet den Wechsel, damit auch die Bläschen anhalten (SloshContext).
+export const RUHE_NACH_MS = 5000
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
 
@@ -53,6 +60,10 @@ export interface SloshEngine {
   pushImpulse: (velocity: number) => void
   subscribe: (cb: Subscriber) => () => void
   setEnabled: (enabled: boolean) => void
+  /** Etwas ist passiert: Ruhewelle läuft wieder, die Ruhe beginnt neu zu zählen. */
+  wecke: () => void
+  /** Meldet, wenn die Bühne zur Ruhe kommt (true) oder wieder läuft (false). */
+  beiRuhe: (cb: (ruht: boolean) => void) => () => void
   destroy: () => void
 }
 
@@ -66,6 +77,16 @@ export function createSloshEngine(): SloshEngine {
   let lastNotify = 0
   let busy = false // a subscriber asked for every frame
   const subs = new Set<Subscriber>()
+  // Ruhe: Zeitpunkt der letzten Regung (rAF-Zeit); `regungOffen` setzt ihn im nächsten Bild
+  let letzteRegung = 0
+  let regungOffen = true
+  let ruht = false
+  const ruheHoerer = new Set<(ruht: boolean) => void>()
+  const setzeRuhe = (r: boolean) => {
+    if (ruht === r) return
+    ruht = r
+    ruheHoerer.forEach(cb => cb(r))
+  }
 
   const snapshot = (): SloshState => ({
     tilt: clamp(angle, -MAX_TILT, MAX_TILT),
@@ -90,9 +111,15 @@ export function createSloshEngine(): SloshEngine {
     angle = next.angle
     vel = next.vel
     const resting = !busy && Math.abs(angle) + Math.abs(vel) * 0.12 < REST_ENERGY
+    // Schwappen oder eine eigene Animation zählen als Regung
+    if (regungOffen || !resting) { letzteRegung = ts; regungOffen = false }
     if (!resting || ts - lastNotify >= REST_FRAME_MS) {
       lastNotify = ts
       notify()
+    }
+    if (resting && ts - letzteRegung >= RUHE_NACH_MS) {
+      setzeRuhe(true)
+      return
     }
     schedule()
   }
@@ -109,16 +136,22 @@ export function createSloshEngine(): SloshEngine {
     lastNotify = 0
   }
 
+  const wecke = () => {
+    regungOffen = true
+    setzeRuhe(false)
+    schedule()
+  }
+
   return {
     pushImpulse(velocity: number) {
       if (!enabled || !Number.isFinite(velocity)) return
       vel = clamp(vel + clamp(velocity, -1, 1) * IMPULSE_GAIN, -MAX_VEL, MAX_VEL)
-      schedule()
+      wecke()
     },
     subscribe(cb: Subscriber) {
       subs.add(cb)
       if (cb(snapshot()) === true) busy = true
-      schedule()
+      wecke()
       return () => {
         subs.delete(cb)
         if (subs.size === 0) stop()
@@ -132,12 +165,18 @@ export function createSloshEngine(): SloshEngine {
         vel = 0
         notify()
       } else {
-        schedule()
+        wecke()
       }
+    },
+    wecke,
+    beiRuhe(cb: (r: boolean) => void) {
+      ruheHoerer.add(cb)
+      return () => { ruheHoerer.delete(cb) }
     },
     destroy() {
       stop()
       subs.clear()
+      ruheHoerer.clear()
     },
   }
 }
