@@ -39,7 +39,8 @@ vi.mock('../../training/services/trainingRepo', async importOriginal => ({
   ...training,
 }))
 
-import { loadProfileSnapshotInput, SNAPSHOT_REFRESH_MS, snapshotHash, writeProfileSnapshot } from './profileSnapshotStore'
+import { loadProfileSnapshotInput, SNAPSHOT_REFRESH_MS, snapshotHash, syncProfileSnapshot, writeProfileSnapshot } from './profileSnapshotStore'
+import { titleMomentStore } from '../lib/titleMomentStore'
 
 const USER = 'user-1'
 const NOW = new Date(2026, 9, 31, 12, 0, 0)
@@ -144,5 +145,38 @@ describe('loadProfileSnapshotInput', () => {
       : { data: [], error: null }
     const input = await loadProfileSnapshotInput(USER, NOW, 'de')
     expect(input.healthDaily).toEqual([])
+  })
+})
+
+describe('syncProfileSnapshot: Moment „Neuer Rang“', () => {
+  /** Zehn Tage mit eigenem Eintrag bis heute; gespeichert ist schon Neuling. */
+  const zehnTage = Array.from({ length: 10 }, (_, i) => ({ log_date: `2026-10-${String(22 + i).padStart(2, '0')}`, body_fat_pct: null }))
+  const antworten = (upsertError: unknown = null) => (call: { table: string; ops: [string, unknown[]][] }) => {
+    if (call.table === 'daily_logs') return { data: zehnTage, error: null }
+    if (call.table === 'progress_settings') {
+      return op(call, 'upsert').length > 0
+        ? { data: null, error: upsertError }
+        : { data: { earned_badges: { rank_1: '2026-10-22', first_daily_log: '2026-10-22' } }, error: null }
+    }
+    return { data: [], error: null, count: 0 }
+  }
+
+  beforeEach(() => {
+    const shown = titleMomentStore.get()
+    if (shown) titleMomentStore.dismiss(shown.seq)
+  })
+
+  it('legt nach dem Speichern der neuen Abzeichen den Moment ab', async () => {
+    db.state.respond = antworten()
+    await syncProfileSnapshot(USER, 'de', NOW)
+    const upsert = db.state.calls.find(c => c.table === 'progress_settings' && op(c, 'upsert').length > 0)!
+    expect((op(upsert, 'upsert')[0][0] as { earned_badges: Record<string, string> }).earned_badges).toHaveProperty('rank_2')
+    expect(titleMomentStore.get()).toMatchObject({ kind: 'rank', id: 'rank_2', userId: USER })
+  })
+
+  it('scheitert das Speichern, kein Moment (sonst käme er beim nächsten Lauf wieder)', async () => {
+    db.state.respond = antworten({ code: '500', message: 'boom' })
+    await syncProfileSnapshot(USER, 'de', NOW)
+    expect(titleMomentStore.get()).toBeNull()
   })
 })

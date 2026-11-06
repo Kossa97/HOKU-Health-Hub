@@ -19,6 +19,7 @@ import { PASSKEY_AN } from '../features/auth/lib/passkey'
 import { PasskeyNachfrage } from '../features/auth/components/PasskeyNachfrage'
 import { useHealthDailySync } from '../features/wearables/hooks/useHealthDailySync'
 import { useProfileSnapshotSync } from '../features/profil/hooks/useProfileSnapshotSync'
+import { TitelMomentHost } from '../features/profil/components/TitelMomentHost'
 
 const QUICK_ACTIONS = [
   { icon: CheckCircle2, label: 'Einnahme bestätigen', path: '/kalender#due-intakes', color: '#10b981' },
@@ -173,6 +174,8 @@ export function Layout() {
       <LanguageGate />
       {PASSKEY_AN && <PasskeyNachfrage />}
       <PushNotificationListener />
+      {/* Neuer Rang / neuer Titel nach dem Speichern eines Eintrags */}
+      <TitelMomentHost />
 
 
       {/* ── Quick-Action backdrop + sheet ──────────────────────────────────── */}
