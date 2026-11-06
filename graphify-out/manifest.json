@@ -276,9 +276,9 @@
     "semantic_hash": ""
   },
   "src/components/PeptideVialVisual.tsx": {
-    "mtime": 1793963874.8291705,
-    "seen": 1793963967.4022043,
-    "ast_hash": "26401fe359ce67e34974953f8410acda",
+    "mtime": 1793963991.7958114,
+    "seen": 1793964043.4749215,
+    "ast_hash": "ef9dbe14e96c893461741a504387957d",
     "semantic_hash": ""
   },
   "src/components/ProtectedRoute.tsx": {
