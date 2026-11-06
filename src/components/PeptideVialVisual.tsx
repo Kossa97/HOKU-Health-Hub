@@ -270,6 +270,8 @@ export function PeptideVialVisual({
         }
         .vial-liquid-fill-reveal {
           animation: vial-liquid-fill-reveal var(--vial-fill-intro-duration, 1200ms) cubic-bezier(.22,1,.36,1) both;
+          /* transform: diese Regel ersetzt die aus index.css (gleiche Stärke,
+             steht später), sonst verlöre die Flüssigkeit ihre eigene Ebene */
           will-change: clip-path, transform;
         }
         @media (prefers-reduced-motion: reduce) {
