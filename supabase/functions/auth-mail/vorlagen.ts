@@ -250,8 +250,8 @@ export function gueltigBis(jetzt: Date, minuten: number, zeitzone: unknown, spra
 /**
  * Brand-Kit v2 (docs/logo/hoku/brand-kit-v2/HOKU-Brand-Guide.md): ruhige dunkle Fläche im
  * Blau-Schwarz des App-Icons, Cyan #00CCF5 als einziger Akzent, Schrift neutral weiß. Kopf ist
- * das Hauptlogo (Hoku in Cyan, HOKU / HEALTH HUB weiß, freigestellt) in 240 px, der kleinsten
- * empfohlenen Breite; die Datei liegt in public/mail. Michroma und IBM Plex Mono kommen über
+ * das Hauptlogo (Hoku in Cyan, HOKU / HEALTH HUB weiß, freigestellt) in 300 px (Brand-Guide:
+ * ab 240 px); die Datei liegt in public/mail. Michroma und IBM Plex Mono kommen über
  * Google Fonts — Apple Mail lädt sie, andere Programme nehmen die Ersatzschriften.
  */
 const FARBE = {
@@ -263,13 +263,13 @@ const SCHRIFT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
 const MONO = "'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"
 const MARKE = "Michroma,'Arial Black',Helvetica,Arial,sans-serif"
 /**
- * Logo im Kopf: Datei 720 × 235 px (dreifach), angezeigt mit 240 px Breite. Es reist als
+ * Logo im Kopf: Datei 720 × 235 px, angezeigt mit 300 px Breite (Nutzer 06.11.2026: größer). Es reist als
  * eingebetteter Anhang mit (`cid:`), nicht als Link auf hokuhealth.app: Outlook zeigt
  * nachgeladene Bilder neuer Absender erst nach einem Klick, eingebettete sofort.
  * Resend holt die Datei beim Versand von `pfad` (unter APP_URL, aus public/mail) und hängt sie
  * an (index.ts).
  */
-export const LOGO = { cid: 'hoku-logo', datei: 'hoku-logo.png', pfad: '/mail/hoku-health-hub-logo-720.png', breite: 240, hoehe: 78 }
+export const LOGO = { cid: 'hoku-logo', datei: 'hoku-logo.png', pfad: '/mail/hoku-health-hub-logo-720.png', breite: 300, hoehe: 98 }
 
 function seite(sprache: Sprache, appUrl: string, vorschau: string, titel: string, inhalt: string): string {
   const r = RAHMEN[sprache]

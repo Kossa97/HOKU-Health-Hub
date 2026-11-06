@@ -58,7 +58,7 @@ describe('auth-mail: Vorlagen', () => {
     expect(m.html).toMatch(/display:none[^>]*>Dein Code: 305805</)
     expect(m.html).toContain('https://hokuhealth.app/impressum')
     // Brand-Kit: Hauptlogo im Kopf, dunkle Fläche, Cyan-Akzent
-    expect(m.html).toContain('src="cid:hoku-logo" width="240"')
+    expect(m.html).toContain('src="cid:hoku-logo" width="300" height="98"')
     expect(m.html).not.toContain('/mail/hoku-health-hub-logo')
     expect(m.html).toContain('alt="HOKU · HEALTH HUB"')
     expect(m.html).toContain('content="dark"')
