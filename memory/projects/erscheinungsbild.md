@@ -255,3 +255,4 @@ Frost war davon betroffen und ist korrigiert; im Browser nachgemessen
 - Automatische Qualität (engine/qualitaet.ts): Stufe 0 voll, 1 = 0,75 Auflösung, 2 = dazu bei 120 Hz jedes 2. Bild. Herunter nach 2 schlechten Sekunden (>15 % Ruck), hinauf nach 5 guten (<3 %). Messanzeige zeigt „Stufe".
 - Kleinere Zeichenfläche für Hoku zurückgestellt: Home läuft mit Vollbild-Flächen 120/s; Umbau berührte Strahl, Linsen-Kopien, Masken – Risiko > Nutzen.
 - 06.11. iPhone: mit Ruhe (nur Flüssigkeit+Bläschen) noch schwammig → Ruhe hält jetzt auch Aktiv-Puls, Haltbarkeitswechsel, Ablauf-Glühen/-Symbol/-Knopf in main an (wie Bewegung reduzieren). Messanzeige zeigt „Ruhe ja/nein“.
+- 06.11. iPhone: in Ruhe 120/s, 0 % Ruck (bestätigt). Für den wachen Zustand: Flüssigkeit (liquid-motion-viewport) auf eigene Ebene (will-change: transform), damit Wellen/Bläschen nicht Glas mit SVG-Filtern, Leuchten blur(40px) und Schrift-Schatten mit neu malen lassen. Wirkung nur am iPhone prüfbar.

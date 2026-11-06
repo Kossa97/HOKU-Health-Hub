@@ -1832,6 +1832,9 @@ html:not([data-navbar='eigen']) .tyd-tabdock :is(.tyd-tabbar[data-gedrueckt='tru
 /* Ruhe (sloshEngine.ts): steht die Flüssigkeit still, halten auch die
    Bläschen an, wo sie gerade sind. Erst wenn beides steht, muss Safari das
    Fläschchen nicht mehr in jedem Bild neu malen. */
+/* Die Flüssigkeit im Fläschchen auf eigener Ebene (PeptideVialVisual): was sich
+   darin bewegt, malt nur diese Ebene neu, nicht die Seite darunter */
+[data-vial-detail="liquid-motion-viewport"] { will-change: transform; }
 html[data-fluessig-ruht] .tyd-liquid-bubble { animation-play-state: paused; }
 /* Auch die kleinen Dauer-Animationen der Seite ruhen dann (iPhone 06.11.: mit
    ihnen blieb Hoku auf MyStack schwammig, erst „alles angehalten" lief mit

@@ -270,7 +270,7 @@ export function PeptideVialVisual({
         }
         .vial-liquid-fill-reveal {
           animation: vial-liquid-fill-reveal var(--vial-fill-intro-duration, 1200ms) cubic-bezier(.22,1,.36,1) both;
-          will-change: clip-path;
+          will-change: clip-path, transform;
         }
         @media (prefers-reduced-motion: reduce) {
           .vial-shimmer, .vial-liquid-fill-reveal { animation: none !important; }
@@ -417,6 +417,10 @@ export function PeptideVialVisual({
 
           {/* Single-graphic liquid: body, tilting surface, meniscus rim and
               highlight all derive from one geometry so they move as one. */}
+          {/* Eigene Zeichenebene (will-change in index.css): Wellen und Bläschen
+              malen nur sie neu, nicht die ganze Seite samt Glas, Weichzeichnern
+              und Schrift (iPhone 06.11.2026: Hoku ruckelte auf MyStack, solange
+              die Flüssigkeit lief). */}
           <div
             data-vial-detail="liquid-motion-viewport"
             className={`pointer-events-none absolute inset-0 ${viewportRevealClass}`.trim()}
