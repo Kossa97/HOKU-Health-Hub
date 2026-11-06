@@ -14,6 +14,7 @@ import { visibilityOf } from '../features/profil/lib/profileVisibility'
 import type { BearbeitenAenderung, BearbeitenWerte } from '../features/profil/components/ProfilBearbeiten'
 import { useEigenesProfil, type ProfilZeile } from '../features/profil/hooks/useEigenesProfil'
 import { useFieldVisibility } from '../features/profil/hooks/useFieldVisibility'
+import { useEigenerTitel } from '../features/profil/hooks/useTitleSettings'
 import { requestProfileSnapshot } from '../features/profil/hooks/useProfileSnapshotSync'
 import { GOAL_TAGS, isProfileGender, knownCountry } from '../features/profil/lib/profileFields'
 import { isMediaStatus, isWebProgress, parseFields, type MediaStatus, type ProfileViewFields } from '../features/profil/lib/profileView'
@@ -28,6 +29,8 @@ const ProfilBearbeiten = lazy(importWithReload(() => import('../features/profil/
   .then(m => ({ default: m.ProfilBearbeiten }))))
 const ProfilTeilen = lazy(importWithReload(() => import('../features/profil/components/ProfilTeilen')
   .then(m => ({ default: m.ProfilTeilen }))))
+const EigenerTitelSheet = lazy(importWithReload(() => import('../features/profil/components/TitelSheet')
+  .then(m => ({ default: m.EigenerTitelSheet }))))
 
 const str = (v: unknown) => (typeof v === 'string' ? v : '')
 const strOrNull = (v: unknown) => (typeof v === 'string' && v ? v : null)
@@ -91,10 +94,12 @@ export function Profil() {
   const { state, setState } = useEigenesProfil(user?.id)
   const [bearbeiten, setBearbeiten] = useState(false)
   const [teilenOffen, setTeilenOffen] = useState(false)
+  const [titelOffen, setTitelOffen] = useState(false)
   const teilenKnopf = useRef<HTMLButtonElement>(null)
   const geladen = state.status === 'ok' ? state : null
   const sichtbarkeit = useFieldVisibility(user?.id, geladen?.view.visibility ?? null)
   const { fortschritt } = useEigenerFortschritt(user?.id)
+  const titel = useEigenerTitel(user?.id, geladen?.view.titleSettings ?? null, fortschritt, geladen?.view.fields.title ?? null)
   const navigate = useNavigate()
 
   // Beim Öffnen den Schnappschuss auffrischen: andere sehen dann den Stand von heute
@@ -206,6 +211,7 @@ export function Profil() {
             visibility={sichtbarkeit.map}
             onChangeVisibility={(field, v) => void sichtbarkeit.setField(field, v)}
             bildStatus={{ avatar: geladen.view.avatarStatus, cover: geladen.view.coverStatus }}
+            ownTitle={{ title: titel.worn, entryDays: titel.entryDays, onOpen: () => setTitelOffen(true) }}
           >
             <div className="mt-4 grid grid-cols-2 gap-2.5">
               <button ref={teilenKnopf} type="button" className="lg-btn lg-btn-primary !min-h-11" aria-haspopup="dialog" onClick={teilenOeffnen} data-profile-share>
@@ -276,6 +282,20 @@ export function Profil() {
                 }}
                 onGeteilt={geteilt}
                 onWebLinkEinschalten={webLinkEinschalten}
+              />
+            </Suspense>
+          )}
+
+          {titelOffen && (
+            <Suspense fallback={null}>
+              <EigenerTitelSheet
+                titel={titel}
+                sichtbarkeit={sichtbarkeit}
+                onClose={() => {
+                  setTitelOffen(false)
+                  // Fokus zurück auf den Chip, der das Sheet geöffnet hat
+                  window.requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-profile-title] [data-title-chip]')?.focus({ preventScroll: true }))
+                }}
               />
             </Suspense>
           )}

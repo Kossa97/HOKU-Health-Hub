@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { lazy, Suspense, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
@@ -23,7 +23,15 @@ import { useBlockiert } from '../features/profil/hooks/useBlockiert'
 import { useEinstellungen } from '../features/profil/hooks/useEinstellungen'
 import { useFieldVisibility } from '../features/profil/hooks/useFieldVisibility'
 import { useWebSettings } from '../features/profil/hooks/useWebSettings'
+import { useEigenerFortschritt } from '../features/profil/hooks/useEigenerFortschritt'
+import { useEigenerTitel } from '../features/profil/hooks/useTitleSettings'
 import { profileUrl } from '../features/profil/lib/profileView'
+import { titleName } from '../features/profil/lib/titles'
+import { importWithReload } from '../lib/staleChunkReload'
+import type { Einstellungen } from '../features/profil/hooks/useEinstellungen'
+
+const EigenerTitelSheet = lazy(importWithReload(() => import('../features/profil/components/TitelSheet')
+  .then(m => ({ default: m.EigenerTitelSheet }))))
 
 /**
  * Einstellungen hinter ⚙︎ im Profil (Teilprojekt 2a): oben Profil &
@@ -141,6 +149,7 @@ export function ProfilEinstellungen() {
             <Unterzeile titel={t('profil_wer_sieht_was')} sub={t('profil_wer_sieht_was_sub')} />
             <Weiter />
           </Link>
+          <TitelZeile userId={user?.id} werte={werte} />
           <button type="button" className={zeile} aria-haspopup="dialog" disabled={!werte?.username} onClick={() => setAnsehenAls(true)} data-setting-ansehen>
             <Unterzeile titel={t('profil_ansehen_als')} sub={t('profil_ansehen_als_sub')} />
             <Weiter />
@@ -254,6 +263,37 @@ export function ProfilEinstellungen() {
         <AnsehenAlsSheet username={werte.username} onClose={() => setAnsehenAls(false)} />
       )}
     </div>
+  )
+}
+
+/**
+ * Profil › Einstellungen › Titel: Zeile mit dem getragenen Titel, öffnet
+ * dasselbe Sheet „Dein Titel“ wie der Chip im Profil.
+ */
+function TitelZeile({ userId, werte }: { userId: string | undefined; werte: Einstellungen | null }) {
+  const { t, i18n } = useTranslation()
+  const lang = i18n?.resolvedLanguage ?? i18n?.language ?? 'de'
+  const [offen, setOffen] = useState(false)
+  const { fortschritt } = useEigenerFortschritt(userId)
+  const titel = useEigenerTitel(userId, werte?.titleSettings ?? null, fortschritt, null)
+  const sichtbarkeit = useFieldVisibility(userId, werte?.visibility ?? null)
+  const name = titel.worn ? titleName(titel.worn.id, lang) : null
+  return (
+    <>
+      <button type="button" className={zeile} aria-haspopup="dialog" disabled={!werte} onClick={() => setOffen(true)} data-setting-title>
+        <Unterzeile titel={t('profil_feld_title')} sub={t('titel_einst_sub')} />
+        <Weiter wert={name ? <span className="max-w-[45vw] truncate" data-setting-title-name>{name}</span> : undefined} />
+      </button>
+      {offen && werte && (
+        <Suspense fallback={null}>
+          <EigenerTitelSheet
+            titel={titel}
+            sichtbarkeit={sichtbarkeit}
+            onClose={() => setOffen(false)}
+          />
+        </Suspense>
+      )}
+    </>
   )
 }
 

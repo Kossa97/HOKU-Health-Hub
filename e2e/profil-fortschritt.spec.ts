@@ -160,8 +160,9 @@ test('Alle Abzeichen: nach Gruppen, verdiente farbig, übrige mit Stand, Freunde
   await karte.locator('[data-badges-all]').click()
   await expect(page).toHaveURL(/\/profil\/abzeichen$/)
 
-  await expect(page.locator('[data-badge-group]')).toHaveCount(4)
-  await expect(page.locator('[data-badge]')).toHaveCount(39)
+  // Titel-Zusatz: Gruppe Sportarten dazu, Ränge nie in der Liste (39 + 36 = 75)
+  await expect(page.locator('[data-badge-group]')).toHaveCount(5)
+  await expect(page.locator('[data-badge]')).toHaveCount(75)
   await expect(page.locator('[data-badge="streak_7"]')).toHaveAttribute('data-badge-earned', 'true')
   await expect(page.locator('[data-badge="first_pr"]')).toHaveAttribute('data-badge-earned', 'true')
   await expect(page.locator('[data-badge="workouts_10"]')).toHaveAttribute('data-badge-earned', 'true')
