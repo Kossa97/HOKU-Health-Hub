@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { supabase } from '../../../lib/supabase'
 import { useAuth } from '../../../context/AuthContext'
 import { reportError } from '../../../lib/monitoring'
-import type { DailyLogEntry, WeightLogEntry } from '../types'
+import type { BodyMeasurementEntry, DailyLogEntry, WeightLogEntry } from '../types'
 import { fieldLabel } from '../styles'
 import { dateFieldStyle, WELLNESS_SLIDER_CSS, WellnessSliderRow } from './WellnessSliderRow'
 import { METRIC_WHEEL_CSS, MetricWheelPicker } from './MetricWheelPicker'
@@ -18,6 +18,12 @@ import {
 import { useScrollLock } from '../hooks/useScrollLock'
 import { useSheetPresence } from '../hooks/useSheetPresence'
 import { formatNumber } from '../lib/dates'
+import { measurementRowsToSave, type MeasurementSite } from '../lib/measurements'
+import {
+  MeasurementSection,
+  parseTypedMeasurements,
+  type TypedMeasurements,
+} from './MeasurementSection'
 
 const SHEET_Z = 10070
 
@@ -66,12 +72,25 @@ function writeStoredSavedValues(userId: string, values: SavedLogFormValues) {
 interface Props {
   logs: DailyLogEntry[]
   weightLogs: WeightLogEntry[]
+  measurements: BodyMeasurementEntry[]
+  measurementSites: MeasurementSite[]
+  /** `null`, solange die gespeicherte Wahl nicht geladen ist. */
+  onMeasurementSitesChange: ((sites: MeasurementSite[]) => void) | null
   open: boolean
   onClose: () => void
   onSaved: () => void | Promise<void>
 }
 
-export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Props) {
+export function TodayLogSheet({
+  logs,
+  weightLogs,
+  measurements,
+  measurementSites,
+  onMeasurementSitesChange,
+  open,
+  onClose,
+  onSaved,
+}: Props) {
   const { t } = useTranslation()
   const { user } = useAuth()
   const [date, setDate] = useState(todayStr())
@@ -82,6 +101,8 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
   const [weight, setWeight] = useState<number | null>(null)
   const [weightRowId, setWeightRowId] = useState<string | null>(null)
   const [bodyFat, setBodyFat] = useState<number | null>(null)
+  /** Nur was heute getippt wurde — der letzte Wert steht nur als Platzhalter da. */
+  const [typed, setTyped] = useState<TypedMeasurements>({})
   const [saving, setSaving] = useState(false)
   /** Kurz nach dem Speichern: Haken im Knopf, dann schließt das Sheet. */
   const [saved, setSaved] = useState(false)
@@ -120,6 +141,7 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
   useLayoutEffect(() => {
     if (open) {
       setDate(todayStr())
+      setTyped({})
       // Der Haken vom letzten Speichern gilt nicht mehr
       setSaved(false)
     }
@@ -145,8 +167,15 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
     const hasWellness =
       energie != null || schlaf != null || wohlbefinden != null || libido != null || bodyFat != null
     const hasWeight = weight != null
+    const parsed = parseTypedMeasurements(typed, measurementSites)
+    const hasMeasurements = Object.keys(parsed.values).length > 0
 
-    if (!hasWellness && !hasWeight) {
+    if (parsed.invalid) {
+      toast.error(t('umfaenge_invalid'))
+      return
+    }
+
+    if (!hasWellness && !hasWeight && !hasMeasurements) {
       toast.error(t('fortschritt_need_value'))
       return
     }
@@ -237,6 +266,23 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
       }
     }
 
+    // Zuletzt: Tageswerte und Gewicht stehen dann schon. Scheitert das hier,
+    // bleibt das Sheet offen; erneutes Speichern ist ein Upsert pro Stelle.
+    if (hasMeasurements) {
+      const { error } = await supabase
+        .from('body_measurements')
+        .upsert(measurementRowsToSave(user.id, date, parsed.values), {
+          onConflict: 'user_id,measured_on,site',
+        })
+      if (error) {
+        setSaving(false)
+        reportError(error, 'fortschritt.measurements-save')
+        if (hasWellness || hasWeight) partiallySavedRef.current = true
+        toast.error(t('umfaenge_save_failed'))
+        return
+      }
+    }
+
     const nextSavedValues: SavedLogFormValues = {
       date,
       energie,
@@ -296,7 +342,8 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
           <div aria-hidden style={{ flex: 1, minHeight: 24 }} />
 
           <div style={{
-            flexShrink: 0,
+            flexShrink: 1,
+            minHeight: 0,
             overflowY: 'auto',
             overflowX: 'hidden',
             WebkitOverflowScrolling: 'touch',
@@ -331,7 +378,7 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
                 type="date"
                 value={date}
                 max={todayStr()}
-                onChange={e => setDate(e.target.value)}
+                onChange={e => { setDate(e.target.value); setTyped({}) }}
                 style={dateFieldStyle}
               />
             </div>
@@ -372,6 +419,15 @@ export function TodayLogSheet({ logs, weightLogs, open, onClose, onSaved }: Prop
                 onOpenChange={next => setOpenMetric(next ? 'bodyFat' : null)}
               />
             </div>
+
+            <MeasurementSection
+              sites={measurementSites}
+              entries={measurements}
+              date={date}
+              typed={typed}
+              onTyped={(site, text) => setTyped(prev => ({ ...prev, [site]: text }))}
+              onSitesChange={onMeasurementSitesChange}
+            />
           </div>
         </div>
 

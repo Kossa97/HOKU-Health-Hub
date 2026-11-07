@@ -9,7 +9,9 @@ export default defineConfig([
   // .claude/worktrees enthaelt vollstaendige Repo-Kopien inkl. eigener tsconfig.json.
   // Ohne diese Ignores findet typescript-eslint mehrere tsconfigRootDir-Kandidaten
   // und bricht repoweit ab.
-  globalIgnores(['dist', 'coverage', '**/.claude/**', '**/.worktrees/**', '**/.superpowers/**']),
+  // Gebaute Android-/iOS-Artefakte (kopiertes dist, Gradle-Ausgaben) sind kein Quelltext.
+  globalIgnores(['dist', 'coverage', '**/.claude/**', '**/.worktrees/**', '**/.superpowers/**',
+    'android/**/build/**', 'android/app/src/main/assets/**', 'ios/App/App/public/**']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

@@ -5,6 +5,7 @@ import { supabase } from '../../../lib/supabase'
 import { useAuth } from '../../../context/AuthContext'
 import type {
   BloodworkEntry,
+  BodyMeasurementEntry,
   CycleRow,
   CycleSubstance,
   DailyLogEntry,
@@ -79,6 +80,7 @@ export function useFortschrittData() {
   const [dailyLogs, setDailyLogs] = useState<DailyLogEntry[]>([])
   const [weightLogs, setWeightLogs] = useState<WeightLogEntry[]>([])
   const [bloodwork, setBloodwork] = useState<BloodworkEntry[]>([])
+  const [measurements, setMeasurements] = useState<BodyMeasurementEntry[]>([])
   const [photos, setPhotos] = useState<ProgressPhotoEntry[]>([])
   const photosSignedAtRef = useRef(0)
   const photosRef = useRef<ProgressPhotoEntry[]>([])
@@ -106,9 +108,10 @@ export function useFortschrittData() {
     for (const l of dailyLogs) consider(l.log_date)
     for (const w of weightLogs) consider(w.logged_at)
     for (const b of bloodwork) consider(b.tested_at)
+    for (const m of measurements) consider(m.measured_on)
     for (const p of photos) consider(p.taken_at)
     return { from, to: range.to }
-  }, [range, cycleSubstances, dailyLogs, weightLogs, bloodwork, photos])
+  }, [range, cycleSubstances, dailyLogs, weightLogs, bloodwork, measurements, photos])
 
   const load = useCallback(async () => {
     if (!user) return
@@ -143,7 +146,7 @@ export function useFortschrittData() {
     const activeRange = rangeFromActiveSubstances(cycles, ONGOING_SUBSTANCES)
     const toBound = `${activeRange.to}T23:59:59`
 
-    const [dailyRes, weightRes, bloodRes, photoRes, doseRes] = await Promise.all([
+    const [dailyRes, weightRes, bloodRes, measurementRes, photoRes, doseRes] = await Promise.all([
       collectPagedRows((from, to) =>
         supabase
           .from('daily_logs')
@@ -175,6 +178,16 @@ export function useFortschrittData() {
       ),
       collectPagedRows((from, to) =>
         supabase
+          .from('body_measurements')
+          .select('measured_on, site, value_cm')
+          .eq('user_id', user.id)
+          .lte('measured_on', activeRange.to)
+          .order('measured_on', { ascending: true })
+          .order('site', { ascending: true })
+          .range(from, to),
+      ),
+      collectPagedRows((from, to) =>
+        supabase
           .from('progress_photos')
           .select('id, photo_url, taken_at, weight_kg, notes')
           .eq('user_id', user.id)
@@ -195,7 +208,7 @@ export function useFortschrittData() {
       ),
     ])
 
-    const errors = [cyclesRes, stackItemsRes, dailyRes, weightRes, bloodRes, photoRes, doseRes]
+    const errors = [cyclesRes, stackItemsRes, dailyRes, weightRes, bloodRes, measurementRes, photoRes, doseRes]
       .map(res => res.error)
       .filter(Boolean)
     if (errors.length > 0) {
@@ -223,6 +236,15 @@ export function useFortschrittData() {
           tested_at: String(row.tested_at),
         }))
         .filter(row => row.value != null),
+    )
+    setMeasurements(
+      (measurementRes.data ?? [])
+        .map((row: { measured_on: string; site: BodyMeasurementEntry['site']; value_cm: number | string }) => ({
+          measured_on: String(row.measured_on),
+          site: row.site,
+          value_cm: numeric(row.value_cm),
+        }))
+        .filter((row): row is BodyMeasurementEntry => row.value_cm != null),
     )
 
     const rawPhotos = (photoRes.data ?? []).map((row: { id: string; photo_url: string; taken_at: string; weight_kg: number | string | null; notes: string | null }) => ({
@@ -280,6 +302,7 @@ export function useFortschrittData() {
     dailyLogs,
     weightLogs,
     bloodwork,
+    measurements,
     photos,
     doseLogs,
     stackItemNames,
@@ -292,6 +315,7 @@ export function useFortschrittData() {
     dailyLogs,
     weightLogs,
     bloodwork,
+    measurements,
     photos,
     doseLogs,
     stackItemNames,

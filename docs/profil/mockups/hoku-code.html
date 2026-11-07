@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hoku-Code Entwurf</title>
+<style>
+  :root { --bg: #1f2023; --s1: #303136; --s2: #27282c; --text: #f2f4f8; --t2: rgba(235,240,255,.66); --t3: rgba(235,240,255,.45); --hair: rgba(255,255,255,.08); --blue: #4ea8ff;
+    --ui: -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, system-ui, sans-serif; --disp: 'Space Grotesk', 'Avenir Next', 'Segoe UI', system-ui, sans-serif; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #141518; color: var(--text); font-family: var(--ui); padding: 28px 16px 48px; }
+  h1 { font: 600 22px var(--disp); margin: 0 0 6px; text-align: center; }
+  .intro { color: var(--t2); font-size: 14px; text-align: center; max-width: 640px; margin: 0 auto 22px; line-height: 1.5; }
+  .row { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+  .opt { width: 340px; background: linear-gradient(180deg, var(--s1), var(--s2)); border-radius: 26px; padding: 22px; box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 12px 30px rgba(0,0,0,.35); cursor: pointer; border: 1px solid transparent; }
+  .opt.selected { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue) inset, 0 0 24px rgba(78,168,255,.2); }
+  .opt h2 { font: 600 17px var(--disp); margin: 0 0 4px; }
+  .opt .sub { color: var(--t3); font-size: 13px; margin-bottom: 14px; }
+  .code { display: grid; place-items: center; margin: 6px 0 14px; }
+  .name { text-align: center; font: 600 16px var(--disp); margin-top: 6px; }
+  .nick { text-align: center; color: var(--t3); font-size: 13px; }
+  ul { margin: 12px 0 0; padding-left: 18px; color: var(--t2); font-size: 13px; line-height: 1.55; }
+  li.minus { color: #ffb3ad; }
+  .ctrl { text-align: center; margin: 22px 0 0; color: var(--t2); font-size: 13px; }
+  .ctrl input { margin-left: 8px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--hair); background: rgba(0,0,0,.25); color: var(--text); font: 14px var(--ui); }
+</style>
+</head>
+<body>
+<h1>Hoku-Code · zwei Wege</h1>
+<p class="intro">Beide sind rund und tragen Hoku in der Mitte. Der Unterschied liegt darin, <b>wer ihn lesen kann</b>. Tipp eine Variante an. Unten kannst du einen anderen Nickname eingeben: Das Muster ändert sich, Form und Hoku bleiben gleich.</p>
+
+<div class="row">
+  <div class="opt" data-choice="a" onclick="toggleSelect && toggleSelect(this); pick(this)">
+    <h2>A · Runder QR-Code</h2>
+    <div class="sub">echter QR-Code, im Hoku-Kreis gesetzt</div>
+    <div class="code" id="codeA"></div>
+    <div class="name">Mara K.</div><div class="nick">@<span class="nk">mara.lifts</span></div>
+    <ul>
+      <li>Jede Handykamera liest ihn, auch ohne App → öffnet den Link oder den App Store</li>
+      <li>Fertige Bibliotheken, wenig Aufwand, sehr zuverlässig</li>
+      <li class="minus">Innen bleibt das QR-Raster sichtbar, nur außen wirklich rund</li>
+    </ul>
+  </div>
+
+  <div class="opt" data-choice="b" onclick="toggleSelect && toggleSelect(this); pick(this)">
+    <h2>B · Eigener Ring-Code</h2>
+    <div class="sub">Punkte auf Ringen um Hoku, wie Snapcodes</div>
+    <div class="code" id="codeB"></div>
+    <div class="name">Mara K.</div><div class="nick">@<span class="nk">mara.lifts</span></div>
+    <ul>
+      <li>Komplett eigenes Aussehen, sofort als Hoku erkennbar</li>
+      <li>Kann animiert werden: Punkte „atmen“ wie Hokus Partikel</li>
+      <li class="minus">Nur der Scanner in der Hoku-App liest ihn, ohne App kein Treffer</li>
+      <li class="minus">Kodierung, Fehlerkorrektur und Scanner selbst bauen: deutlich mehr Arbeit</li>
+    </ul>
+  </div>
+</div>
+<div class="ctrl">Nickname zum Testen <input id="nick" value="mara.lifts"></div>
+
+<script>
+// Deterministischer Pseudo-Zufall aus dem Nickname: gleicher Name, gleiches Muster.
+function rng(seed) {
+  let h = 2166136261
+  for (const c of seed) h = Math.imul(h ^ c.charCodeAt(0), 16777619)
+  return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 10000) / 10000 }
+}
+const hoku = (cx, cy, r, id) => `
+  <defs><radialGradient id="${id}" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#bff0ff"/><stop offset=".45" stop-color="#64d2ff"/><stop offset=".8" stop-color="#8a6bff"/><stop offset="1" stop-color="#ff6fb5"/></radialGradient>
+  <filter id="${id}g"><feGaussianBlur stdDeviation="${r * .35}"/></filter></defs>
+  <circle cx="${cx}" cy="${cy}" r="${r * 1.05}" fill="url(#${id})" opacity=".55" filter="url(#${id}g)"/>
+  <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#${id})"/>`
+
+// A: QR-artiges Raster, im Kreis beschnitten, mit den drei Suchmarken.
+// (Nur Optik fuer den Entwurf — ein echter Code kaeme aus einer QR-Bibliothek.)
+function codeA(nick) {
+  const R = rng(nick), S = 260, c = S / 2, n = 29, cell = 190 / n, o = c - 95
+  let dots = ''
+  const finder = (x, y) => (x < 7 && y < 7) || (x >= n - 7 && y < 7) || (x < 7 && y >= n - 7)
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    if (finder(x, y)) continue
+    const px = o + x * cell + cell / 2, py = o + y * cell + cell / 2
+    if (Math.hypot(px - c, py - c) < 32) continue
+    if (R() > .52) dots += `<circle cx="${px}" cy="${py}" r="${cell * .42}" fill="#f2f4f8"/>`
+  }
+  // Ausserhalb des Quadrats: Fuellpunkte bis zum Kreisrand (tragen keine Daten)
+  for (let y = -4; y < n + 4; y++) for (let x = -4; x < n + 4; x++) {
+    if (x >= 0 && x < n && y >= 0 && y < n) continue
+    const px = o + x * cell + cell / 2, py = o + y * cell + cell / 2
+    if (Math.hypot(px - c, py - c) > 118) continue
+    if (R() > .55) dots += `<circle cx="${px}" cy="${py}" r="${cell * .38}" fill="#f2f4f8" opacity=".55"/>`
+  }
+  const fm = (x, y) => { const px = o + x * cell, py = o + y * cell, w = cell * 7
+    return `<rect x="${px + cell*.5}" y="${py + cell*.5}" width="${w - cell}" height="${w - cell}" rx="${cell * 2}" fill="none" stroke="#f2f4f8" stroke-width="${cell}"/>
+            <rect x="${px + cell * 2}" y="${py + cell * 2}" width="${cell * 3}" height="${cell * 3}" rx="${cell}" fill="#64d2ff"/>` }
+  return `<svg width="${S}" height="${S}" viewBox="0 0 ${S} ${S}">
+    <circle cx="${c}" cy="${c}" r="126" fill="#16171a" stroke="url(#ringA)" stroke-width="3"/>
+    <defs><linearGradient id="ringA" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#64d2ff"/><stop offset="1" stop-color="#ff6fb5"/></linearGradient></defs>
+    ${dots}${fm(0, 0)}${fm(n - 7, 0)}${fm(0, n - 7)}
+    <circle cx="${c}" cy="${c}" r="27" fill="#16171a"/>${hoku(c, c, 20, 'ha')}</svg>`
+}
+
+// B: Datenpunkte auf vier Ringen, eine Lücke oben als Ausrichtungsmarke.
+function codeB(nick) {
+  const R = rng(nick), S = 260, c = S / 2
+  const rings = [{ r: 58, n: 30 }, { r: 74, n: 38 }, { r: 90, n: 46 }, { r: 106, n: 54 }]
+  let dots = ''
+  rings.forEach((ring, ri) => {
+    for (let i = 0; i < ring.n; i++) {
+      const a = (i / ring.n) * Math.PI * 2 - Math.PI / 2
+      if (Math.abs(i / ring.n) < .035 || Math.abs(i / ring.n - 1) < .035) continue
+      const on = R() > .45
+      const x = c + Math.cos(a) * ring.r, y = c + Math.sin(a) * ring.r
+      const t = i / ring.n
+      const col = t < .5 ? `hsl(${195 + t * 120} 100% 72%)` : `hsl(${255 + (t - .5) * 140} 100% 74%)`
+      dots += on ? `<circle cx="${x}" cy="${y}" r="${4.6 - ri * .3}" fill="${col}"/>`
+                 : `<circle cx="${x}" cy="${y}" r="1.6" fill="rgba(255,255,255,.18)"/>`
+    }
+  })
+  // Drei Ankerpunkte fuer Lage und Drehung
+  const anchor = a => { const x = c + Math.cos(a) * 118, y = c + Math.sin(a) * 118
+    return `<circle cx="${x}" cy="${y}" r="7" fill="none" stroke="#f2f4f8" stroke-width="2.5"/><circle cx="${x}" cy="${y}" r="2.6" fill="#f2f4f8"/>` }
+  return `<svg width="${S}" height="${S}" viewBox="0 0 ${S} ${S}">
+    <circle cx="${c}" cy="${c}" r="128" fill="#16171a"/>
+    ${dots}${anchor(-Math.PI / 2)}${anchor(Math.PI / 6)}${anchor(Math.PI * 5 / 6)}
+    ${hoku(c, c, 36, 'hb')}</svg>`
+}
+
+function draw() {
+  const n = document.getElementById('nick').value || 'hoku'
+  document.getElementById('codeA').innerHTML = codeA(n)
+  document.getElementById('codeB').innerHTML = codeB(n)
+  document.querySelectorAll('.nk').forEach(e => e.textContent = n)
+}
+function pick(el) { document.querySelectorAll('.opt').forEach(o => o.classList.toggle('selected', o === el)) }
+window.toggleSelect = window.toggleSelect || null
+document.getElementById('nick').oninput = draw
+draw()
+</script>
+</body>
+</html>

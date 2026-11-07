@@ -12,6 +12,7 @@ import { GlassSegmented } from '../../../../components/ui/GlassSegmented'
 import { GlassChart, type ChartBand, type ScrubState } from './GlassChart'
 import { CycleChips } from './CycleChips'
 import { useAmbientAvoid, useAmbientTint } from '../../../../components/ambient/context'
+import { MEASUREMENT_SITES, measurementMetricKey } from '../../lib/measurements'
 import { substancesInRange } from '../../lib/cycleSubstances'
 
 interface Props {
@@ -56,8 +57,12 @@ export const VerlaufSection = forwardRef<HTMLElement, Props>(function VerlaufSec
     for (const marker of new Set(state.bloodwork.map(b => b.marker))) {
       counts.set(marker, buildMetricSeries(marker, full, state.weightLogs, state.dailyLogs, state.bloodwork).length)
     }
+    for (const site of MEASUREMENT_SITES) {
+      const key = measurementMetricKey(site)
+      counts.set(key, buildMetricSeries(key, full, state.weightLogs, state.dailyLogs, state.bloodwork, state.measurements).length)
+    }
     return counts
-  }, [state.fullRange, state.weightLogs, state.dailyLogs, state.bloodwork])
+  }, [state.fullRange, state.weightLogs, state.dailyLogs, state.bloodwork, state.measurements])
 
   const labUnits = useMemo(() => {
     const units = new Map<string, string>()
@@ -73,8 +78,8 @@ export const VerlaufSection = forwardRef<HTMLElement, Props>(function VerlaufSec
   const metric = metrics.find(m => m.key === metricKey) ?? metrics.find(m => m.key === 'weight') ?? metrics[0]
 
   const series = useMemo(
-    () => metric ? buildMetricSeries(metric.key, pageRange, state.weightLogs, state.dailyLogs, state.bloodwork) : [],
-    [metric, pageRange, state.weightLogs, state.dailyLogs, state.bloodwork],
+    () => metric ? buildMetricSeries(metric.key, pageRange, state.weightLogs, state.dailyLogs, state.bloodwork, state.measurements) : [],
+    [metric, pageRange, state.weightLogs, state.dailyLogs, state.bloodwork, state.measurements],
   )
 
   const substances = useMemo(() => substancesInRange(state.cycleSubstances, pageRange), [state.cycleSubstances, pageRange])
