@@ -1,4 +1,5 @@
 import { isAuthApiError, isAuthRetryableFetchError } from '@supabase/supabase-js'
+import { pruefeGeburtsdatum } from '../../compliance/lib/consent'
 
 /**
  * Was die Anmeldung im Gerät prüft, bevor sie den Server fragt, und wie sie
@@ -6,7 +7,7 @@ import { isAuthApiError, isAuthRetryableFetchError } from '@supabase/supabase-js
  */
 
 export type LoginFeld = 'kennung' | 'passwort'
-export type RegFeld = 'benutzer' | 'email' | 'passwort' | 'passwort2' | 'zustimmung'
+export type RegFeld = 'benutzer' | 'email' | 'geburtsdatum' | 'passwort' | 'passwort2' | 'zustimmung'
 
 /** Ein Fehler, den das Gerät erkennt: Feld und Text-Schlüssel. */
 export interface Eingabefehler<F extends string> { feld: F; text: string }
@@ -35,17 +36,26 @@ export function pruefeLogin(kennung: string, passwort: string): Eingabefehler<Lo
 }
 
 export function pruefeRegistrierung(f: {
-  benutzer: string; email: string; passwort: string; passwort2: string; zugestimmt: boolean
+  benutzer: string; email: string; geburtsdatum: string; heute: string; passwort: string; passwort2: string; zugestimmt: boolean
 }): Eingabefehler<RegFeld> | null {
   const b = f.benutzer.trim()
   if (!b) return { feld: 'benutzer', text: 'login_err_user_empty' }
   if (!BENUTZERNAME.test(b)) return { feld: 'benutzer', text: 'login_err_user_bad' }
   const e = pruefeEmail(f.email)
   if (e) return { feld: 'email', text: e }
-  if (f.passwort.length < MIN_PASSWORT) return { feld: 'passwort', text: 'login_err_pw_short' }
-  if (!f.passwort2) return { feld: 'passwort2', text: 'login_err_pw2_empty' }
-  if (f.passwort2 !== f.passwort) return { feld: 'passwort2', text: 'login_err_pw_mismatch' }
+  const g = pruefeGeburtsdatum(f.geburtsdatum, f.heute)
+  if (g) return { feld: 'geburtsdatum', text: g }
+  const p = pruefeNeuesPasswort(f.passwort, f.passwort2)
+  if (p) return p
   if (!f.zugestimmt) return { feld: 'zustimmung', text: 'consent_required' }
+  return null
+}
+
+/** Neues Passwort zweimal: beim Registrieren und nach „Passwort vergessen". */
+export function pruefeNeuesPasswort(passwort: string, passwort2: string): Eingabefehler<'passwort' | 'passwort2'> | null {
+  if (passwort.length < MIN_PASSWORT) return { feld: 'passwort', text: 'login_err_pw_short' }
+  if (!passwort2) return { feld: 'passwort2', text: 'login_err_pw2_empty' }
+  if (passwort2 !== passwort) return { feld: 'passwort2', text: 'login_err_pw_mismatch' }
   return null
 }
 

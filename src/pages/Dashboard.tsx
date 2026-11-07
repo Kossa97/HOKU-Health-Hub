@@ -27,7 +27,8 @@ import {
   resolveScheduleSlots,
   resolveTimelineIntakesForDay,
   scheduleForDay,
-  AUTO_MISSED_NOTE,
+  MANUAL_SKIP_NOTE,
+  istSystemNotiz,
   type IntakeLog,
   type ResolvedRoutineGroup,
   type ScheduleSegment,
@@ -50,7 +51,7 @@ import {
   type RoutineGroupModel,
   type RoutineIntake,
 } from '../features/routines/intakeGroups'
-import { confirmIntakeGroup, quantifiedVialEntries, skipIntakeGroup, type IntakeConfirmationClient, type SavedDoseLog } from '../features/routines/services/intakeConfirmation'
+import { confirmIntakeGroup, markiereNichtGenommen, quantifiedVialEntries, skipIntakeGroup, type IntakeConfirmationClient, type NotizClient, type SavedDoseLog } from '../features/routines/services/intakeConfirmation'
 import { slotKeyBereiche } from '../features/routines/lib/slotKeyRange'
 import { planTagAusSchluessel, slotSchluesselFuerZeitpunkt } from '../features/routines/lib/slotKey'
 import { RoutineConfirmationSheet } from '../features/routines/components/RoutineConfirmationSheet'
@@ -286,7 +287,7 @@ type IntakeGroupKey = 'morgens' | 'mittags' | 'abends' | 'custom' | 'later'
 type PeriodKey = 'morgens' | 'mittags' | 'abends'
 
 const PERIOD_ORDER: PeriodKey[] = ['morgens', 'mittags', 'abends']
-/** Ein Eintrag der Liste „Eingenommen · Verpasst · Übersprungen". */
+/** Ein Eintrag der Liste „Bereits protokolliert". */
 interface ErledigterEintrag {
   key: string
   stackItemId: string
@@ -472,7 +473,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   // statt eine ungueltige Menge an die RPC zu schicken.
   const confirmDoseUngueltig = confirmUnit != null
     && (confirmDoseWert == null || !Number.isFinite(confirmDoseWert) || confirmDoseWert <= 0)
-  // Die Liste „Eingenommen · Verpasst · Übersprungen": null = voreingestellt
+  // Die Liste „Bereits protokolliert": null = voreingestellt
   // (an einem vergangenen Tag offen, heute zu).
   const [erledigtAuf, setErledigtAuf] = useState<boolean | null>(null)
   const [offenesErledigtesBuendel, setOffenesErledigtesBuendel] = useState<string | null>(null)
@@ -1107,7 +1108,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   const selCycles   = cyclesForDay(selectedDay)
   const selOnDemand = onDemandCyclesForDay(selectedDay)
   const selectedLocalDate = localDateTimeKey(selectedDay, timeZone).slice(0, 10)
-  // Ein anderer Tag: die Liste „Eingenommen · Verpasst · Übersprungen" wieder
+  // Ein anderer Tag: die Liste „Bereits protokolliert" wieder
   // wie voreingestellt (vergangen offen, heute zu), nichts darin aufgeklappt.
   useEffect(() => {
     setErledigtAuf(null)
@@ -1138,7 +1139,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     : format(selectedDay, 'EEEE, d. MMMM', { locale })
   // Wieder oeffnen darf man nur, was danach auch wieder auftaucht.
   //
-  // `taken = null` nimmt die Zeile aus der Liste „Eingenommen · Verpasst · Übersprungen" heraus. Steht
+  // `taken = null` nimmt die Zeile aus der Liste „Bereits protokolliert" heraus. Steht
   // ihr Slot nicht im Tagesplan — bei Bedarf genommen, Substanz geloescht,
   // Zyklus nicht mehr aufloesbar —, erscheint sie danach auch nicht als
   // faellig: unsichtbar und nicht mehr loeschbar, denn der Loeschknopf sitzt
@@ -1251,7 +1252,8 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
   // Nur Einnahmen mit Platz im Tagesplan zaehlen — sonst passten die Zahlen
   // nicht zu „geplant" (bei Bedarf, geloeschte Substanz).
   const ausgelasseneGeplant = unloggedLogs.filter(kannWiederGeoeffnetWerden)
-  const verpassteHeute = ausgelasseneGeplant.filter(log => log.notes === AUTO_MISSED_NOTE).length
+  // Übersprungen ist nur, was jemand bewusst übersprungen hat; alles andere ist verpasst.
+  const verpassteHeute = ausgelasseneGeplant.filter(log => log.notes !== MANUAL_SKIP_NOTE).length
   const uebersprungeneHeute = ausgelasseneGeplant.length - verpassteHeute
   const alleGenommen = totalDaySlots > 0 && genommeneSlots === totalDaySlots && ausgelasseneGeplant.length === 0
   const dueSlotByKey = new Map(dueSlots.map(slot => [slot.key, slot]))
@@ -1349,7 +1351,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
     return { ...gruppe, eintraege, bloecke }
   })
 
-  // ── Eingenommen · Verpasst · Übersprungen ──────────────────────────────
+  // ── Bereits protokolliert ──────────────────────────────
   // Eine Liste für alles Entschiedene des Tages. Verpasst ist, was der
   // Auto-Miss eingetragen hat, und an einem vergangenen Tag alles, was offen
   // blieb — nicht bewusst übersprungen heißt verpasst. Bündel stehen darin
@@ -1364,7 +1366,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         scheduledAt: geplant?.scheduledAt ?? log.logged_at,
         routineGroup: geplant?.routineGroup ?? null,
         status: log.taken === true ? 'genommen' as const
-          : log.notes === AUTO_MISSED_NOTE ? 'verpasst' as const : 'uebersprungen' as const,
+          : log.notes === MANUAL_SKIP_NOTE ? 'uebersprungen' as const : 'verpasst' as const,
         log,
       }
     }),
@@ -1620,7 +1622,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
 
   /** Was eine ausgelassene Zeile beim Oeffnen verliert: die Entscheidung und eine Auto-Miss-Notiz. */
   const oeffnenAenderung = (log: DoseLog): Pick<DoseLog, 'taken'> & Partial<Pick<DoseLog, 'notes'>> => (
-    log.notes === AUTO_MISSED_NOTE ? { taken: null, notes: null } : { taken: null }
+    istSystemNotiz(log.notes) ? { taken: null, notes: null } : { taken: null }
   )
 
   const undoDose = async (log: DoseLog) => {
@@ -1727,6 +1729,10 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
         return
       }
       if (uebersprungeneZeile) {
+        // Bewusst übersprungen: der Marker macht sie grau statt rot (verpasst).
+        if ((await markiereNichtGenommen(dashboardDataClient as unknown as NotizClient, [uebersprungeneZeile], MANUAL_SKIP_NOTE)).length) {
+          uebersprungeneZeile = { ...uebersprungeneZeile, notes: MANUAL_SKIP_NOTE }
+        }
         if (sichtbaresFenster.current === timelineContext) uebernehmeGespeicherteZeile(uebersprungeneZeile)
         else await loadLogs()
       }
@@ -2854,7 +2860,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
 
   const renderLogRow = (log: DoseLog) => {
     const stand: ErledigterEintrag['status'] = log.taken === true ? 'genommen'
-      : log.notes === AUTO_MISSED_NOTE ? 'verpasst' : 'uebersprungen'
+      : log.notes === MANUAL_SKIP_NOTE ? 'uebersprungen' : 'verpasst'
     const ton = STAND_TON[stand].text
     const wiederOeffnen = log.taken !== null && kannWiederGeoeffnetWerden(log)
     // Die Liste führt nur Entschiedenes; löschen geht nur ohne Zeitleiste.
@@ -2882,7 +2888,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
             {' · '}<span data-log-zeit data-log-anderer-tag={andererTag ? '' : undefined} className="tabular-nums">{tagUndZeit(log.logged_at)}</span>
             {' · '}<span>{menge}</span>
             {log.method && <> · <span>{log.method}</span></>}
-            {log.notes && log.notes !== AUTO_MISSED_NOTE && <> · <span>{log.notes}</span></>}
+            {log.notes && !istSystemNotiz(log.notes) && <> · <span>{log.notes}</span></>}
             {log.auto_logged && log.taken === true && <> · <span data-auto-logged className="text-[var(--lg-accent-text)]">{dt('auto_marke')}</span></>}
           </span>
         </span>
@@ -3443,7 +3449,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
           </div>
         ))}
 
-        {/* ── Eingenommen · Verpasst · Übersprungen ─────────────────────
+        {/* ── Bereits protokolliert ─────────────────────
             Eine Liste für alles Entschiedene, Bündel darin wie oben. Die Farbe
             sagt den Stand: grün eingenommen, rot verpasst, grau übersprungen. */}
         {erledigte.length > 0 && (() => {
@@ -3459,7 +3465,7 @@ export function Dashboard({ dashboardDataClient = supabase }: DashboardProps = {
                 <span aria-hidden="true" className="lg-icon-tile bg-[#636366]"><Check size={17} strokeWidth={2.6} /></span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-[17px] text-[var(--lg-text)]">
-                    {t('done_intakes_title', { defaultValue: 'Eingenommen · Verpasst · Übersprungen' })}
+                    {t('completed_intakes_title', { defaultValue: 'Bereits protokolliert' })}
                   </span>
                   <span data-erledigt-zahlen className="block text-[13px] tabular-nums">
                     {(['genommen', 'verpasst', 'uebersprungen'] as const).flatMap(stand => {

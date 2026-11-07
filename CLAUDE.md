@@ -89,3 +89,15 @@ Jedes Fenster hält es dabei kurz (Werkzeug `ArtifactData`, URL oben):
   arbeitet.
 - **Merges nach `main` laufen nur in einem Fenster gleichzeitig.** Vor dem Merge
   `main` holen.
+
+## Stand am Ende jeder Antwort
+
+Wunsch des Nutzers, für alle Fenster: Jede Antwort, in der Änderungen an der
+App (Code, Texte, Tests, Datenbankdateien) vorkommen, endet mit **einer**
+Zeile zum Stand:
+
+- Liegt alles auf `main`: **„Alles auf Main“**.
+- Sonst: auf welchem Branch es liegt, mit PR-Link, falls es einen gibt,
+  z. B. „Liegt auf Branch `claude/…` (PR #…), noch nicht auf Main“.
+
+Vorher mit `git fetch` prüfen, nicht aus dem Gedächtnis.

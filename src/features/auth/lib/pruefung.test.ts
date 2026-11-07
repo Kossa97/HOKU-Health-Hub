@@ -2,7 +2,7 @@ import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js'
 import { describe, expect, it } from 'vitest'
 import { pruefeLogin, pruefeRegistrierung, serverFehler } from './pruefung'
 
-const gut = { benutzer: 'devin_k', email: 'a@b.de', passwort: 'geheim1', passwort2: 'geheim1', zugestimmt: true }
+const gut = { benutzer: 'devin_k', email: 'a@b.de', passwort: 'geheim1', passwort2: 'geheim1', zugestimmt: true, geburtsdatum: '1990-05-17', heute: '2026-11-03' }
 
 describe('Anmelden prüfen', () => {
   it('verlangt E-Mail oder Benutzername: mit @ als E-Mail geprüft, sonst als Name', () => {
@@ -22,6 +22,14 @@ describe('Anmelden prüfen', () => {
 describe('Registrieren prüfen', () => {
   it('nimmt ein vollständiges Formular an', () => {
     expect(pruefeRegistrierung(gut)).toBeNull()
+  })
+  it('verlangt ein echtes Geburtsdatum und mindestens 18 Jahre, nach der E-Mail', () => {
+    expect(pruefeRegistrierung({ ...gut, geburtsdatum: '' })).toEqual({ feld: 'geburtsdatum', text: 'login_err_birth_empty' })
+    expect(pruefeRegistrierung({ ...gut, geburtsdatum: '1990-02-30' })?.text).toBe('login_err_birth_bad')
+    expect(pruefeRegistrierung({ ...gut, geburtsdatum: '2027-01-01' })?.text).toBe('login_err_birth_bad')
+    expect(pruefeRegistrierung({ ...gut, geburtsdatum: '2008-11-04' })?.text).toBe('login_err_birth_young')
+    expect(pruefeRegistrierung({ ...gut, geburtsdatum: '2008-11-03' })).toBeNull()
+    expect(pruefeRegistrierung({ ...gut, email: 'x', geburtsdatum: '' })?.feld).toBe('email')
   })
   it('prüft den Benutzernamen: 3 bis 20 Zeichen, Buchstaben, Zahlen, Punkt, Unterstrich', () => {
     expect(pruefeRegistrierung({ ...gut, benutzer: '' })?.text).toBe('login_err_user_empty')

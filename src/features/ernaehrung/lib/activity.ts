@@ -83,3 +83,28 @@ export function parseSources(raw: unknown): ActivitySource[] {
   if (!Array.isArray(raw)) return [...ACTIVITY_SOURCES]
   return ACTIVITY_SOURCES.filter(s => raw.includes(s))
 }
+
+/** Ziele eines Kalendertags: mit Bewegungs-Bonus an diesem Tag wächst das kcal-Ziel (nicht bei ausgeblendeten Kalorien). */
+export function goalsFor<G extends { kcal: number; hideKcal: boolean }>(goals: G, bonus: Readonly<Record<string, number>> | null | undefined, date: string): G {
+  const b = bonus?.[date] ?? 0
+  return b > 0 && !goals.hideKcal ? { ...goals, kcal: goals.kcal + b } : goals
+}
+
+/** Rohdaten eines Tages wie aus der Datenbank (Trainings noch ohne Schätzung). */
+export interface RawActivityDay {
+  healthKcal: number | null
+  logs: readonly ActivityLog[]
+  trainings: readonly { id: string; title: string; startedAt: string; durationS: number | null; kcal: number | null }[]
+}
+
+/** Trainings ohne Uhr-Werte schätzen — für den großen Tag und die Wochenleiste gleich. */
+export function activityDayFrom(raw: RawActivityDay, weightKg: number | null): ActivityDay {
+  return {
+    healthKcal: raw.healthKcal,
+    logs: raw.logs,
+    trainings: raw.trainings.map(t => {
+      const est = t.kcal == null && t.durationS ? estimateActiveKcal(t.durationS / 60, weightKg) : null
+      return { id: t.id, title: t.title, startedAt: t.startedAt, kcal: t.kcal ?? est, estimated: t.kcal == null && est !== null }
+    }),
+  }
+}
