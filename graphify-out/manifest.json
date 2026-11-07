@@ -270,15 +270,15 @@
     "semantic_hash": ""
   },
   "src/components/PeptideVialVisual.test.ts": {
-    "mtime": 1792570285.9643135,
-    "seen": 1793833825.2073967,
-    "ast_hash": "5a49560c3da6ff95beab5b3471f56789",
+    "mtime": 1794047560.3929548,
+    "seen": 1794048042.615896,
+    "ast_hash": "e535b86958e179f052755a2d49666968",
     "semantic_hash": ""
   },
   "src/components/PeptideVialVisual.tsx": {
-    "mtime": 1794043943.7699249,
-    "seen": 1794044110.0088387,
-    "ast_hash": "030ab19f0bb7811e823b91ef179fd237",
+    "mtime": 1794047560.3931034,
+    "seen": 1794048042.615899,
+    "ast_hash": "e715dc1f845237e7bb8b71c9e289fe8b",
     "semantic_hash": ""
   },
   "src/components/ProtectedRoute.tsx": {
@@ -372,15 +372,15 @@
     "semantic_hash": ""
   },
   "src/components/sloshEngine.test.ts": {
-    "mtime": 1794037078.1921115,
-    "seen": 1794037145.1494067,
-    "ast_hash": "9b4e4e2eb36941612167f2d7063af584",
+    "mtime": 1794047560.3932226,
+    "seen": 1794048042.6168613,
+    "ast_hash": "fe569a43a813da9ea6eb5036b32e831e",
     "semantic_hash": ""
   },
   "src/components/sloshEngine.ts": {
-    "mtime": 1794045903.3947134,
-    "seen": 1794045957.2083397,
-    "ast_hash": "55066d5787536e80004f7676cbe54364",
+    "mtime": 1794047560.3933046,
+    "seen": 1794048042.6168642,
+    "ast_hash": "9aa151bbe9aa889a2fbb5ea51a2d8e6c",
     "semantic_hash": ""
   },
   "src/components/ui/DesignSystem.tsx": {
@@ -918,9 +918,9 @@
     "semantic_hash": ""
   },
   "src/main.tsx": {
-    "mtime": 1794043943.770579,
-    "seen": 1794044110.028915,
-    "ast_hash": "8b2e94871960d7cefffda4884aea3871",
+    "mtime": 1794047560.3950927,
+    "seen": 1794048042.6368752,
+    "ast_hash": "1ab456e03dfdfbe68f6d6cfd58469424",
     "semantic_hash": ""
   },
   "src/pages/Auth.tsx": {
@@ -3048,15 +3048,15 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/extensions/ampoule/AmpouleVisual.test.ts": {
-    "mtime": 1792570285.9981384,
-    "seen": 1793833825.2081325,
-    "ast_hash": "f3b2e09877fe950a4ee62b8cc1825d41",
+    "mtime": 1794047560.3933988,
+    "seen": 1794048042.6253667,
+    "ast_hash": "bdd3dff232f2455101bcaf67f299488e",
     "semantic_hash": ""
   },
   "src/features/my-stack/extensions/ampoule/AmpouleVisual.tsx": {
-    "mtime": 1792570285.9981384,
-    "seen": 1793833825.2081342,
-    "ast_hash": "be9cb3be72cdeee0aafe4fee2c84c52d",
+    "mtime": 1794047560.3935103,
+    "seen": 1794048042.6253693,
+    "ast_hash": "9a4dca7a0c5bf8eca3a034bd09e3d42b",
     "semantic_hash": ""
   },
   "src/features/my-stack/extensions/ampoule/ampouleShape.test.ts": {
@@ -3108,15 +3108,15 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/extensions/drops/DropsVisual.test.ts": {
-    "mtime": 1792570285.9996712,
-    "seen": 1793833825.2081466,
-    "ast_hash": "88ce2525f740e4bf7966b746c51217b2",
+    "mtime": 1794047560.3935971,
+    "seen": 1794048042.6256046,
+    "ast_hash": "3e5939fb02128dd490ba62164c3f6291",
     "semantic_hash": ""
   },
   "src/features/my-stack/extensions/drops/DropsVisual.tsx": {
-    "mtime": 1792570285.9996712,
-    "seen": 1793833825.208148,
-    "ast_hash": "1ec6f41c729e5df7b9b1b553f577cc78",
+    "mtime": 1794047560.3937116,
+    "seen": 1794048042.6256065,
+    "ast_hash": "3bf027e7d6bd1f1d58a7ffaf6faa3d44",
     "semantic_hash": ""
   },
   "src/features/my-stack/extensions/drops/dropsShape.test.ts": {
@@ -3180,15 +3180,15 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/extensions/nasal-spray/NasalSprayVisual.test.ts": {
-    "mtime": 1792570286.0012221,
-    "seen": 1793833825.2081635,
-    "ast_hash": "984d6520427ddbad370e51d44e879bfa",
+    "mtime": 1794047560.3937116,
+    "seen": 1794048042.6258388,
+    "ast_hash": "2e10edab4af5bf7f79c1bbe9ec88c81c",
     "semantic_hash": ""
   },
   "src/features/my-stack/extensions/nasal-spray/NasalSprayVisual.tsx": {
-    "mtime": 1792570286.0012221,
-    "seen": 1793833825.2081647,
-    "ast_hash": "568cdbeba20ac77c26429048477f0f6b",
+    "mtime": 1794047560.3939276,
+    "seen": 1794048042.6258407,
+    "ast_hash": "e9431dabd580a44a9bd33646c30a9173",
     "semantic_hash": ""
   },
   "src/features/my-stack/extensions/nasal-spray/nasalSprayShape.test.ts": {
@@ -3324,15 +3324,15 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/extensions/spray/SprayVisual.test.ts": {
-    "mtime": 1792570286.0038788,
-    "seen": 1793833825.2081947,
-    "ast_hash": "aa48a95d0578991632db7f182f5b5de6",
+    "mtime": 1794047560.3940156,
+    "seen": 1794048042.626336,
+    "ast_hash": "b24ba04c7b06d632a8090769e130f8cd",
     "semantic_hash": ""
   },
   "src/features/my-stack/extensions/spray/SprayVisual.tsx": {
-    "mtime": 1792570286.0038788,
-    "seen": 1793833825.2081962,
-    "ast_hash": "9ba062a6b59521865d5e52fc41077da8",
+    "mtime": 1794047560.394128,
+    "seen": 1794048042.6263378,
+    "ast_hash": "aa882ff5da96ea1972fa0707e21a991b",
     "semantic_hash": ""
   },
   "src/features/my-stack/extensions/spray/sprayShape.test.ts": {
@@ -3795,18 +3795,6 @@
     "mtime": 1792570286.012245,
     "seen": 1793833825.2083719,
     "ast_hash": "5e2c4a55a30f17c70b9281f84781266c",
-    "semantic_hash": ""
-  },
-  "src/features/my-stack/stage/LiquidGraphic.test.ts": {
-    "mtime": 1792570286.012245,
-    "seen": 1793833825.208375,
-    "ast_hash": "3d4e029cdb9f8419e360018105a16a7c",
-    "semantic_hash": ""
-  },
-  "src/features/my-stack/stage/LiquidGraphic.tsx": {
-    "mtime": 1794043905.5099444,
-    "seen": 1794044110.0213523,
-    "ast_hash": "fa366e31316c05757ef1c6cd8ed4570c",
     "semantic_hash": ""
   },
   "src/features/my-stack/stage/StageLabel.test.ts": {
@@ -4398,8 +4386,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1794044067.3631146,
-    "seen": 1794044110.0313196,
+    "mtime": 1794047399.2974799,
+    "seen": 1794048042.639403,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -5268,9 +5256,9 @@
     "semantic_hash": ""
   },
   "e2e/my-stack.spec.ts": {
-    "mtime": 1792656406.9819665,
-    "seen": 1793833825.2072105,
-    "ast_hash": "722b1c39482d1561770a6529c58735b1",
+    "mtime": 1794047560.3894727,
+    "seen": 1794048042.6141107,
+    "ast_hash": "b17f62e20e7086159dff75449a3d6966",
     "semantic_hash": ""
   },
   "e2e/support/fixtures.ts": {
@@ -7716,9 +7704,9 @@
     "semantic_hash": ""
   },
   "memory/projects/erscheinungsbild.md": {
-    "mtime": 1794044088.2736673,
-    "seen": 1794044110.0370464,
-    "ast_hash": "7904cc3db1ca25c6172ba59a0341140d",
+    "mtime": 1794048020.401452,
+    "seen": 1794048042.6453073,
+    "ast_hash": "d1cfa71f437b0a06695434b6399da15c",
     "semantic_hash": ""
   },
   "src/features/my-stack/components/FormUndFarbe.tsx": {
@@ -21918,9 +21906,9 @@
     "semantic_hash": ""
   },
   "src/lib/pruef.ts": {
-    "mtime": 1794043943.7703657,
-    "seen": 1794044110.0284905,
-    "ast_hash": "0a62b831ccab71e93030a2f15d5236e2",
+    "mtime": 1794047560.3949606,
+    "seen": 1794048042.6363523,
+    "ast_hash": "cd691ed48627eb0f46a9f9319b5e4a43",
     "semantic_hash": ""
   },
   "src/features/dot/engine/qualitaet.test.ts": {
@@ -21936,9 +21924,9 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/stage/LiquidCanvas.tsx": {
-    "mtime": 1794044177.7006211,
-    "seen": 1794044223.9426813,
-    "ast_hash": "e25ba9314a876be289148ff1978c84d3",
+    "mtime": 1794047560.3942664,
+    "seen": 1794048042.628946,
+    "ast_hash": "5bda473c6fac7f764309bf685b5c9b94",
     "semantic_hash": ""
   },
   "src/features/my-stack/stage/liquidBubbles.test.ts": {
@@ -21948,9 +21936,9 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/stage/liquidBubbles.ts": {
-    "mtime": 1794043872.3671234,
-    "seen": 1794044110.0214362,
-    "ast_hash": "1b4fd2140248ec5201226dbfeb83d09b",
+    "mtime": 1794047560.3942664,
+    "seen": 1794048042.629054,
+    "ast_hash": "081a2243b5713e499af706e30572eae2",
     "semantic_hash": ""
   }
 }
