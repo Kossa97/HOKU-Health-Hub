@@ -94,3 +94,17 @@ in der Spezifikation. Offen: Haltezeit 1,6 s bestätigen, dann Bau.
 Artefakt-Hinweis: kein iframe, kein Skript als eigene Datei (beides bleibt im
 Viewer leer); JS/CSS inline, Torso als `.wasm` (GLB wird nicht ausgeliefert).
 
+
+**Idee für v2 (Nutzer 07.11.2026, bewusst nach dem Release): Hoku wird zum
+Hologramm-Torso.** Statt des Hautmodells formen Hokus Partikel den Torso.
+Besprochen, nicht gebaut:
+- Hoku hat 460 Punkte mit je 5 Kindern (2.760); ein lesbarer Torso braucht
+  ~8.000–12.000 Punkte, aus dem GLB auf der Oberfläche abgetastet (mit Normalen).
+- Flüssig nur auf der Grafikkarte (Punkte als statischer Puffer, Drehung im
+  Shader), nicht in Hokus JS-Schleife pro Punkt.
+- Stufen: 1 Hologramm-Look in der r3f-Karte (Kamera, Fahrten, Pins bleiben);
+  2 Verwandlung als Übergabe (Hoku zerfällt, Wolke setzt sich von seiner Stelle
+  zusammen, ~1 s); 3 Hoku *ist* der Torso, sein Auge schwebt, wo der Kopf wäre.
+- Vorsicht: abgewandte Punkte ausblenden (sonst vorn/hinten unklar); Setzen
+  weiter auf das unsichtbare Modell (genau wie heute); Hautmodell als „Studio“
+  wählbar lassen.
