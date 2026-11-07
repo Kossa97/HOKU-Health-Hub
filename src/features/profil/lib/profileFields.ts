@@ -59,7 +59,8 @@ const COUNTRY_SET = new Set(COUNTRY_CODES)
 /** Gleiche Form wie die Pruefung in der Datenbank: zwei Grossbuchstaben. */
 export const isCountryCode = (v: string): boolean => /^[A-Z]{2}$/.test(v)
 
-const flagOf = (code: string): string =>
+/** Flagge aus dem Ländercode (Regional-Indicator-Zeichen). */
+export const flagOf = (code: string): string =>
   String.fromCodePoint(...[...code].map(c => 0x1f1e6 + c.charCodeAt(0) - 65))
 
 /** Alle Laender, im Namen der Sprache, nach Name sortiert. */

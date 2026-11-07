@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 // Fake-Client: protokolliert alle Aufrufe in Reihenfolge.
 const log: string[] = []
 const state = { altPfad: null as string | null, zeilen: 1, updateFehler: null as string | null, uploadFehler: null as string | null }
+const pruefung = { antwort: { data: { status: 'approved' } as unknown, error: null as unknown } as { data: unknown; error: unknown } | Error }
 
 vi.mock('../../../lib/supabase', () => ({
   supabase: {
@@ -27,6 +28,13 @@ vi.mock('../../../lib/supabase', () => ({
         }),
       }),
     }),
+    functions: {
+      invoke: async (name: string, opts: { body: unknown }) => {
+        log.push(`invoke ${name} ${JSON.stringify(opts.body)}`)
+        if (pruefung.antwort instanceof Error) throw pruefung.antwort
+        return pruefung.antwort
+      },
+    },
     storage: {
       from: (bucket: string) => ({
         upload: async (pfad: string, _blob: Blob, opts: Record<string, unknown>) => {
@@ -47,7 +55,7 @@ vi.mock('../../../lib/supabase', () => ({
 }))
 vi.mock('../../../lib/monitoring', () => ({ reportError: vi.fn() }))
 
-import { BildZuGrossError, prepareImage, removeProfileMedia, signedMediaUrl, targetSize, uploadProfileMedia } from './profileMedia'
+import { BildZuGrossError, checkProfileMedia, dismissRejectedMedia, prepareImage, removeProfileMedia, signedMediaUrl, targetSize, uploadProfileMedia } from './profileMedia'
 
 describe('targetSize', () => {
   it('Profilbild: mittiger Quadrat-Zuschnitt, 512 Pixel', () => {
@@ -179,6 +187,23 @@ describe('prepareImage', () => {
     expect(bitmap).toHaveBeenCalledWith(expect.anything(), { imageOrientation: 'from-image' })
   })
 
+  it('createImageBitmap scheitert ganz (aeltere WebKit-Staende): dekodiert ueber <img>', async () => {
+    const { bitmap, zeichnungen, dims } = canvasAttrappe([100_000], { w: 800, h: 600 })
+    bitmap.mockImplementation(async () => { throw new TypeError('imageOrientation') })
+    const blob = await prepareImage(png(), 'avatar')
+    expect(blob.size).toBe(100_000)
+    expect(zeichnungen[0].slice(1)).toEqual([100, 0, 600, 600, 0, 0, 512, 512])
+    expect(dims).toEqual([{ width: 512, height: 512 }])
+    // Objekt-URL fuer die Probe und fuer das Rueckfall-Bild wieder freigegeben
+    expect(URL.revokeObjectURL).toHaveBeenCalledTimes(2)
+  })
+
+  it('weder Bitmap noch <img> koennen dekodieren: Fehler statt haengen', async () => {
+    const { bitmap } = canvasAttrappe([100_000], null)
+    bitmap.mockImplementation(async () => { throw new TypeError('decode') })
+    await expect(prepareImage(png(), 'avatar')).rejects.toThrow('Bild konnte nicht dekodiert werden')
+  })
+
   it('Datei ueber 25 MB: eigener Fehler, nichts wird dekodiert', async () => {
     const { bitmap } = canvasAttrappe([100_000])
     const gross = png()
@@ -281,5 +306,37 @@ describe('Speicher und Profilzeile', () => {
     expect(await signedMediaUrl('u1/a.jpg')).toBe('https://signiert/u1/a.jpg')
     expect(log).toContain('sign profile-media u1/a.jpg 3600')
     expect(await signedMediaUrl('kaputt')).toBeNull()
+  })
+})
+
+describe('Bild-Check', () => {
+  beforeEach(() => {
+    log.length = 0
+    state.zeilen = 1
+    state.updateFehler = null
+  })
+
+  it('schickt nur die Art, nie einen Pfad, und gibt den neuen Stand zurück', async () => {
+    pruefung.antwort = { data: { status: 'rejected' }, error: null }
+    expect(await checkProfileMedia('cover')).toBe('rejected')
+    expect(log).toEqual(['invoke profile-image-check {"kind":"cover"}'])
+    pruefung.antwort = { data: { status: null }, error: null }
+    expect(await checkProfileMedia('avatar')).toBeNull()
+  })
+
+  it('Fehler, Tageslimit, Netz oder unbekannte Antwort: wird geprüft', async () => {
+    pruefung.antwort = { data: null, error: { message: 'rate_limit' } }
+    expect(await checkProfileMedia('avatar')).toBe('pending')
+    pruefung.antwort = { data: { status: 'ok' }, error: null }
+    expect(await checkProfileMedia('avatar')).toBe('pending')
+    pruefung.antwort = new Error('offline')
+    expect(await checkProfileMedia('avatar')).toBe('pending')
+  })
+
+  it('Hinweis quittieren setzt nur den Status auf null', async () => {
+    await dismissRejectedMedia('u1', 'avatar')
+    expect(log).toEqual(['update profiles {"avatar_status":null}'])
+    state.zeilen = 0
+    await expect(dismissRejectedMedia('u1', 'avatar')).rejects.toThrow()
   })
 })

@@ -22,6 +22,7 @@ import { collectPagedRows } from '../lib/pagination'
 import { PHOTO_BUCKET, SIGNED_URL_TTL_SECONDS } from '../constants'
 import { BATCH_LINK_ERNEUERN_MS, istAdresse, signiereBatchDateien } from '../../../lib/batchFiles'
 import { reportError } from '../../../lib/monitoring'
+import { isMissingColumn } from '../../../lib/dbErrors'
 
 /**
  * Dauerhafte Substanzen (ohne Zyklus) haben noch keine Datenquelle — die
@@ -37,8 +38,14 @@ function mapDailyLogs(rows: Record<string, unknown>[] | null): DailyLogEntry[] {
     wohlbefinden: row.wohlbefinden != null ? Number(row.wohlbefinden) : null,
     libido: row.libido != null ? Number(row.libido) : null,
     body_fat_pct: row.body_fat_pct != null ? Number(row.body_fat_pct) : null,
+    muscle_mass_kg: row.muscle_mass_kg != null ? Number(row.muscle_mass_kg) : null,
   }))
 }
+
+const DAILY_LOG_COLUMNS = 'log_date, energie, schlaf, wohlbefinden, libido, body_fat_pct, muscle_mass_kg'
+/** Vor der Migration Profil 2a fehlt `muscle_mass_kg` — dann ohne die Spalte laden. */
+const DAILY_LOG_COLUMNS_V1 = 'log_date, energie, schlaf, wohlbefinden, libido, body_fat_pct'
+
 
 /** Legacy-Fotos tragen eine volle Public-URL; neue Fotos nur den Storage-Pfad. */
 export function isLegacyPhotoUrl(photoUrl: string): boolean {
@@ -146,16 +153,20 @@ export function useFortschrittData() {
     const activeRange = rangeFromActiveSubstances(cycles, ONGOING_SUBSTANCES)
     const toBound = `${activeRange.to}T23:59:59`
 
-    const [dailyRes, weightRes, bloodRes, measurementRes, photoRes, doseRes] = await Promise.all([
+    const loadDailyLogs = (columns: string) =>
       collectPagedRows((from, to) =>
         supabase
           .from('daily_logs')
-          .select('log_date, energie, schlaf, wohlbefinden, libido, body_fat_pct')
+          .select(columns)
           .eq('user_id', user.id)
           .lte('log_date', activeRange.to)
           .order('log_date', { ascending: true })
           .range(from, to),
-      ),
+      )
+
+    const [dailyRes, weightRes, bloodRes, measurementRes, photoRes, doseRes] = await Promise.all([
+      loadDailyLogs(DAILY_LOG_COLUMNS).then(res =>
+        isMissingColumn(res.error) ? loadDailyLogs(DAILY_LOG_COLUMNS_V1) : res),
       collectPagedRows((from, to) =>
         supabase
           .from('weight_logs')
@@ -216,7 +227,7 @@ export function useFortschrittData() {
       toast.error(i18n.t('fortschritt_load_failed'))
     }
 
-    setDailyLogs(mapDailyLogs(dailyRes.data))
+    setDailyLogs(mapDailyLogs(dailyRes.data as Record<string, unknown>[] | null))
     setWeightLogs(
       (weightRes.data ?? [])
         .map((row: { id: string; logged_at: string; weight_kg: number | string }) => ({

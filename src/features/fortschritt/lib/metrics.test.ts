@@ -128,3 +128,18 @@ describe('buildMetricSeries mit Umfängen', () => {
     expect(buildMetricSeries('umfang:nose', range, weights, [], [], measurements)).toEqual([])
   })
 })
+
+describe('buildMetricSeries mit Muskelmasse', () => {
+  it('liefert die Muskelmasse-Punkte aus den Tageseintraegen im Zeitraum', () => {
+    const logs: DailyLogEntry[] = [
+      { log_date: '2026-06-01', energie: null, schlaf: null, wohlbefinden: null, libido: null, body_fat_pct: 18, muscle_mass_kg: 38 },
+      { log_date: '2026-06-08', energie: 7, schlaf: null, wohlbefinden: null, libido: null, body_fat_pct: null },
+      { log_date: '2026-06-15', energie: null, schlaf: null, wohlbefinden: null, libido: null, body_fat_pct: null, muscle_mass_kg: 38.6 },
+      { log_date: '2026-04-01', energie: null, schlaf: null, wohlbefinden: null, libido: null, body_fat_pct: null, muscle_mass_kg: 36 },
+    ]
+    expect(buildMetricSeries('muscle_mass', range, [], logs, [])).toEqual([
+      { date: '2026-06-01', value: 38 },
+      { date: '2026-06-15', value: 38.6 },
+    ])
+  })
+})

@@ -1,59 +1,83 @@
 // @vitest-environment jsdom
 
-import { act, cleanup, render, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const db = vi.hoisted(() => ({ laden: { data: null, error: null } as { data: unknown; error: unknown } }))
+const db = vi.hoisted(() => ({
+  row: null as Record<string, unknown> | null,
+  view: null as unknown,
+  viewError: null as unknown,
+  updateError: null as unknown,
+  updates: [] as Record<string, unknown>[],
+}))
 vi.mock('../lib/supabase', () => ({
-  supabase: { from: () => ({ select: () => ({ eq: () => ({ single: () => Promise.resolve(db.laden) }) }) }) },
+  supabase: {
+    from: () => ({
+      select: () => ({ eq: () => ({ single: () => Promise.resolve(db.row ? { data: db.row, error: null } : { data: null, error: { message: 'offline' } }) }) }),
+      update: (patch: Record<string, unknown>) => ({ eq: () => { db.updates.push(patch); return Promise.resolve({ error: db.updateError }) } }),
+    }),
+    rpc: (name: string) => Promise.resolve(name === 'profile_view' ? { data: db.view, error: db.viewError } : { data: null, error: null }),
+  },
 }))
 vi.mock('../context/AuthContext', () => ({ useAuth: () => ({ user: { id: 'u1', email: 'a@b.c' }, signOut: vi.fn() }) }))
-vi.mock('react-hot-toast', () => ({ default: { error: vi.fn(), success: vi.fn() } }))
-vi.mock('../i18n', () => ({ LANGUAGES: [], setLanguage: vi.fn() }))
-vi.mock('../lib/look', () => ({ useLook: () => ({ look: 'standard', setLook: vi.fn() }) }))
-vi.mock('../lib/flashlight', () => ({ requestTilt: vi.fn(), setTiltWanted: vi.fn(), tiltWanted: () => false }))
-vi.mock('../lib/usePushNotifications', () => ({
-  usePushNotifications: () => ({ state: 'unsupported', subscribe: vi.fn(), unsubscribe: vi.fn(), reconnect: vi.fn(), sendTestPush: vi.fn() }),
-}))
-vi.mock('../lib/stoerung', () => ({ setzeStoerungSimuliert: vi.fn(), useStoerung: () => ({ simuliert: false }) }))
-vi.mock('../components/ui/DesignSystem', () => ({ ResearchDisclaimer: () => null }))
-vi.mock('../components/ui/GlassSegmented', () => ({ GlassSegmented: () => null }))
-vi.mock('../features/compliance/components/AccountSection', () => ({ AccountSection: () => null }))
-vi.mock('../features/auth/lib/passkey', () => ({ PASSKEY_AN: false }))
-vi.mock('../features/auth/components/PasskeyEinstellung', () => ({ PasskeyEinstellung: () => null }))
-vi.mock('../features/blutwerte/components/KiEinwilligung', () => ({ KiEinwilligungProfil: () => null }))
-vi.mock('../features/ernaehrung/components/PhotoConsentProfile', () => ({ PhotoConsentProfile: () => null }))
-vi.mock('../features/wearables/components/HealthStoreProfile', () => ({ HealthStoreProfile: () => null }))
-vi.mock('../features/blutwerte/components/BioProfil', () => ({ BioProfilKarte: () => null }))
-vi.mock('../features/profil/components/ProfilBilder', () => ({ ProfilBilder: () => null }))
-
-type KartenProps = { geladen: boolean; goals: string[] }
-const karte = vi.hoisted(() => ({ props: null as KartenProps | null }))
-vi.mock('../features/profil/components/UeberDichKarte', () => ({
-  UeberDichKarte: (props: KartenProps) => { karte.props = props; return null },
-}))
+const toastError = vi.fn()
+vi.mock('react-hot-toast', () => ({ default: { error: (m: string) => toastError(m), success: vi.fn() } }))
+vi.mock('../features/profil/hooks/useProfileSnapshotSync', () => ({ requestProfileSnapshot: vi.fn() }))
+vi.mock('../features/profil/services/profileMedia', () => ({ signedMediaUrl: vi.fn(async () => null) }))
+vi.mock('../features/profil/services/profileSnapshotStore', () => ({ loadProfileSnapshotInput: vi.fn(async () => ({})) }))
+vi.mock('../features/profil/lib/profileSnapshot', () => ({ buildProfileSnapshot: () => ({ age: { v: 41 } }) }))
 
 import { Profil } from './Profil'
 
-beforeEach(() => { karte.props = null })
-afterEach(cleanup)
-
+const ZEILE = { username: 'mara', display_name: 'Mara', public_bio: 'Lokal', field_visibility: {}, created_at: '2026-03-01T00:00:00Z' }
 const renderPage = () => render(<MemoryRouter><Profil /></MemoryRouter>)
 
-describe('Profil „Über dich"', () => {
-  it('Ladefehler: Ziele, Land und Geschlecht bleiben gesperrt', async () => {
-    db.laden = { data: null, error: { message: 'offline' } }
-    renderPage()
-    await act(() => new Promise(resolve => setTimeout(resolve, 0)))
-    expect(karte.props?.geladen).toBe(false)
+beforeEach(() => {
+  db.row = { ...ZEILE }
+  db.view = { username: 'mara', display_name: 'Mara', own: true, fields: { age: { v: 29 }, bio: 'Vom Server' }, visibility: { age: 'friends' } }
+  db.viewError = null
+  db.updateError = null
+  db.updates = []
+  toastError.mockClear()
+})
+afterEach(cleanup)
+
+describe('Profil (eigene Ansicht)', () => {
+  it('zeigt die eigene Sicht aus profile_view mit Stufen', async () => {
+    const { container } = renderPage()
+    await waitFor(() => expect(container.querySelector('[data-profile-bio]')?.textContent).toContain('Vom Server'))
+    expect(container.querySelector('[data-vis-chip="age"]')?.getAttribute('data-vis')).toBe('friends')
+    expect(container.querySelector('[data-profile-settings]')?.getAttribute('href')).toBe('/profil/einstellungen')
   })
 
-  it('vor dem Laden gesperrt, danach frei und mit den gespeicherten Zielen', async () => {
-    db.laden = { data: { goals: ['schlaf'], country: 'DE', profile_gender: 'female' }, error: null }
-    renderPage()
-    expect(karte.props?.geladen).toBe(false)
-    await waitFor(() => expect(karte.props?.geladen).toBe(true))
-    expect(karte.props?.goals).toEqual(['schlaf'])
+  it('profile_view fehlt: rechnet lokal und zeigt trotzdem alles', async () => {
+    db.viewError = { message: 'function profile_view does not exist' }
+    const { container } = renderPage()
+    await waitFor(() => expect(container.querySelector('[data-profile-bio]')?.textContent).toContain('Lokal'))
+    expect(container.querySelector('[data-profile-tile="age"] [data-profile-value]')?.textContent).toBe('41')
+  })
+
+  it('Chip schaltet weiter und speichert sofort die ganze Stufenkarte', async () => {
+    const { container } = renderPage()
+    await waitFor(() => expect(container.querySelector('[data-vis-chip="age"]')).not.toBeNull())
+    await act(async () => { fireEvent.click(container.querySelector('[data-vis-chip="age"]')!) })
+    expect(db.updates.at(-1)).toEqual({ field_visibility: { age: 'all' } })
+    expect(container.querySelector('[data-vis-chip="age"]')?.getAttribute('data-vis')).toBe('all')
+  })
+
+  it('Speicherfehler: Stufe zurück, Meldung', async () => {
+    db.updateError = { message: 'offline' }
+    const { container } = renderPage()
+    await waitFor(() => expect(container.querySelector('[data-vis-chip="age"]')).not.toBeNull())
+    await act(async () => { fireEvent.click(container.querySelector('[data-vis-chip="age"]')!) })
+    expect(container.querySelector('[data-vis-chip="age"]')?.getAttribute('data-vis')).toBe('friends')
+    expect(toastError).toHaveBeenCalledWith('fehler_speichern')
+  })
+
+  it('Ladefehler der Profilzeile: Hinweis statt leerer Seite', async () => {
+    db.row = null
+    const { findByRole } = renderPage()
+    expect((await findByRole('alert')).textContent).toContain('profil_laden_fehler')
   })
 })

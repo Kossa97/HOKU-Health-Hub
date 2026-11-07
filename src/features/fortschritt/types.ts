@@ -45,6 +45,8 @@ export interface DailyLogEntry {
   wohlbefinden: number | null
   libido: number | null
   body_fat_pct: number | null
+  /** Fehlt, solange die Spalte (Migration Profil 2a) nicht da ist. */
+  muscle_mass_kg?: number | null
 }
 
 export interface BodyMeasurementEntry {
@@ -91,6 +93,7 @@ export type MetricKey =
   | 'wohlbefinden'
   | 'libido'
   | 'body_fat'
+  | 'muscle_mass'
   | string
 
 export interface MetricChange {

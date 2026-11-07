@@ -66,8 +66,13 @@ test('Live: Countdown 5.00 → Symbol dreht → von vorn, lädt jede Minute neu 
   await page.goto('/simulation')
   await expect(page.locator('[data-bs-row]')).toHaveCount(1)
   await expect(page.locator('[data-bs-refresh]')).toHaveCount(0)
+  // Nur die Einnahmen-Abfragen des Blutspiegels (mit Dosis) zählen; der
+  // Profil-Schnappschuss liest kurz nach dem Start ebenfalls dose_logs, ohne Dosis.
   const anfragen: string[] = []
-  page.on('request', r => { if (r.url().includes('dose_logs')) anfragen.push(r.url()) })
+  page.on('request', r => {
+    const url = new URL(r.url())
+    if (url.pathname.endsWith('/dose_logs') && (url.searchParams.get('select') ?? '').split(',').map(s => s.trim()).includes('dose')) anfragen.push(r.url())
+  })
   await page.clock.runFor(5_000)
   await expect(page.locator('[data-bs-countdown]')).toHaveText(/^[0-5]\.\d\d$/)
   expect(anfragen).toHaveLength(0)

@@ -23,6 +23,11 @@ import { hatZugang } from '../../supabase/functions/coach/prompt'
 /** Wirft ein RPC-Handler das, antwortet der Mock wie Postgres mit einer Fehlermeldung — ein erwarteter Fehler, kein Loch im Mock. */
 export class RpcError extends Error {}
 
+/** Platzhalter fuer Bilder aus privaten Buckets (Verlauf, kein echtes Foto). */
+const PLATZHALTER_BILD = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6d8f7a"/><stop offset="1" stop-color="#2e3d4f"/></linearGradient></defs>
+<rect width="300" height="300" fill="url(#g)"/><circle cx="150" cy="120" r="52" fill="#d9c7b0"/><rect x="70" y="190" width="160" height="120" rx="70" fill="#d9c7b0"/></svg>`
+
 export const SUPABASE_ORIGIN = 'https://xcskcojakolphtbuqfbw.supabase.co'
 export const STORAGE_KEY = 'sb-xcskcojakolphtbuqfbw-auth-token'
 
@@ -120,6 +125,39 @@ function parseSelect(select: string): SelectField[] {
     if (text[i] === ',') i++
   }
   return fields
+}
+
+/**
+ * Nachbild des Triggers protect_profile_media_status: Den Bildstatus und die
+ * Objekt-ID der freigegebenen Datei setzt nur der Bild-Check. Ein neuer Pfad
+ * macht den Status `pending` und leert die Objekt-ID, ohne Pfad darf der Client
+ * den Status auf `null` setzen (Hinweis „abgelehnt“ quittieren), sonst bleibt er.
+ */
+function schuetzeBildstatus(alt: Row, patch: Row): Row {
+  const neu = { ...patch }
+  for (const kind of ['avatar', 'cover'] as const) {
+    const pfad = `${kind}_path`
+    const status = `${kind}_status`
+    const objekt = `${kind}_object_id`
+    const neuerPfad = pfad in neu ? neu[pfad] : alt[pfad]
+    if (neuerPfad !== alt[pfad]) neu[status] = neuerPfad == null ? null : 'pending'
+    else if (neuerPfad == null && status in neu && neu[status] === null) neu[status] = null
+    else delete neu[status]
+    if (neuerPfad !== alt[pfad]) neu[objekt] = null
+    else delete neu[objekt]
+  }
+  return neu
+}
+
+/**
+ * Nachbild von oeffentlicher_text_fehler (supabase-store-compliance-2.sql), ohne
+ * die Wortliste aus moderation_terms: Link oder Handelswort → Fehlerschlüssel.
+ */
+function oeffentlicherTextFehler(text: unknown): string | null {
+  const t = String(text ?? '').toLowerCase()
+  if (/(https?:\/\/|www\.|\b[a-z0-9-]+\.(com|de|net|org|io|shop|store|eu|co|me|at|ch|nl|ru)\b|@[a-z0-9_]{3,})/.test(t)) return 'oeffentlicher_text_link'
+  if (/\b(verkaufe|verkaufen|verkauf|bezugsquelle|bezugsquellen|lieferant|rabattcode|gutscheincode|vendor|supplier|sell|selling|telegram|whatsapp|wickr|threema)\b/.test(t)) return 'oeffentlicher_text_handel'
+  return null
 }
 
 function toNumberish(value: string): unknown {
@@ -253,6 +291,18 @@ export class MockSupabase {
   private readonly rpcFailures = new Map<string, string>()
   /** Die Uhr der Zeilen (`created_at`, `updated_at`) — dieselbe, die der Test dem Browser gibt. */
   private readonly now: () => Date
+  /** `false`: der Browser hat keine Sitzung (Besuch ohne Anmeldung, z. B. Web-Link). */
+  private angemeldet = true
+
+  /** Wer fragt: die Testperson oder niemand (ohne Anmeldung). */
+  private betrachter(): string | null {
+    return this.angemeldet ? TEST_USER.id : null
+  }
+
+  private blockiertZwischen(a: unknown, b: unknown): boolean {
+    return this.table('user_blocks').some(row =>
+      (row.blocker_id === a && row.blocked_id === b) || (row.blocker_id === b && row.blocked_id === a))
+  }
 
   constructor(options: { now?: Date } = {}) {
     const fixed = options.now
@@ -276,6 +326,9 @@ export class MockSupabase {
       username: 'e2e',
       is_public: false,
       is_admin: false,
+      field_visibility: {},
+      profile_private: false,
+      web_link_enabled: false,
       age_confirmed_at: '2026-01-01T00:00:00.000Z',
       terms_accepted_at: '2026-01-01T00:00:00.000Z',
       terms_version: TERMS_VERSION,
@@ -284,6 +337,42 @@ export class MockSupabase {
 
   /** Dateien im Speicher je Bucket (`<user-id>/<name>`). */
   readonly storage = new Map<string, string[]>()
+
+  /** storage.objects.id je Datei (`<bucket>/<pfad>`); neu hochgeladen = neue id. */
+  private readonly objektIds = new Map<string, string>()
+
+  /** Datei löschen und unter demselben Namen neu anlegen (wie storage.objects: neue id). */
+  ersetzeDatei(bucket: string, pfad: string): void {
+    this.storage.set(bucket, [...(this.storage.get(bucket) ?? []).filter(path => path !== pfad), pfad])
+    this.objektIds.set(`${bucket}/${pfad}`, randomUUID())
+  }
+
+  /** id der Datei wie in storage.objects; `null`, wenn sie nicht (mehr) da ist. */
+  objektId(bucket: string, pfad: string): string | null {
+    if (!(this.storage.get(bucket) ?? []).includes(pfad)) return null
+    const key = `${bucket}/${pfad}`
+    const id = this.objektIds.get(key) ?? randomUUID()
+    this.objektIds.set(key, id)
+    return id
+  }
+
+  /**
+   * Nachbild der Storage-Policies fuer `profile-media`: eigener Ordner, oder ein
+   * freigegebenes Bild (Status `approved` und noch genau die gepruefte Datei)
+   * fuer erlaubte Betrachter (profile_media_visible).
+   */
+  private medienSichtbar(pfad: string): boolean {
+    const betrachter = this.betrachter()
+    if (betrachter && pfad.split('/')[0] === betrachter) return true
+    const id = this.objektId('profile-media', pfad)
+    return id !== null && this.table('profiles').some(p =>
+      p.hidden_by_moderation !== true && !(betrachter && this.blockiertZwischen(betrachter, p.id)) && (
+        (p.avatar_path === pfad && p.avatar_status === 'approved' && p.avatar_object_id === id
+          && (betrachter !== null || (p.web_link_enabled === true && p.profile_private !== true)))
+        || (p.cover_path === pfad && p.cover_status === 'approved' && p.cover_object_id === id
+          && betrachter !== null && p.profile_private !== true
+          && (p.field_visibility as Record<string, string> | undefined)?.cover === 'all')))
+  }
 
   /** Der echte Katalog aus der Quelldatei — dieselbe, aus der die SQL entsteht. */
   private seedCatalog(): void {
@@ -345,20 +434,21 @@ export class MockSupabase {
     this.rpcHandlers.set(name, handler)
   }
 
-  async install(page: Page, options: { language?: string } = {}): Promise<void> {
+  async install(page: Page, options: { language?: string; angemeldet?: boolean } = {}): Promise<void> {
     const session = fakeSession(this.now())
     const language = options.language ?? 'de'
-    await page.addInitScript(({ key, value, userId, lang }) => {
+    this.angemeldet = options.angemeldet ?? true
+    await page.addInitScript(({ key, value, userId, lang, angemeldet }) => {
       // Nur beim ersten Laden: ein Neuladen im Test soll den Zustand behalten.
       if (sessionStorage.getItem('__e2e_seeded')) return
       sessionStorage.setItem('__e2e_seeded', '1')
-      localStorage.setItem(key, value)
+      if (angemeldet) localStorage.setItem(key, value)
       localStorage.setItem('tyd_lang', lang)
       localStorage.setItem(`tyd_lang_picked_${userId}`, '1')
       localStorage.setItem('tyd_stack_colors_migrated_v1', '1')
       localStorage.setItem('tyd_push_dismissed', 'true')
       localStorage.setItem('tyd_ios_install_shown', 'true')
-    }, { key: STORAGE_KEY, value: JSON.stringify(session), userId: TEST_USER.id, lang: language })
+    }, { key: STORAGE_KEY, value: JSON.stringify(session), userId: TEST_USER.id, lang: language, angemeldet: this.angemeldet })
 
     // Alles ausser der App selbst und dem nachgebildeten Supabase bleibt aus:
     // Schriften, Analytics, Sentry. Der Test haengt so an keinem Netz.
@@ -387,6 +477,7 @@ export class MockSupabase {
       if (url.pathname === '/functions/v1/label-extract') return await this.handleLabelExtract(route)
       if (url.pathname === '/functions/v1/coach') return await this.handleCoach(route)
       if (url.pathname === '/functions/v1/login-name') return await this.handleLoginName(route)
+      if (url.pathname === '/functions/v1/profile-image-check') return await this.handleProfileImageCheck(route)
       if (url.pathname.startsWith('/functions/v1/') || url.pathname.startsWith('/storage/v1/')) {
         this.unhandled.push(`${method} ${url.pathname}`)
         return route.fulfill({ status: 404, headers: corsHeaders(), json: { message: 'not mocked' } })
@@ -517,6 +608,34 @@ export class MockSupabase {
   } = { antwort: 'Heute ist nichts geplant.', meldungen: [], anlagen: [], plaene: [], error: null, calls: [] }
 
   /**
+   * Nachbild von supabase/functions/profile-image-check: prueft nur das Bild
+   * der Testperson mit Status `pending` (Pfad aus der Profilzeile, nie aus der
+   * Anfrage). `imageCheck.urteil`: `approved` gibt genau die vorhandene Datei
+   * frei (Objekt-ID), `rejected` loescht Datei und Pfad, `pending` spielt einen
+   * Fehler beim Pruefen nach; ohne Datei bleibt es `pending`.
+   */
+  readonly imageCheck: { urteil: 'approved' | 'rejected' | 'pending'; calls: { kind: string }[] } = { urteil: 'approved', calls: [] }
+
+  private async handleProfileImageCheck(route: Route): Promise<void> {
+    const body = (route.request().postDataJSON() ?? {}) as { kind?: string }
+    const kind = body.kind === 'avatar' || body.kind === 'cover' ? body.kind : null
+    if (!kind) return route.fulfill({ status: 400, headers: corsHeaders(), json: { error: 'invalid_body' } })
+    this.imageCheck.calls.push({ kind })
+    const profil = this.table('profiles').find(row => row.id === TEST_USER.id)!
+    const pfad = profil[`${kind}_path`] as string | null | undefined
+    const status = (profil[`${kind}_status`] as string | null | undefined) ?? null
+    if (!pfad || status !== 'pending') return route.fulfill({ headers: corsHeaders(), json: { status } })
+    const objektId = this.objektId('profile-media', pfad)
+    const urteil = objektId ? this.imageCheck.urteil : 'pending'
+    if (urteil === 'approved') Object.assign(profil, { [`${kind}_status`]: 'approved', [`${kind}_object_id`]: objektId })
+    if (urteil === 'rejected') {
+      Object.assign(profil, { [`${kind}_path`]: null, [`${kind}_status`]: 'rejected', [`${kind}_object_id`]: null })
+      this.storage.set('profile-media', (this.storage.get('profile-media') ?? []).filter(p => p !== pfad))
+    }
+    return route.fulfill({ headers: corsHeaders(), json: { status: urteil } })
+  }
+
+  /**
    * Nachbild von supabase/functions/login-name: Name (Groß/klein egal) und
    * `loginName.passwort` ergeben die Sitzung der Testperson, alles andere 401.
    */
@@ -560,6 +679,16 @@ export class MockSupabase {
         .slice(offset, offset + limit)
       return route.fulfill({ headers: corsHeaders(), json: names.map(name => ({ name, id: name, metadata: {} })) })
     }
+    // Einzelner Link (createSignedUrl): sign/<bucket>/<pfad>
+    if (method === 'POST' && rest.startsWith('sign/') && rest.slice('sign/'.length).includes('/')) {
+      const pfad = rest.slice('sign/'.length)
+      const bucket = pfad.split('/')[0]
+      const datei = decodeURIComponent(pfad.slice(bucket.length + 1))
+      if (!(this.storage.get(bucket) ?? []).includes(datei) || (bucket === 'profile-media' && !this.medienSichtbar(datei))) {
+        return route.fulfill({ status: 400, headers: corsHeaders(), json: { statusCode: '404', error: 'not_found', message: 'Object not found' } })
+      }
+      return route.fulfill({ headers: corsHeaders(), json: { signedURL: `/object/sign/${bucket}/${datei}?token=e2e` } })
+    }
     if (method === 'POST' && rest.startsWith('sign/')) {
       const bucket = rest.slice('sign/'.length)
       const { paths = [] } = (route.request().postDataJSON() ?? {}) as { paths?: string[] }
@@ -571,10 +700,29 @@ export class MockSupabase {
           : { path, signedURL: null, error: 'Object not found' }),
       })
     }
+    // Signierter Link (Bild im privaten Bucket): ein kleines Platzhalterbild.
+    if (method === 'GET' && rest.startsWith('sign/')) {
+      const pfad = rest.slice('sign/'.length)
+      const bucket = pfad.split('/')[0]
+      if (!(this.storage.get(bucket) ?? []).includes(decodeURIComponent(pfad.slice(bucket.length + 1)))) {
+        return route.fulfill({ status: 400, headers: corsHeaders(), json: { message: 'Object not found' } })
+      }
+      return route.fulfill({ headers: { ...corsHeaders(), 'content-type': 'image/svg+xml' }, body: PLATZHALTER_BILD })
+    }
+    // Hochladen: Datei je Bucket merken.
+    if (method === 'POST' && !rest.startsWith('list/') && !rest.startsWith('sign/')) {
+      const bucket = rest.split('/')[0]
+      const pfad = decodeURIComponent(rest.slice(bucket.length + 1))
+      this.storage.set(bucket, [...(this.storage.get(bucket) ?? []).filter(path => path !== pfad), pfad])
+      const id = randomUUID()
+      this.objektIds.set(`${bucket}/${pfad}`, id)
+      return route.fulfill({ headers: corsHeaders(), json: { Key: `${bucket}/${pfad}`, Id: id } })
+    }
     if (method === 'DELETE') {
       const bucket = rest
       const { prefixes = [] } = (route.request().postDataJSON() ?? {}) as { prefixes?: string[] }
       this.storage.set(bucket, (this.storage.get(bucket) ?? []).filter(path => !prefixes.includes(path)))
+      for (const name of prefixes) this.objektIds.delete(`${bucket}/${name}`)
       return route.fulfill({ headers: corsHeaders(), json: prefixes.map(name => ({ name })) })
     }
     this.unhandled.push(`STORAGE ${method} ${url.pathname}`)
@@ -794,7 +942,10 @@ export class MockSupabase {
     }
 
     if (method === 'PATCH') {
-      const changed = selected().map(row => Object.assign(row, body, { updated_at: this.now().toISOString() }))
+      const changed = selected().map(row => {
+        const patch = tableName === 'profiles' ? schuetzeBildstatus(row, (body ?? {}) as Row) : body
+        return Object.assign(row, patch, { updated_at: this.now().toISOString() })
+      })
       return returnRows ? respond(changed) : route.fulfill({ status: 204, headers: corsHeaders() })
     }
 
@@ -876,7 +1027,9 @@ export class MockSupabase {
     this.onRpc('report_public_review', params => {
       const review = this.table('reviews').find(row => row.id === params.p_review_id)
       const besitzer = review && this.table('profiles').find(row => row.id === review.user_id)
-      if (!review || review.is_public !== true || review.hidden_by_moderation === true || besitzer?.is_public !== true || review.user_id === TEST_USER.id) {
+      const sichtbar = besitzer && besitzer.hidden_by_moderation !== true && besitzer.profile_private !== true
+        && (besitzer.field_visibility as Record<string, string> | undefined)?.reviews === 'all'
+      if (!review || review.is_public !== true || review.hidden_by_moderation === true || !sichtbar || review.user_id === TEST_USER.id) {
         throw new RpcError('meldung_nicht_moeglich')
       }
       if (this.table('content_reports').some(row => row.review_id === review.id && row.reporter_id === TEST_USER.id)) return null
@@ -891,11 +1044,12 @@ export class MockSupabase {
 
     this.onRpc('report_public_profile', params => {
       const ziel = profilVon(params.p_username)
-      if (!ziel || ziel.is_public !== true || ziel.hidden_by_moderation === true || ziel.id === TEST_USER.id) throw new RpcError('meldung_nicht_moeglich')
+      if (!ziel || ziel.hidden_by_moderation === true || ziel.id === TEST_USER.id) throw new RpcError('meldung_nicht_moeglich')
+      const bio = (ziel.field_visibility as Record<string, string> | undefined)?.bio ? ziel.public_bio ?? null : null
       this.insert('content_reports', {
         review_id: null, reported_user_id: ziel.id, reporter_id: TEST_USER.id,
         reason: params.p_reason, details: params.p_details ?? null, status: 'offen',
-        snapshot: { art: 'profil', username: ziel.username, display_name: ziel.display_name ?? null, public_bio: ziel.public_bio ?? null },
+        snapshot: { art: 'profil', username: ziel.username, display_name: ziel.display_name ?? null, public_bio: bio },
       })
       return null
     })
@@ -1038,20 +1192,25 @@ export class MockSupabase {
       return saved
     })
 
-    // Nachbild von supabase-reviews-public.sql: nur oeffentliche Profile,
-    // nur freigegebene Bewertungen, nur die freigegebenen Felder.
+    // Nachbild von public_profile_reviews (supabase-profil-p2a-sichtbarkeit.sql):
+    // nur angemeldet; fremde Profile nur, wenn nicht privat und Feld "reviews"
+    // auf "all"; Blockieren in beide Richtungen; nur freigegebene Bewertungen.
     this.onRpc('public_profile_reviews', params => {
+      const betrachter = this.betrachter()
+      if (!betrachter) return null
       const name = String(params.p_username ?? '').trim().toLowerCase()
-      const profil = this.table('profiles').find(row => String(row.username ?? '').toLowerCase() === name && row.is_public === true)
+      const profil = this.table('profiles').find(row => String(row.username ?? '').toLowerCase() === name && row.hidden_by_moderation !== true)
       if (!profil) return null
-      if (profil.hidden_by_moderation === true) return null
-      if (this.table('user_blocks').some(row => row.blocker_id === TEST_USER.id && row.blocked_id === profil.id)) {
-        return { username: profil.username, blocked: true, own: false }
-      }
+      const eigen = profil.id === betrachter
+      if (!eigen && this.blockiertZwischen(betrachter, profil.id)) return { username: profil.username, blocked: true, own: false }
+      const vis = (profil.field_visibility ?? {}) as Record<string, string>
+      if (!eigen && (profil.profile_private === true || vis.reviews !== 'all')) return null
       const substanz = (id: unknown) => this.table('stack_items').find(row => row.id === id)?.display_name ?? null
       return {
-        username: profil.username, display_name: profil.display_name ?? null, public_bio: profil.public_bio ?? null, blocked: false,
-        own: profil.id === TEST_USER.id,
+        username: profil.username,
+        display_name: eigen || oeffentlicherTextFehler(profil.display_name) === null ? profil.display_name ?? null : null,
+        public_bio: eigen || vis.bio === 'all' ? profil.public_bio ?? null : null, blocked: false,
+        own: eigen,
         reviews: this.table('reviews')
           .filter(row => row.user_id === profil.id && row.is_public === true && row.hidden_by_moderation !== true)
           .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
@@ -1061,6 +1220,54 @@ export class MockSupabase {
             wirkung: row.wirkung ?? null, vertraeglichkeit: row.vertraeglichkeit ?? null, wieder_nehmen: row.wieder_nehmen ?? null,
             monat: String(row.created_at).slice(0, 7),
           })),
+      }
+    })
+
+    // Nachbild von profile_view (supabase-profil-p2a-sichtbarkeit.sql): Eigentuemer
+    // sieht alles (oder mit p_as eine andere Stufe), andere angemeldete nur "all",
+    // ohne Anmeldung ("web") nur Name, Nickname, Bild und Bio bei Web-Link an.
+    this.onRpc('profile_view', params => {
+      const betrachter = this.betrachter()
+      const name = String(params.p_username ?? '').trim().toLowerCase()
+      const p = this.table('profiles').find(row => String(row.username ?? '').toLowerCase() === name)
+      if (!p) return null
+      const eigen = p.id === betrachter
+      if (!eigen && p.hidden_by_moderation === true) return null
+      if (!eigen && betrachter && this.blockiertZwischen(betrachter, p.id)) {
+        return { username: p.username, blocked: true, own: false }
+      }
+      const als = eigen && ['friends', 'all', 'web'].includes(String(params.p_as)) ? String(params.p_as) : null
+      const stufe = eigen ? (als ?? 'owner') : betrachter ? 'all' : 'web'
+      const vis = (p.field_visibility ?? {}) as Record<string, string>
+      if (stufe === 'web' && (p.web_link_enabled !== true || p.profile_private === true)) return null
+      const erlaubt = (key: string) => stufe === 'owner'
+        || (p.profile_private !== true && (stufe === 'friends' ? ['friends', 'all'].includes(vis[key]) : vis[key] === 'all')
+          && (stufe !== 'web' || key === 'bio'))
+      const fields: Record<string, unknown> = {}
+      const zeile: Record<string, unknown> = {
+        bio: p.public_bio || undefined,
+        goals: Array.isArray(p.goals) && p.goals.length > 0 ? p.goals : undefined,
+        country: p.country ?? undefined,
+        gender: p.profile_gender ?? undefined,
+        member_since: typeof p.created_at === 'string' ? p.created_at.slice(0, 7) : undefined,
+        cover: p.cover_path && (stufe === 'owner' || p.cover_status === 'approved') ? p.cover_path : undefined,
+      }
+      const snap = (this.table('profile_snapshots').find(row => row.user_id === p.id)?.data ?? {}) as Record<string, unknown>
+      for (const [key, value] of Object.entries({ ...snap, ...zeile })) {
+        if (value !== undefined && erlaubt(key)) fields[key] = value
+      }
+      return {
+        username: p.username, own: eigen, blocked: false,
+        // Andere bekommen den Anzeigenamen nur, wenn er den Textfilter besteht.
+        ...(stufe === 'owner' || oeffentlicherTextFehler(p.display_name) === null ? { display_name: p.display_name ?? null } : {}),
+        ...(eigen ? { as: stufe } : {}),
+        ...(stufe !== 'owner' ? { private: p.profile_private === true } : {}),
+        avatar: p.avatar_path && (stufe === 'owner' || p.avatar_status === 'approved') ? p.avatar_path : null,
+        fields,
+        ...(stufe === 'owner' ? {
+          visibility: vis, profile_private: p.profile_private === true, web_link_enabled: p.web_link_enabled === true,
+          avatar_status: p.avatar_status ?? null, cover_status: p.cover_status ?? null,
+        } : {}),
       }
     })
 
@@ -1327,6 +1534,10 @@ function sortRows(rows: Row[], order: string): Row[] {
 }
 
 function isLocal(url: URL): boolean {
+  // blob:/data: entstehen im Browser selbst (z. B. URL.createObjectURL für ein
+  // gewähltes Bild). WebKit leitet sie durch page.route, Chromium nicht; ohne
+  // diese Ausnahme blockiert die Sperre unten sie in WebKit („Blocked by Web Inspector“).
+  if (url.protocol === 'blob:' || url.protocol === 'data:') return true
   return url.hostname === 'localhost' || url.hostname === '127.0.0.1'
 }
 

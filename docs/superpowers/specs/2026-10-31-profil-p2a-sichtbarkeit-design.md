@@ -99,8 +99,10 @@ Aufbau wie `profil-v3.html` **[Nutzer]**, von oben nach unten:
    Plätze für Gesamtfortschritt (nach Über mich) und Abzeichen (vor
    Erfahrungsberichten) bleiben für 2b frei.
 
-**Chips:** Im eigenen Profil trägt jeder Wert einen Chip mit seiner Stufe;
-Tippen schaltet Nur ich → Freunde → Alle. **[Nutzer, aus v3]** Andere sehen keine Chips.
+**Chips:** Im eigenen Profil trägt jeder Wert seine Stufe als kleinen Punkt mit
+Wort („Nur ich“, „Freunde“, „Alle“), ganz klein in derselben Zeile rechts neben
+der Beschriftung (z. B. „Alter · Freunde“), kein Kasten. **[Nutzer]** Tippen
+schaltet Nur ich → Freunde → Alle. **[Nutzer, aus v3]** Andere sehen keine Chips.
 
 **Keine Lücke, trotzdem symmetrisch** **[Nutzer]**, Regel **[Claude]**:
 
@@ -147,7 +149,7 @@ Ist der Web-Link aus oder das Profil privat: „Seite nicht gefunden“, ohne zu
 verraten, dass es das Konto gibt.
 
 Standard: Web-Link **aus** für neue Konten; **an** für Konten mit heute
-`is_public = true`. **[Claude, ungeprüft]** Grund: Eine erratbare Adresse
+`is_public = true`. **[Claude, vom Nutzer bestätigt]** Grund: Eine erratbare Adresse
 `/u/<name>` verrät sonst, dass jemand eine Peptid-App nutzt.
 
 ## 5. Bestehende Konten **[Nutzer]**

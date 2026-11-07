@@ -7,6 +7,7 @@ const METRIC_LABEL_KEYS: Record<string, string> = {
   weight: 'fortschritt_metric_weight',
   body_fat: 'fortschritt_metric_body_fat',
   body_fat_pct: 'fortschritt_metric_body_fat_short',
+  muscle_mass: 'fortschritt_metric_muscle_mass',
   energie: 'fortschritt_metric_energie',
   schlaf: 'fortschritt_metric_schlaf',
   wohlbefinden: 'fortschritt_metric_wohlbefinden',

@@ -45,4 +45,18 @@ describe('TodayLogSheet save flow', () => {
     expect(source).toContain('partiallySavedRef.current = true')
     expect(source).toMatch(/setTyped\(\{\}\)/)
   })
+
+  it('saves muscle mass next to body fat, checks 10–150 kg before writing', () => {
+    const source = readFileSync(new URL('./TodayLogSheet.tsx', import.meta.url), 'utf8')
+
+    expect(source).toContain("label={t('fortschritt_metric_muscle_mass')}")
+    expect(source.indexOf("label={t('fortschritt_metric_body_fat_short')}"))
+      .toBeLessThan(source.indexOf("label={t('fortschritt_metric_muscle_mass')}"))
+    expect(source).toContain('min={MUSCLE_MASS_MIN_KG}')
+    expect(source).toContain('max={MUSCLE_MASS_MAX_KG}')
+    expect(source).toContain("t('fortschritt_muscle_mass_invalid')")
+    expect(source.indexOf("t('fortschritt_muscle_mass_invalid')")).toBeLessThan(source.indexOf('setSaving(true)'))
+    expect(source).toContain('upsertDaily({ ...payload, muscle_mass_kg: muscleMass })')
+    expect(source).toContain('isMissingColumn(error) && muscleMass == null')
+  })
 })

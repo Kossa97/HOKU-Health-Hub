@@ -14,6 +14,7 @@ export interface MetricDefinition {
 const BASE_METRICS: MetricDefinition[] = [
   { key: 'weight', label: 'Gewicht', unit: 'kg', color: METRIC_COLORS.weight, isLab: false },
   { key: 'body_fat', label: 'Körperfett', unit: '%', color: METRIC_COLORS.body_fat, isLab: false },
+  { key: 'muscle_mass', label: 'Muskelmasse', unit: 'kg', color: METRIC_COLORS.muscle_mass, isLab: false },
 ]
 
 export function buildAvailableMetrics(
@@ -43,6 +44,7 @@ export function buildAvailableMetrics(
 export function normalizeMetricKey(key?: MetricKey): MetricKey {
   if (!key || key === 'Gewicht') return 'weight'
   if (key === 'Körperfett' || key === 'KFA') return 'body_fat'
+  if (key === 'Muskelmasse') return 'muscle_mass'
   if (isWellnessMetricKey(key)) return 'weight'
   return key
 }

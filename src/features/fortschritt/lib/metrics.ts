@@ -46,7 +46,7 @@ function weightSeries(logs: WeightLogEntry[], range: DateRange): SeriesPoint[] {
 function dailyFieldSeries(
   logs: DailyLogEntry[],
   range: DateRange,
-  field: keyof Pick<DailyLogEntry, 'energie' | 'schlaf' | 'wohlbefinden' | 'libido' | 'body_fat_pct'>,
+  field: keyof Pick<DailyLogEntry, 'energie' | 'schlaf' | 'wohlbefinden' | 'libido' | 'body_fat_pct' | 'muscle_mass_kg'>,
 ): SeriesPoint[] {
   return filterByDateRange(logs, range, l => l.log_date)
     .filter(l => l[field] != null)
@@ -257,6 +257,7 @@ export function buildMetricSeries(
   }
   if (key === 'weight') return weightSeries(weights, range)
   if (key === 'body_fat') return dailyFieldSeries(dailyLogs, range, 'body_fat_pct')
+  if (key === 'muscle_mass') return dailyFieldSeries(dailyLogs, range, 'muscle_mass_kg')
   if (key === 'energie' || key === 'schlaf' || key === 'wohlbefinden' || key === 'libido') {
     return dailyFieldSeries(dailyLogs, range, key)
   }

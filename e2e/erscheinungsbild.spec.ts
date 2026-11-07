@@ -2,7 +2,7 @@ import { expect, test } from './support/fixtures'
 
 test('Erscheinungsbild: Licht im Profil wählen, bleibt nach dem Neuladen', async ({ page, mock }) => {
   void mock
-  await page.goto('/profil')
+  await page.goto('/profil/einstellungen')
   await expect(page.locator('html')).toHaveAttribute('data-look', 'schwarz')
   // Schwarz: das Umgebungslicht ist unsichtbar
   await expect(page.locator('.lg-ambient')).toHaveCSS('visibility', 'hidden')
@@ -19,7 +19,7 @@ test('Erscheinungsbild: Licht im Profil wählen, bleibt nach dem Neuladen', asyn
 
 test('Erscheinungsbild: Soft Dark — Anthrazit statt Schwarz, blaue Bedienung', async ({ page, mock }) => {
   void mock
-  await page.goto('/profil')
+  await page.goto('/profil/einstellungen')
   const umschalter = page.locator('[data-look-switcher]')
   await umschalter.getByRole('button', { name: 'Soft Dark' }).click()
   await expect(page.locator('html')).toHaveAttribute('data-look', 'softdark')

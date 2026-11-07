@@ -21,4 +21,19 @@ describe('buildAvailableMetrics mit Umfängen', () => {
     )
     expect(metrics.map(m => m.key)).toEqual(['weight', 'body_fat', 'umfang:chest', 'Testosteron'])
   })
+
+  it('fuehrt Muskelmasse mit Punkten direkt nach dem Koerperfett', () => {
+    const metrics = buildAvailableMetrics(
+      new Map([['weight', 1], ['body_fat', 1], ['muscle_mass', 2], ['umfang:chest', 1]]),
+      [],
+      new Map(),
+    )
+    expect(metrics.map(m => m.key)).toEqual(['weight', 'body_fat', 'muscle_mass', 'umfang:chest'])
+    expect(metrics[2]).toMatchObject({ unit: 'kg', isLab: false })
+  })
+
+  it('laesst Muskelmasse ohne Punkte weg', () => {
+    const metrics = buildAvailableMetrics(new Map([['weight', 1], ['muscle_mass', 0]]), [], new Map())
+    expect(metrics.map(m => m.key)).toEqual(['weight'])
+  })
 })

@@ -164,6 +164,8 @@ create policy "Own profile media insert" on storage.objects
   for insert to authenticated
   with check (bucket_id = 'profile-media' and (storage.foldername(name))[1] = auth.uid()::text);
 
+-- Entfaellt mit supabase-profil-p2a-sichtbarkeit.sql (Freigabe haengt an der
+-- Objekt-ID; Ueberschreiben an Ort und Stelle waere ein Weg drumherum).
 drop policy if exists "Own profile media update" on storage.objects;
 create policy "Own profile media update" on storage.objects
   for update to authenticated

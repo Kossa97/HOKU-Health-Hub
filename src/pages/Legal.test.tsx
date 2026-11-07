@@ -21,6 +21,13 @@ it('springt zum Abschnitt aus der Sprungmarke', () => {
   expect(scrollIntoView.mock.contexts[0]).toBe(document.getElementById('gesundheitsdaten'))
 })
 
+it('springt zum Abschnitt Profil und Sichtbarkeit', () => {
+  show('/datenschutz#profil-sichtbarkeit')
+  const ziel = document.getElementById('profil-sichtbarkeit')
+  expect(ziel?.querySelector('h2')?.textContent).toBe('6. Profile and visibility')
+  expect(scrollIntoView.mock.contexts[0]).toBe(ziel)
+})
+
 it('stuerzt bei kaputter Sprungmarke wie #% nicht ab', () => {
   show('/datenschutz#%')
   expect(screen.getByRole('heading', { level: 1 })).toBeTruthy()

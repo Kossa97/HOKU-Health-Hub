@@ -91,7 +91,7 @@ test('Östradiol bei Frauen: kein Standardbereich, kein falsches Urteil', async 
 })
 
 test('Profil: Angaben ändern und speichern', async ({ page, mock }) => {
-  await page.goto('/profil')
+  await page.goto('/profil/einstellungen')
   const karte = page.locator('[data-bio-profile-card]')
   await expect(karte.getByRole('heading', { name: 'Alter und Geschlecht' })).toBeVisible()
   const speichern = karte.getByRole('button', { name: 'Speichern' })

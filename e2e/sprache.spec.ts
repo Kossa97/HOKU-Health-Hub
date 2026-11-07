@@ -32,7 +32,7 @@ test('Erster Start: Auswahl zeigt nur Deutsch und Englisch, die Wahl gilt sofort
 
 test('Profil: Umschalter mit genau zwei Sprachen, ohne Anleitung', async ({ page, mock }) => {
   void mock
-  await page.goto('/profil')
+  await page.goto('/profil/einstellungen')
 
   const deutsch = page.getByRole('button', { name: /Deutsch/ })
   const english = page.getByRole('button', { name: /English/ })

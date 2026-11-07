@@ -28,11 +28,13 @@ interface Props {
   gender: ProfileGender | null
   /** Neuer Stand eines Feldes; bei einem Speicherfehler kommt der alte zurück. */
   onChange: (patch: Partial<UeberDichWerte>) => void
+  /** Im Bearbeiten-Sheet ohne eigene Karte. */
+  ohneKarte?: boolean
 }
 
 type GenderKey = ProfileGender | 'none'
 
-export function UeberDichKarte({ userId, geladen, goals, country, gender, onChange }: Props) {
+export function UeberDichKarte({ userId, geladen, goals, country, gender, onChange, ohneKarte = false }: Props) {
   const { t, i18n } = useTranslation()
   const [landOffen, setLandOffen] = useState(false)
   const locale = i18n?.language?.split('-')[0] || 'en'
@@ -63,7 +65,7 @@ export function UeberDichKarte({ userId, geladen, goals, country, gender, onChan
   ]
 
   return (
-    <div className="card mb-4 space-y-4" data-ueber-dich-card>
+    <div className={ohneKarte ? 'space-y-4' : 'card mb-4 space-y-4'} data-ueber-dich-card>
       <h2 className="flex items-center gap-2 text-[17px] font-semibold text-[var(--lg-text)]">
         <UserRound size={17} className="text-[var(--lg-accent-text)]" aria-hidden="true" /> {t('profil_ueber_dich')}
       </h2>

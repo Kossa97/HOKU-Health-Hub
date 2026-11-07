@@ -6,12 +6,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const signedMediaUrl = vi.fn(async (pfad: string) => `https://signiert/${pfad}`)
 const uploadProfileMedia = vi.fn(async (_u: string, kind: string, _f: File) => `u1/${kind}-neu.jpg`)
 const removeProfileMedia = vi.fn(async (_u: string, _k: string, _p: string): Promise<void> => undefined)
+const checkProfileMedia = vi.fn(async (_k: string): Promise<string | null> => 'approved')
 const { BildZuGrossError } = vi.hoisted(() => ({ BildZuGrossError: class extends Error {} }))
 vi.mock('../services/profileMedia', () => ({
   BildZuGrossError,
   signedMediaUrl: (p: string) => signedMediaUrl(p),
   uploadProfileMedia: (u: string, k: string, f: File) => uploadProfileMedia(u, k, f),
   removeProfileMedia: (u: string, k: string, p: string) => removeProfileMedia(u, k, p),
+  checkProfileMedia: (k: string) => checkProfileMedia(k),
 }))
 const toastError = vi.fn()
 vi.mock('react-hot-toast', () => ({ default: { error: (m: string) => toastError(m), success: vi.fn() } }))
@@ -20,20 +22,21 @@ import { ProfilBilder } from './ProfilBilder'
 
 beforeEach(() => {
   signedMediaUrl.mockClear(); uploadProfileMedia.mockClear(); removeProfileMedia.mockClear(); toastError.mockClear()
+  checkProfileMedia.mockReset(); checkProfileMedia.mockResolvedValue('approved')
 })
 afterEach(cleanup)
 
-function renderBilder(over: Partial<Parameters<typeof ProfilBilder>[0]> = {}) {
-  const props = { userId: 'u1', avatarPath: null, coverPath: null, onChange: vi.fn(), ...over }
+function renderBilder(over: Partial<Omit<Parameters<typeof ProfilBilder>[0], 'onChange'>> = {}) {
+  const props = { userId: 'u1', avatarPath: null, coverPath: null, ...over, onChange: vi.fn() }
   return { props, ...render(<ProfilBilder {...props}><p>Name und Mail</p></ProfilBilder>) }
 }
 
 describe('ProfilBilder', () => {
-  it('ohne Bilder: Platzhalter, kein <img>, Privat-Hinweis und Kinder', () => {
+  it('ohne Bilder: Platzhalter, kein <img>, Prüf-Hinweis und Kinder', () => {
     const { container, getByText } = renderBilder()
     expect(container.querySelectorAll('img')).toHaveLength(0)
     expect(signedMediaUrl).not.toHaveBeenCalled()
-    expect(getByText('profil_bilder_privat')).toBeTruthy()
+    expect(getByText('profil_bilder_pruefung')).toBeTruthy()
     expect(getByText('Name und Mail')).toBeTruthy()
   })
 
@@ -96,13 +99,64 @@ describe('ProfilBilder', () => {
     expect(klick).toHaveBeenCalledTimes(1)
   })
 
-  it('gewaehlte Datei wird hochgeladen und der neue Pfad gemeldet', async () => {
+  it('gewaehlte Datei wird hochgeladen, als „wird geprüft“ gemeldet und dann geprüft', async () => {
     const { container, props } = renderBilder()
     const eingabe = container.querySelector<HTMLInputElement>('input[data-media-input="avatar"]')!
     const datei = new File(['x'], 'a.png', { type: 'image/png' })
     fireEvent.change(eingabe, { target: { files: [datei] } })
-    await waitFor(() => expect(props.onChange).toHaveBeenCalledWith('avatar', 'u1/avatar-neu.jpg'))
+    await waitFor(() => expect(props.onChange).toHaveBeenCalledWith('avatar', 'u1/avatar-neu.jpg', 'approved'))
+    expect(props.onChange.mock.calls).toEqual([
+      ['avatar', 'u1/avatar-neu.jpg', 'pending'],
+      ['avatar', 'u1/avatar-neu.jpg', 'approved'],
+    ])
     expect(uploadProfileMedia).toHaveBeenCalledWith('u1', 'avatar', datei)
+    expect(checkProfileMedia).toHaveBeenCalledWith('avatar')
+  })
+
+  it('Prüfung lehnt ab: Pfad null und Status rejected', async () => {
+    checkProfileMedia.mockResolvedValueOnce('rejected')
+    const { container, props } = renderBilder()
+    fireEvent.change(container.querySelector('input[data-media-input="cover"]')!, { target: { files: [new File(['x'], 'a.png')] } })
+    await waitFor(() => expect(props.onChange).toHaveBeenLastCalledWith('cover', null, 'rejected'))
+  })
+
+  it('Prüfung scheitert: es bleibt bei „wird geprüft“, keine weitere Meldung', async () => {
+    checkProfileMedia.mockResolvedValueOnce('pending')
+    const { container, props } = renderBilder()
+    fireEvent.change(container.querySelector('input[data-media-input="avatar"]')!, { target: { files: [new File(['x'], 'a.png')] } })
+    await waitFor(() => expect(checkProfileMedia).toHaveBeenCalled())
+    await Promise.resolve()
+    expect(props.onChange.mock.calls).toEqual([['avatar', 'u1/avatar-neu.jpg', 'pending']])
+  })
+
+  it('Bild während der Prüfung entfernt: das spätere Ergebnis bringt den alten Pfad nicht zurück', async () => {
+    let loese!: (s: string) => void
+    checkProfileMedia.mockImplementationOnce(() => new Promise(resolve => { loese = resolve }))
+    const { container, props, rerender, getByRole } = renderBilder()
+    fireEvent.change(container.querySelector('input[data-media-input="avatar"]')!, { target: { files: [new File(['x'], 'a.png')] } })
+    await waitFor(() => expect(checkProfileMedia).toHaveBeenCalled())
+    rerender(<ProfilBilder userId="u1" avatarPath="u1/avatar-neu.jpg" avatarStatus="pending" coverPath={null} onChange={props.onChange} />)
+    fireEvent.click(getByRole('button', { name: 'profil_profilbild' }))
+    fireEvent.click(getByRole('button', { name: 'entfernen' }))
+    await waitFor(() => expect(props.onChange).toHaveBeenLastCalledWith('avatar', null, null))
+    loese('approved')
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(props.onChange).toHaveBeenLastCalledWith('avatar', null, null)
+  })
+
+  it('Status pending: „wird geprüft“ am Bild; abgelehnt: Hinweis mit „Anderes wählen“', () => {
+    const { container, rerender, getByText } = renderBilder({ avatarPath: 'u1/avatar-1.jpg', avatarStatus: 'pending', coverPath: 'u1/cover-1.jpg', coverStatus: 'approved' })
+    expect(container.querySelector('[data-media-pending="avatar"]')?.textContent).toBe('profil_bild_wird_geprueft')
+    expect(container.querySelector('[data-media-pending="cover"]')).toBeNull()
+    expect(container.querySelector('[data-media-rejected]')).toBeNull()
+
+    rerender(<ProfilBilder userId="u1" avatarPath={null} avatarStatus="rejected" coverPath={null} onChange={vi.fn()} />)
+    expect(container.querySelector('[data-media-pending]')).toBeNull()
+    expect(getByText('profil_bild_abgelehnt')).toBeTruthy()
+    const eingabe = container.querySelector<HTMLInputElement>('input[data-media-input="avatar"]')!
+    const klick = vi.spyOn(eingabe, 'click')
+    fireEvent.click(container.querySelector('[data-media-choose-other]')!)
+    expect(klick).toHaveBeenCalledTimes(1)
   })
 
   it('Upload scheitert: Toast, keine Aenderung nach oben', async () => {
@@ -125,7 +179,7 @@ describe('ProfilBilder', () => {
     const { getByRole, props } = renderBilder({ avatarPath: 'u1/avatar-1.jpg' })
     fireEvent.click(getByRole('button', { name: 'profil_profilbild' }))
     fireEvent.click(getByRole('button', { name: 'entfernen' }))
-    await waitFor(() => expect(props.onChange).toHaveBeenCalledWith('avatar', null))
+    await waitFor(() => expect(props.onChange).toHaveBeenCalledWith('avatar', null, null))
     expect(removeProfileMedia).toHaveBeenCalledWith('u1', 'avatar', 'u1/avatar-1.jpg')
   })
 

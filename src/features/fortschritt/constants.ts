@@ -18,7 +18,7 @@ export const PHOTO_BUCKET = 'progress-photos'
 export const SIGNED_URL_TTL_SECONDS = 60 * 60
 
 /** Nur objektive Metriken im Verlauf-Chart — Wellness-Vergleich läuft über Substanz-Fokus */
-export const CHART_METRIC_KEYS = ['weight', 'body_fat'] as const
+export const CHART_METRIC_KEYS = ['weight', 'body_fat', 'muscle_mass'] as const
 
 export function isWellnessMetricKey(key: string): boolean {
   return (WELLNESS_FIELDS as readonly string[]).includes(key)

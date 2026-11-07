@@ -4,9 +4,12 @@ import {
   bodyFatForDate,
   hasAnyProgressLog,
   hasLogForDate,
+  isValidMuscleMass,
   lastBodyFatBefore,
+  lastMuscleMassBefore,
   lastWeightBefore,
   loadLogFormValues,
+  muscleMassForDate,
   weightForDate,
 } from './metricDefaults'
 
@@ -68,6 +71,7 @@ describe('metricDefaults', () => {
       wohlbefinden: null,
       libido: null,
       bodyFat: null,
+      muscleMass: null,
       weight: 82,
       weightRowId: 'w3',
     })
@@ -78,6 +82,7 @@ describe('metricDefaults', () => {
       wohlbefinden: null,
       libido: null,
       bodyFat: null,
+      muscleMass: null,
       weight: null,
       weightRowId: null,
     })
@@ -88,6 +93,7 @@ describe('metricDefaults', () => {
       wohlbefinden: null,
       libido: null,
       bodyFat: 17.5,
+      muscleMass: null,
       weight: 81.2,
       weightRowId: null,
     })
@@ -100,6 +106,7 @@ describe('metricDefaults', () => {
       wohlbefinden: 7,
       libido: 6,
       bodyFat: 16.4,
+      muscleMass: 38.2,
       weight: 83.5,
       weightRowId: 'w3',
     })).toEqual({
@@ -108,8 +115,46 @@ describe('metricDefaults', () => {
       wohlbefinden: 7,
       libido: 6,
       bodyFat: 16.4,
+      muscleMass: 38.2,
       weight: 83.5,
       weightRowId: 'w3',
+    })
+  })
+
+  describe('Muskelmasse wie KFA', () => {
+    const withMuscle: DailyLogEntry[] = [
+      { log_date: '2026-07-02', energie: null, schlaf: null, wohlbefinden: null, libido: null, body_fat_pct: null, muscle_mass_kg: 37.8 },
+      { log_date: '2026-07-04', energie: 6, schlaf: null, wohlbefinden: null, libido: null, body_fat_pct: null, muscle_mass_kg: null },
+    ]
+
+    it('findet den Wert des Tages und den letzten davor', () => {
+      expect(muscleMassForDate(withMuscle, '2026-07-02')).toBe(37.8)
+      expect(muscleMassForDate(withMuscle, '2026-07-04')).toBeNull()
+      expect(lastMuscleMassBefore(withMuscle, '2026-07-05')).toBe(37.8)
+      expect(lastMuscleMassBefore(withMuscle, '2026-07-02')).toBeNull()
+    })
+
+    it('belegt einen neuen Tag mit dem letzten Wert vor, einen erfassten Tag nicht', () => {
+      expect(loadLogFormValues(withMuscle, [], '2026-07-05').muscleMass).toBe(37.8)
+      expect(loadLogFormValues(withMuscle, [], '2026-07-04').muscleMass).toBeNull()
+    })
+
+    it('zaehlt eine Muskelmasse allein als Eintrag', () => {
+      expect(hasLogForDate(withMuscle, [], '2026-07-02')).toBe(true)
+      expect(hasAnyProgressLog([withMuscle[0]], [])).toBe(true)
+    })
+
+    it('kommt mit Zeilen ohne die Spalte zurecht (vor der Migration)', () => {
+      expect(muscleMassForDate(logs, '2026-07-03')).toBeNull()
+      expect(loadLogFormValues(logs, weightLogs, '2026-07-07').muscleMass).toBeNull()
+    })
+
+    it('prueft die Grenzen 10 bis 150 kg wie die Datenbank', () => {
+      expect(isValidMuscleMass(10)).toBe(true)
+      expect(isValidMuscleMass(150)).toBe(true)
+      expect(isValidMuscleMass(9.9)).toBe(false)
+      expect(isValidMuscleMass(150.1)).toBe(false)
+      expect(isValidMuscleMass(Number.NaN)).toBe(false)
     })
   })
 })

@@ -27,7 +27,8 @@
 3. **Blockieren beidseitig:** Wer blockiert hat oder blockiert wurde, bekommt nur `{ blocked: true }`. (Task 1)
 4. **Bildstatus nicht fälschbar:** Ein `update profiles set avatar_status = 'approved'` des Eigentümers wirkt nicht; ein neuer Pfad setzt den Status auf `pending`. (Task 1)
 5. **Ohne Anmeldung:** `/u/<name>` liefert keine Erfahrungsberichte; bei Web-Link aus dieselbe Antwort wie für ein unbekanntes Konto. (Task 1, Task 7)
-6. **Symmetrie:** 1, 2, 3, 4, 5 sichtbare Werte und Paare halber Karten ergeben nie eine leere Zelle. (Task 2, Task 5)
+6. **Freitext im Schnappschuss:** Routinename und eigene Übungsnamen (`routine`, `favorite_exercise`, `e1rm`) sind Freitext des Nutzers. Bevor sie für andere sichtbar werden, laufen sie durch `oeffentlicher_text_fehler` (in `profile_view` oder beim Speichern des Schnappschusses); sonst gehen nur Katalognamen hinaus. (Task 5, Task 7)
+7. **Symmetrie:** 1, 2, 3, 4, 5 sichtbare Werte und Paare halber Karten ergeben nie eine leere Zelle. (Task 2, Task 5)
 
 ---
 

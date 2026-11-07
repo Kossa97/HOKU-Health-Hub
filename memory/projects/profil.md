@@ -37,8 +37,33 @@ Flagge + Kürzel oben, Über mich = 3 Kacheln, Bild-Check per Claude auf dem Ser
 Strike, /u/<name> ohne Anmeldung ab 2a ohne Berichte, Bestand: alles Nur ich, is_public behält Bio + Berichte,
 Muskelmasse neu im Tageseintrag, Lieblingsübung/Routine selbst wählen. Einstellungen in 2a: privat, Wer sieht
 was, Ansehen als, Web-Link, Blockiert.
-Zur Durchsicht [Claude, ungeprüft]: Schnappschuss statt SQL-Rechnung, Web-Link Standard aus (an bei is_public),
+Vom Nutzer bestätigt: Schnappschuss statt SQL-Rechnung, Web-Link Standard aus (an bei is_public),
 Prüffehler = bleibt privat.
+
+## Teilprojekt 2b geplant (Brainstorming 01.11.2026)
+PR für 2a: https://github.com/Kossa97/HOKU-Health-Hub/pull/119 (Basis profil-p1-datenbasis). Nutzer „okay“ zu:
+Modell-Ablehnung beim Bild-Check = abgelehnt. NICHT freigegeben: Merge, Produktivlauf, TERMS_VERSION.
+Gesamtfortschritt [Nutzer]:
+- Prozent der positiven Veränderung vom Start bis jetzt, relativ zum Startwert: Gewicht 120 → 100 kg (Ziel runter)
+  = (120 − 100) / 120 = +16,67 %. Schlechter = negativ. Nutzer-Hinweis: Das ist Veränderung des Werts selbst,
+  nicht automatisch KFA oder Gesundheit — so soll es in der App auch erklärt werden.
+- Werte, die schon Prozent sind (KFA, Adherence): genauso relativ (22 → 18 % = +18,2 %).
+- Zielbereichs-Werte (Blutmarker, Schlaf): Anteil im Zielbereich, Start gegen jetzt, relativ (12/24 → 19/24 = +58 %).
+- Zusammenrechnen: Mittel je Bereich (Körper, Blut, Training, Einnahmen, Erholung & Fitness), dann Mittel der
+  Bereiche, OHNE Deckel.
+- Zeitraum: seit Start (erste Messung je Wert), Start neu setzbar, alter Start bleibt im Verlauf.
+- Aus Gesamtbild: Richtung je Wert fest/aus Ziel-Tags/Zielbereich, vom Nutzer änderbar oder ausschließbar; Wert zählt
+  ab zwei Messungen; Aufschlüsselung im Profil sichtbar.
+Abzeichen [Nutzer]: alle Arten (Beständigkeit, Meilensteine, Fortschritt, Gemeinschaft), „erstmal grob alles was zur
+App passt“, Feinschliff macht der Nutzer.
+Nutzer 02.11.: Schlaf = Methode A (Anteil Nächte 7–9 h im Bereich, Start gegen jetzt, relativ). Gesamtrechnung
+(Mittel je Wert → je Bereich → über Bereiche, ohne Deckel) bestätigt.
+Schritte [Nutzer]: Methode A (Ø, Richtung hoch, relativ), aber Startwert = Baseline aus den 1–2 Monaten vor dem
+Start aus Apple Health / Health Connect, wenn verfügbar (sonst erste 7 Tage).
+Nutzer 02.11.: Baseline gilt für ALLE Wearable-Werte (Schlaf, Ruhepuls, kcal, VO2max, Blutdruck); „jetzt“ = letzte 28 Tage.
+Nächster Schritt: Spec + Plan 2b schreiben (Branch profil-p2b-fortschritt, gestapelt auf 2a).
+Mockup 2b: https://claude.ai/artifact/RZtNNuUqoV6rfy7U69KSJN (scratchpad profil-2b-mockup.html). Offen [Claude, ungeprüft]:
+Start 0 % im Zielbereich → Prozentpunkte; Schlaf = Anteil Nächte 7–9 h; Blutdruck = systolisch runter; Ring füllt bis +100 %.
 
 ## Offen
 - Migration `supabase-profil-p1-datenbasis.sql` lief am 31.10.2026 nach Freigabe gegen
@@ -48,6 +73,31 @@ Prüffehler = bleibt privat.
   echtes Android-Gerät vor Store-Start.
 - Divers-Zeichen: ⚧ ist Platzhalter, Bild des Nutzers kam nicht an.
 - 1b: HRV, VO2max, Android-Schlaf und Wach-Phasen brauchen Plugin-Wechsel.
-- Rechtlich prüfen: Datenschutzabschnitt „Apple Health und Health Connect“, Daten nach Widerruf.
+- Rechtlich prüfen (für den Nutzer im Kopf behalten, bei jedem Stand erinnern):
+  Datenschutzabschnitt „Apple Health und Health Connect“, Daten nach Widerruf;
+  Bild-Check über Anthropic (Einwilligung oder berechtigtes Interesse?);
+  Erfahrungsberichte mit Substanznamen für angemeldete Nutzer; Web-Vorschau (2c) vor dem Start;
+  Moderation/Apple 1.2/EU-DSA (Teilprojekt 4).
+- 2a: Durchsicht-Punkte vom Nutzer bestätigt (Schnappschuss, Web-Link Standard aus, Prüffehler = privat).
+  Chips: kleiner Punkt + Wort in derselben Zeile neben der Beschriftung. Bau auf Branch
+  `profil-p2a-sichtbarkeit` (von profil-p1-datenbasis abgezweigt; nach Merge von #114 auf main umsetzen).
+- graphify: `graphify update .` lehnt im Cloud-Container ab (10.574 statt 11.095 Knoten, lokale Dateien fehlen).
+  Nutzer-Entscheidung 31.10.: nicht erzwingen; Code ohne Graph-Update committen, Nutzer zieht lokal nach.
+- 2a Stand: Migration `supabase-profil-p2a-sichtbarkeit.sql` geschrieben und im Container geprüft (3 Läufe,
+  Proben bestanden), NICHT gegen Produktion — erst kurz vor dem Merge von 2a laufen lassen (alte App kennt
+  die Stufen nicht). Tasks 1–8 gebaut (Stand 31.10.): Schnappschuss, Muskelmasse, neues Profil, Einstellungen,
+  fremdes Profil/Web-Link, Bild-Check (Edge Function `profile-image-check`, nicht deployt, braucht ANTHROPIC_API_KEY;
+  Tageslimit 20 über `profile_image_checks`). `profile_view` baut fremde Schnappschüsse serverseitig auf die
+  bekannte Form neu (echter Schnappschuss: 22/22 Felder kommen an). Offen: Task 9 (Datenschutz, Texte, e2e),
+  Task 10 (Gesamtprüfung, security-review, PR). Zu bestätigen: Modell-Ablehnung (refusal) = Bild abgelehnt.
+- 2a Task 5+6 gebaut (31.10.): /profil als Schaufenster (ProfilKopf, ProfilKarten, SichtbarkeitsChip,
+  Bearbeiten-Sheet), /profil/einstellungen, /profil/sichtbarkeit, /profil/blockiert. Freitext (Routine,
+  Lieblingsuebung, e1RM-Namen) filtert profile_view fuer andere mit oeffentlicher_text_fehler (Migration ergaenzt).
+  Offen: andere Felder im Schnappschuss sind weiter vom Geraet geschrieben und nur auf Form geprueft.
+- 2a Sicherheitsprüfung (31.10.): Bildfreigabe hängt an `storage.objects.id` (`*_object_id`, RPCs
+  `profile_media_object_id`/`profile_media_approve` nur Dienstrolle), Update-Policy auf `profile-media` entfällt;
+  `display_name` geht an andere nur nach `oeffentlicher_text_fehler`. Vor dem Produktivlauf: Prüfabfrage
+  Nutzernamen (Kopf der Migration) zählen, Treffer von Hand klären. Rest: Ein schon ausgestellter signierter
+  Link (1 h) liefert nach Löschen + Neuanlegen unter gleichem Namen den neuen Inhalt.
 - Kleinere Reste: Über-dich ohne Retry nach Ladefehler, Health-Connect-Seitenlimit 50,
   iOS-Blutdruck nur bei exakt gleicher Zeit, jvmTarget-Block nur mit Java 25 gebaut.
