@@ -18,6 +18,7 @@ import { DayPanel, type DayTab } from './components/DayPanel'
 import { ActivitySheet } from './components/ActivitySheet'
 import { useActivityDay } from './hooks/useActivityDay'
 import { useDayNutrients } from './hooks/useDayNutrients'
+import { useWeekActivity } from './hooks/useWeekActivity'
 import { useGapTip } from './hooks/useGapTip'
 import { NutrientSheet } from './components/NutrientSheet'
 import type { NutrientId } from './lib/nutrientTargets'
@@ -110,6 +111,9 @@ export function ErnaehrungPage() {
   const [sheet, setSheet] = useState<SheetState>(null)
   const move = useActivityDay(userId, date, n.goals)
   const activity = { active: move.total.kcal, bonus: move.bonus }
+  const weekBonus = useWeekActivity(userId, date, todayKey, n.goals, move.changes)
+  // Der gewählte Tag rechnet genau, sobald er geladen ist; bis dahin der Wert aus der Wochenabfrage.
+  const dayBonus = useMemo(() => ({ ...weekBonus, [date]: move.day ? move.bonus : weekBonus[date] ?? 0 }), [weekBonus, date, move.day, move.bonus])
   const nut = useDayNutrients({ userId, date, today: todayKey, entries: n.day?.entries ?? NO_ENTRIES, goals: n.goals, kcal: n.total.kcal, bonus: move.bonus })
   const gapTip = useGapTip(nut.gaps)
   useDotRundflug({ heute: isToday, bereit: !!n.day, total: n.total, goals: n.goals, nachsatz: gapTip })
@@ -369,7 +373,7 @@ export function ErnaehrungPage() {
 
       <div className="mt-3 space-y-3">
         {/* Bleibt beim Tageswechsel stehen; der gewählte Tag kommt live aus seinen Einträgen. */}
-        <WeekStrip date={date} today={todayKey} week={{ ...stripWeek, ...Object.fromEntries(Object.entries(held).map(([d, h]) => [d, h.totals])) }} goals={n.goals}
+        <WeekStrip date={date} today={todayKey} week={{ ...stripWeek, ...Object.fromEntries(Object.entries(held).map(([d, h]) => [d, h.totals])) }} goals={n.goals} bonus={dayBonus}
           dayLabel={dayLabel}
           onPick={pickDate} onWeek={step => pickDate(dayKey(addDays(parseISO(date), step * 7)))}
           onOpenMonth={() => setSheet({ kind: 'month' })}
@@ -579,7 +583,7 @@ export function ErnaehrungPage() {
       {entryDrag.ghost}
 
       {sheet?.kind === 'month' && (
-        <MonthSheet userId={userId} date={date} today={todayKey} goals={n.goals} live={n.total}
+        <MonthSheet userId={userId} date={date} today={todayKey} goals={n.goals} bonus={dayBonus} live={n.total}
           onPick={pickDate} onClose={() => setSheet(null)} />
       )}
     </div>

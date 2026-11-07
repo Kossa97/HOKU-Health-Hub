@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { addDays, parseISO } from 'date-fns'
 import { getActiveEnergyTotal } from '../../../lib/health'
-import { type ActivityDay, type ActivityLog, activityBonus, activityTotal, estimateActiveKcal } from '../lib/activity'
+import { type ActivityDay, type ActivityLog, activityBonus, activityDayFrom, activityTotal } from '../lib/activity'
 import type { Goals } from '../lib/nutrition'
 import { addActivityLog, deleteActivityLog, loadActivityLogs, loadBodyData, loadDayTrainings } from '../services/nutritionStore'
 
@@ -25,6 +25,8 @@ export function useActivityDay(userId: string, date: string, goals: Goals) {
   const [loaded, setLoaded] = useState<Loaded | null>(null)
   const [weightKg, setWeightKg] = useState<number | null>(null)
   const [round, setRound] = useState(0)
+  /** Zählt eigene Einträge und Löschungen — die Wochenleiste holt danach neu. */
+  const [changes, setChanges] = useState(0)
 
   // Gewicht nur für Schätzungen (Trainings ohne Uhr, Einträge ohne kcal).
   useEffect(() => {
@@ -57,14 +59,7 @@ export function useActivityDay(userId: string, date: string, goals: Goals) {
 
   // Nur der Stand des gezeigten Tages zählt; Schätzungen rechnen mit dem aktuellen Gewicht.
   const current = loaded?.date === date ? loaded : null
-  const day: ActivityDay | null = useMemo(() => current && {
-    healthKcal: current.healthKcal,
-    logs: current.logs,
-    trainings: current.trainings.map(t => {
-      const est = t.kcal == null && t.durationS ? estimateActiveKcal(t.durationS / 60, weightKg) : null
-      return { id: t.id, title: t.title, startedAt: t.startedAt, kcal: t.kcal ?? est, estimated: t.kcal == null && est !== null }
-    }),
-  }, [current, weightKg])
+  const day: ActivityDay | null = useMemo(() => current && activityDayFrom(current, weightKg), [current, weightKg])
 
   const total = day ? activityTotal(day, goals.activitySources) : { kcal: 0, trainingsInHealth: false }
   const bonus = activityBonus(goals, total.kcal)
@@ -73,14 +68,16 @@ export function useActivityDay(userId: string, date: string, goals: Goals) {
     const saved = await addActivityLog(userId, date, log)
     // Nur in den Tag einfügen, für den gespeichert wurde (inzwischen gewechselt: dort lädt er ohnehin neu).
     setLoaded(l => (l && l.date === date ? { ...l, logs: [...l.logs, saved] } : l))
+    setChanges(c => c + 1)
   }, [userId, date])
 
   const remove = useCallback(async (id: string) => {
     await deleteActivityLog(id)
     setLoaded(l => (l ? { ...l, logs: l.logs.filter(x => x.id !== id) } : l))
+    setChanges(c => c + 1)
   }, [])
 
   const reload = useCallback(() => setRound(r => r + 1), [])
 
-  return { day, error: !!current?.failed, total, bonus, weightKg, add, remove, reload }
+  return { day, error: !!current?.failed, total, bonus, weightKg, add, remove, reload, changes }
 }

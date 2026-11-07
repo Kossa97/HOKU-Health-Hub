@@ -1,3 +1,4 @@
+import { goalsFor } from '../lib/activity'
 import { addDays, format, parseISO } from 'date-fns'
 import { CalendarDays } from 'lucide-react'
 import { type PointerEvent as ReactPointerEvent, useEffect, useLayoutEffect, useRef } from 'react'
@@ -26,11 +27,13 @@ function rangeText(from: string, to: string, lang: string): string {
  * weniger, und leere Tage sind einfach leer — kein Streak, keine Lücke, die
  * bestraft wird. Künftige Tage lassen sich nicht wählen.
  */
-export function WeekStrip({ date, today, week, goals, dayLabel, onPick, onWeek, onOpenMonth, dropDay = null }: {
+export function WeekStrip({ date, today, week, goals, bonus = null, dayLabel, onPick, onWeek, onOpenMonth, dropDay = null }: {
   date: string
   today: string
   week: Record<string, DayTotals>
   goals: Goals
+  /** Bewegung auf dem Tagesbedarf je Tag: jede kleine Kugel füllt sich bis Ziel + Bonus wie die große. */
+  bonus?: Readonly<Record<string, number>> | null
   /** Der gewählte Tag in Worten — für Vorleser bei jedem Wechsel angesagt. */
   dayLabel: string
   onPick: (date: string) => void
@@ -193,10 +196,10 @@ export function WeekStrip({ date, today, week, goals, dayLabel, onPick, onWeek, 
                 const future = d > today
                 return (
                   <button key={d} type="button" onClick={() => onPick(d)} disabled={future} aria-pressed={selected}
-                    aria-label={dayAria(d, week[d] ?? EMPTY_TOTALS, goals, t)} data-nutr-day={d}
+                    aria-label={dayAria(d, week[d] ?? EMPTY_TOTALS, goalsFor(goals, bonus, d), t)} data-nutr-day={d}
                     className={`flex min-w-0 touch-manipulation select-none flex-col items-center gap-1 rounded-[12px] pb-1.5 pt-1 transition-colors duration-200 disabled:pointer-events-none disabled:cursor-default ${
                       selected ? 'bg-[var(--lg-fill)]' : ''} ${dropDay === d ? 'scale-110 bg-[color-mix(in_srgb,var(--accent)_22%,transparent)] ring-2 ring-[var(--accent)] transition-transform' : ''}`}>
-                    <DayOrb totals={week[d] ?? EMPTY_TOTALS} goals={goals} size={28} dim={future} />
+                    <DayOrb totals={week[d] ?? EMPTY_TOTALS} goals={goalsFor(goals, bonus, d)} size={28} dim={future} />
                     <span className={`text-[14px] leading-none tabular-nums ${
                       d === today ? 'font-bold text-[var(--accent)]' : selected ? 'font-bold text-[var(--lg-text)]' : 'font-medium text-[var(--lg-text)]'
                     } ${future ? 'opacity-35' : ''}`}>
