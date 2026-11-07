@@ -378,9 +378,9 @@
     "semantic_hash": ""
   },
   "src/components/sloshEngine.ts": {
-    "mtime": 1794036992.7941191,
-    "seen": 1794037145.14941,
-    "ast_hash": "561bef13104780587df126fa20935ae1",
+    "mtime": 1794038442.9906735,
+    "seen": 1794038522.5597672,
+    "ast_hash": "e149507fa8e536640f3edf4a0ea897d3",
     "semantic_hash": ""
   },
   "src/components/ui/DesignSystem.tsx": {
@@ -918,9 +918,9 @@
     "semantic_hash": ""
   },
   "src/main.tsx": {
-    "mtime": 1793909961.0862775,
-    "seen": 1793910118.7113388,
-    "ast_hash": "1ab456e03dfdfbe68f6d6cfd58469424",
+    "mtime": 1794038442.9895556,
+    "seen": 1794038522.5792406,
+    "ast_hash": "1cf18b7f459e220faf6582d906585f36",
     "semantic_hash": ""
   },
   "src/pages/Auth.tsx": {
@@ -7716,9 +7716,9 @@
     "semantic_hash": ""
   },
   "memory/projects/erscheinungsbild.md": {
-    "mtime": 1794037106.4297562,
-    "seen": 1794037145.1768894,
-    "ast_hash": "4fe47b6c469ba4b02807be1e9e618a84",
+    "mtime": 1794038501.41292,
+    "seen": 1794038522.5875072,
+    "ast_hash": "48910c72531835a3f30d2460e80d8c29",
     "semantic_hash": ""
   },
   "src/features/my-stack/components/FormUndFarbe.tsx": {
@@ -21918,9 +21918,9 @@
     "semantic_hash": ""
   },
   "src/lib/pruef.ts": {
-    "mtime": 1793910002.121187,
-    "seen": 1793910118.7108884,
-    "ast_hash": "cd691ed48627eb0f46a9f9319b5e4a43",
+    "mtime": 1794038442.9892917,
+    "seen": 1794038522.5787086,
+    "ast_hash": "fe6e79fdff43ceabd49a63a25075d1ec",
     "semantic_hash": ""
   },
   "src/features/dot/engine/qualitaet.test.ts": {
