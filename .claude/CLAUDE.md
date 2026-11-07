@@ -18,6 +18,8 @@ ist typischerweise `graphify` (orientieren) → arbeiten → `graphify update .`
 | Code auf Fehler prüfen (Diff, Branch, PR, Pfad) | `code-review` |
 | Code aufräumen: Wiederverwendung, Vereinfachung, Effizienz | `simplify` |
 | Sicherheitsprüfung der Änderungen | `security-review` |
+| Sicherheitsaudit, sicher bauen: Auth, Eingaben, Uploads, KI-Funktionen, Config, Abhängigkeiten | `owasp-security` (Ablauf, Triage, Berichtsformat) |
+| Supabase (RLS, Policies, `SECURITY DEFINER`, Storage), `VITE_`-Variablen, Vercel-Header | `vibe-security` (nur die passende `references/`-Datei), dazu Supabase-`get_advisors` |
 | App starten, ansehen, Screenshot, „läuft das wirklich?" | `run` |
 | Diagramm, Chart, Dashboard, Datenvisualisierung | `dataviz` |
 | geteilte Seite / Artefakt bauen | `artifact-design`, dazu `artifact-diagramming` (Diagramme) und `artifact-capabilities` (Eingaben, gespeicherter Zustand) |
@@ -52,6 +54,22 @@ er auf die Aufgabe, wird er benutzt, auch wenn er hier fehlt.
 `ask-sonner` (die App nutzt react-hot-toast). Die Skills sind Ratgeber, keine
 Projektregeln: Wo sie etwas empfehlen, das hier anders entschieden ist (z. B.
 eine neue Bibliothek), gilt das Projekt. Sprache der App-Texte bleibt de/en.
+
+## Security-Skills
+
+Übernommen aus https://github.com/agamm/claude-code-owasp (MIT, Commit
+1ae29cb, 2026-11-03; ohne Evals) und https://github.com/raroque/vibe-security-skill
+(MIT, Commit 850938f, 2026-03-15; ohne Codex-Datei), Lizenz liegt im Ordner.
+`owasp-security` führt das Audit (Triage: erreichbar? ausnutzbar?), `vibe-security`
+liefert nur das Supabase-/Vite-/Vercel-Wissen. Dort gilt das Projekt vor dem Skill:
+
+- Die Schleife „RLS auf allen Tabellen in jeder Migration einschalten“ **nicht**
+  übernehmen. RLS ohne Policy sperrt die Tabelle komplett; jede Tabelle einzeln,
+  über die Migrations-Reihenfolge aus `CLAUDE.md`.
+- „Source Maps abschalten“ heißt hier: nicht öffentlich ausliefern, aber zu
+  Sentry hochladen.
+- Payments, Firebase, Convex und der React-Native-Teil passen nicht zum Projekt
+  (Capacitor statt Expo).
 
 ## graphify
 
