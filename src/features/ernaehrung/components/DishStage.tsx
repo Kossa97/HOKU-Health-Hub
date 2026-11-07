@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { DishDraft } from '../lib/dishDraft'
 import { dishDots, dishOrbModel } from '../lib/dishOrb'
 import { macroMix } from '../lib/foodOrb'
-import { dotScale } from '../lib/orb'
+import { dotScale, fitRadius } from '../lib/orb'
 import { type ColorIndex, DotRenderer, drawSphere, easeInOut, mixColor, orbPalette, qAxis, qMat, qMul, qNorm, sprite } from '../lib/orbDraw'
 import { DOT_MAIN, DOT_TRAIL, ORB_RADIUS, SPREAD, TRAVEL } from '../lib/orbEngine'
 import { takeOrbOrigin, useOrbPreview } from '../lib/orbBridge'
@@ -132,14 +132,18 @@ export function DishStage({ draft, goals, focus }: { draft: DishDraft; goals: Go
       const cx = (cssW / 2) * k, cy = centerY * k
       const Rday = ORB_RADIUS * scale * k
       const n = Math.round(st.k) + st.plusDots
-      const R = Rday * Math.sqrt(n / st.goalDots)
+      // Größer als der Platz (Gericht über dem Tagesziel): Kugel und Tageskreis im selben Maß
+      // verkleinern, die Punkte feiner — das Verhältnis Gericht : Tag bleibt sichtbar gleich.
+      const fit = fitRadius(Rday * Math.sqrt(n / st.goalDots), Math.min(cx, cy) - 4 * k)
+      const R = fit.R
+      const RdayShown = Rday * fit.dotFactor
       if (!st.reduce || moving || st.dirty) {
         st.dirty = false
         renderer.begin()
         // Maßstab: ein ganzer Tag als zarter Kreis.
         for (let j = 0; j < 96; j++) {
           const a = (j / 96) * Math.PI * 2
-          renderer.dot(0, cx + Math.cos(a) * Rday, cy + Math.sin(a) * Rday, DOT_TRAIL * k, 0.16)
+          renderer.dot(0, cx + Math.cos(a) * RdayShown, cy + Math.sin(a) * RdayShown, DOT_TRAIL * k, 0.16)
         }
         if (n > 0) {
           const M = qMat(q)
@@ -148,7 +152,7 @@ export function DishStage({ draft, goals, focus }: { draft: DishDraft; goals: Go
           const preview = st.plusDots > 0 ? { from: base, to: n, extraFrom: 0 } : null
           const focus = !preview && part && part.to > part.from ? part : null
           drawSphere(renderer, n, { filled: n, extra: 0 }, {
-            M, HM: M, cx, cy, R: Math.max(k, R), px: DOT_MAIN * k * dotScale(st.goalDots) * (0.5 + 0.5 * scale),
+            M, HM: M, cx, cy, R: Math.max(k, R), px: DOT_MAIN * k * dotScale(st.goalDots) * fit.dotFactor * (0.5 + 0.5 * scale),
             color: 1, mix: st.mix, now: st.reduce ? 0 : now, live: !st.reduce, preview, focus,
           })
         }
