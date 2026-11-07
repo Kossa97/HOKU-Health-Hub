@@ -31,8 +31,8 @@ export function MonthSheet({ userId, date, today, goals, bonus = null, live, onP
   date: string
   today: string
   goals: Goals
-  /** Bewegung auf dem Tagesbedarf für den gewählten Tag (wie in der Woche). */
-  bonus?: { date: string; kcal: number } | null
+  /** Bewegung auf dem Tagesbedarf je Tag (wie in der Woche; bekannt für die geladenen Wochen). */
+  bonus?: Readonly<Record<string, number>> | null
   live: DayTotals
   onPick: (date: string) => void
   onClose: () => void

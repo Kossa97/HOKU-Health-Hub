@@ -384,3 +384,31 @@ export async function loadDayTrainings(userId: string, date: string): Promise<{ 
     id: String(r.id), title: String(r.title ?? ''), startedAt: String(r.started_at), durationS: opt(r.duration_s), kcal: opt(r.kcal),
   }))
 }
+
+/** Selbst eingetragene Aktivität mehrerer Tage (inklusive `to`), je Tag. */
+export async function loadActivityLogsRange(userId: string, from: string, to: string): Promise<Record<string, ActivityLog[]>> {
+  const { data, error } = await supabase.from('activity_logs').select('id,log_date,label,minutes,kcal')
+    .eq('user_id', userId).gte('log_date', from).lte('log_date', to)
+  if (error) throw error
+  const out: Record<string, ActivityLog[]> = {}
+  for (const r of (data ?? []) as Row[]) {
+    const d = String(r.log_date)
+    ;(out[d] ??= []).push({ id: String(r.id), label: String(r.label), minutes: opt(r.minutes), kcal: num(r.kcal) })
+  }
+  return out
+}
+
+/** Trainings mehrerer (lokaler) Tage, je Tag des Beginns. */
+export async function loadTrainingsRange(userId: string, from: string, to: string): Promise<Record<string, { durationS: number | null; kcal: number | null }[]>> {
+  const start = parseISO(from)
+  const end = addDays(parseISO(to), 1)
+  const { data, error } = await supabase.from('training_sessions').select('started_at,duration_s,kcal')
+    .eq('user_id', userId).gte('started_at', start.toISOString()).lt('started_at', end.toISOString())
+  if (error) throw error
+  const out: Record<string, { durationS: number | null; kcal: number | null }[]> = {}
+  for (const r of (data ?? []) as Row[]) {
+    const d = dayKey(new Date(String(r.started_at)))
+    ;(out[d] ??= []).push({ durationS: opt(r.duration_s), kcal: opt(r.kcal) })
+  }
+  return out
+}

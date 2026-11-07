@@ -32,8 +32,8 @@ export function WeekStrip({ date, today, week, goals, bonus = null, dayLabel, on
   today: string
   week: Record<string, DayTotals>
   goals: Goals
-  /** Bewegung auf dem Tagesbedarf für den gewählten Tag: seine kleine Kugel füllt sich bis Ziel + Bonus wie die große. */
-  bonus?: { date: string; kcal: number } | null
+  /** Bewegung auf dem Tagesbedarf je Tag: jede kleine Kugel füllt sich bis Ziel + Bonus wie die große. */
+  bonus?: Readonly<Record<string, number>> | null
   /** Der gewählte Tag in Worten — für Vorleser bei jedem Wechsel angesagt. */
   dayLabel: string
   onPick: (date: string) => void
