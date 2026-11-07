@@ -35,6 +35,7 @@ Alles darunter musst du in den Konsolen eintragen oder selbst entscheiden.
 - [ ] **Auftragsverarbeitungsverträge bestätigen:** Supabase (im Dashboard abschließen), Vercel (Tarif muss gewerbliche Nutzung erlauben), Sentry, Anthropic (über die Commercial Terms einbezogen). Dann den Platzhalter „Prüfen und bestätigen" entfernen.
 - [ ] **Datenschutz-Folgenabschätzung** `docs/datenschutz/dsfa-ki.md` prüfen lassen und freigeben.
 - [ ] **Ergänzungen vom 18.10.2026 rechtlich prüfen lassen:** Ernährungsdaten, Kamera (Barcode auf dem Gerät), Mahlzeiten-Erkennung über Anthropic (Foto/Notiz, eigene Einwilligung), Open Food Facts ohne Personenbezug.
+- [ ] **Ergänzungen vom 07.11.2026 rechtlich prüfen lassen:** selbst eingetragene Bewegung (`activity_logs`), Vitamine/Mineralstoffe je Eintrag und eigene Nährstoff-Ziele, aktive Energie aus Apple Health (nur auf dem Gerät), Supplements aus My Stack werden in die Nährstoffe eingerechnet (nur lesen, keine Weitergabe). Lebensmitteldaten des BLS 4.0 (Max Rubner-Institut, CC BY 4.0) liegen als Datei in der App — Namensnennung steht unten in der Ernährung, es geht keine Anfrage an das Institut.
 - [ ] Solange Platzhalter drin sind, zeigt jede Seite „Entwurf" — so nicht einreichen.
 
 ### App Store Connect (Apple)
@@ -42,7 +43,7 @@ Alles darunter musst du in den Konsolen eintragen oder selbst entscheiden.
 - [ ] **Support-URL** mit erreichbarer Kontaktmöglichkeit (Apple 1.2 verlangt veröffentlichte Kontaktdaten für UGC-Apps).
 - [ ] **Altersfreigabe:** Fragebogen ehrlich ausfüllen — Medizin-/Behandlungsinfos „häufig", nutzergenerierte Inhalte „ja" → ergibt 17+/18+.
 - [ ] **App Privacy (Nutrition Label):** Gesundheit & Fitness, Kontaktinfo (E-Mail), Nutzerinhalte (Fotos, Erfahrungen), Diagnose (Absturzberichte) — „mit Identität verknüpft", „nicht zum Tracking". Zusätzlich: Gesundheitsdaten (Laborbefunde, Essensfotos und Notizen zu Mahlzeiten) werden für die App-Funktion an einen Dritten (Anthropic) übertragen. Kamera: Barcode-Erkennung auf dem Gerät; Essensfotos nur nach Einwilligung.
-- [ ] **HealthKit:** Begründungstexte in `Info.plist` (`NSHealthShareUsageDescription`), nur Lesen; in der Beschreibung nennen.
+- [ ] **HealthKit:** Begründungstexte in `Info.plist` (`NSHealthShareUsageDescription`), nur Lesen; in der Beschreibung nennen. Seit 04.11.2026 zusätzlich **aktive Energie** (Aktivitätskalorien im Kalorientracker, nur auf dem Gerät verrechnet, nicht gespeichert) — Begründungstext ist angepasst; in App Privacy unter Gesundheit & Fitness mitnennen.
 - [ ] **Demo-Konto** für die Prüfung (mit Beispieldaten, ohne echte Gesundheitsdaten).
 - [ ] **Review-Notizen:** Rechner und Simulation rechnen nur mit Nutzereingaben bzw. Literatur-Durchschnittswerten, keine Empfehlung; Moderation mit Melden/Blockieren/Filter/24-h-Prüfung; KI: Befund-Import und Mahlzeiten-Erkennung (beide optional, je nur nach ausdrücklicher Einwilligung, Anthropic; die Mahlzeiten-Erkennung nennt nur Zutaten, keine Mengen oder Nährwerte) und Bibliothekstexte im Admin-Panel.
 - [ ] **Beschreibung:** „Kein Medizinprodukt, ersetzt keinen ärztlichen Rat", keine Heilversprechen, keine Substanzwerbung.
@@ -50,7 +51,7 @@ Alles darunter musst du in den Konsolen eintragen oder selbst entscheiden.
 ### Google Play Console
 - [ ] **Datenschutzerklärung-URL** wie oben.
 - [ ] **Data Safety:** Gesundheitsdaten, E-Mail, Fotos, Absturzberichte; verschlüsselt übertragen; Löschen in der App möglich. „Geteilt": Laborbefunde sowie Essensfotos und -notizen an Anthropic (optional, je nach Einwilligung); Barcode/Suchbegriff an Open Food Facts ohne Personenbezug.
-- [ ] **Health-Apps-Erklärung** ausfüllen; Health Connect: nur Lesen von Gewicht, Schritten, Herzfrequenz, Begründung je Datentyp.
+- [ ] **Health-Apps-Erklärung** ausfüllen; Health Connect: nur Lesen von Gewicht, Schritten, Herzfrequenz, Begründung je Datentyp. (Aktivitätskalorien liest die App unter Android noch nicht; kommt `ActiveCaloriesBurned` dazu, hier und im Manifest nachtragen.)
 - [ ] **Account-Löschung:** zusätzlich eine Web-Möglichkeit nennen (z. B. Anleitung auf der Support-Seite oder Löschanfrage per E-Mail) — Google verlangt einen Weg außerhalb der App.
 - [ ] **Zielgruppe:** nur 18+; Inhaltsbewertung (IARC) ausfüllen.
 - [ ] **Demo-Zugang** in „App-Zugriff" hinterlegen.
