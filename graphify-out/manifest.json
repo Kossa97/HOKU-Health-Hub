@@ -6792,9 +6792,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/ErnaehrungPage.tsx": {
-    "mtime": 1794035642.001749,
-    "seen": 1794035766.1770833,
-    "ast_hash": "2e3f74242319d0ce28553388caac5096",
+    "mtime": 1794036726.893031,
+    "seen": 1794036822.2939732,
+    "ast_hash": "cb2fe4a5ac8775ec604daaa2fac2db60",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/AddFoodSheet.tsx": {
@@ -6846,9 +6846,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/WeekStrip.tsx": {
-    "mtime": 1794035641.989298,
-    "seen": 1794035766.177137,
-    "ast_hash": "6a38ace94f849f29b5637ab8c5a60afd",
+    "mtime": 1794036430.6329734,
+    "seen": 1794036822.2945557,
+    "ast_hash": "9cfef009a1bf3f092f6c4c621f9cb3b9",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/hooks/useNutritionDay.ts": {
@@ -6912,9 +6912,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/services/nutritionStore.ts": {
-    "mtime": 1793759402.284273,
-    "seen": 1794035766.1772373,
-    "ast_hash": "b59e3ea122f1cded3ea3b9907ac1b6f1",
+    "mtime": 1794036398.4952483,
+    "seen": 1794036822.2957299,
+    "ast_hash": "51d5b58fdf6df673cda64094929ffc73",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/styles.ts": {
@@ -6948,9 +6948,9 @@
     "semantic_hash": ""
   },
   "memory/projects/kalorientracker.md": {
-    "mtime": 1794035736.1886153,
-    "seen": 1794035766.1787694,
-    "ast_hash": "13edf96d5161965bc36ae1d258073468",
+    "mtime": 1794036798.842087,
+    "seen": 1794036822.3178608,
+    "ast_hash": "d97cd469f95a891a094f6c8b37f76c26",
     "semantic_hash": ""
   },
   "e2e/erscheinungsbild.spec.ts": {
@@ -7464,9 +7464,9 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/MonthSheet.tsx": {
-    "mtime": 1794035641.9913533,
-    "seen": 1794035766.177113,
-    "ast_hash": "324e41d3efa9857ad5c43de16d2d334c",
+    "mtime": 1794036430.633258,
+    "seen": 1794036822.2942886,
+    "ast_hash": "64b9abfdcde4f4e030cb2cf655b1f8b7",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/components/Panel.tsx": {
@@ -21690,21 +21690,21 @@
     "semantic_hash": ""
   },
   "src/features/ernaehrung/hooks/useActivityDay.ts": {
-    "mtime": 1793748946.190426,
-    "seen": 1794035766.1771383,
-    "ast_hash": "8ec92aefb3314383bf2eb6041279d360",
+    "mtime": 1794036726.8924654,
+    "seen": 1794036822.2945578,
+    "ast_hash": "86b1da85c31331dab65ad964b00ca5e8",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/lib/activity.test.ts": {
-    "mtime": 1794035687.1282477,
-    "seen": 1794035766.1771476,
-    "ast_hash": "3c80b324fa0d44426098e51d2ce3b531",
+    "mtime": 1794036680.5206566,
+    "seen": 1794036822.2946765,
+    "ast_hash": "ae50c33a640219935b89324b53f9dfa0",
     "semantic_hash": ""
   },
   "src/features/ernaehrung/lib/activity.ts": {
-    "mtime": 1794035641.9866028,
-    "seen": 1794035766.1771498,
-    "ast_hash": "9b88f9b4357fbdf76f179f370bd3a110",
+    "mtime": 1794036680.5190175,
+    "seen": 1794036822.294679,
+    "ast_hash": "f0fa3dc5b09a1d8d1ae84a765fea07ce",
     "semantic_hash": ""
   },
   "supabase-nutrition-activity.sql": {
@@ -22017,6 +22017,12 @@
     "mtime": 1794035430.211143,
     "seen": 1794035766.1818147,
     "ast_hash": "a73b56bc1dc1c7d8001664c3a25e18fd",
+    "semantic_hash": ""
+  },
+  "src/features/ernaehrung/hooks/useWeekActivity.ts": {
+    "mtime": 1794036726.8933454,
+    "seen": 1794036822.294674,
+    "ast_hash": "eac3990c4dc6186f3438736459d78997",
     "semantic_hash": ""
   }
 }
