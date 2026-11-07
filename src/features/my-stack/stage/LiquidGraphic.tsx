@@ -53,6 +53,9 @@ function levelChangeDurationMs(from: number, to: number): number {
 // nach dem Auffuellen stand die Fluessigkeit noch sekundenlang still, bis die
 // Blasen oben ankamen. Mit negativem `begin` laufen sie ab dem ersten Bild,
 // ueber die Hoehe verteilt.
+/** Schritte je Sekunde beim Aufstieg der Bläschen: jede Änderung malt die Flüssigkeit neu */
+const BLASEN_SCHRITTE_JE_S = 30
+
 const LIQUID_BUBBLES = [
   { cx: 24, r: 1.5, dur: 5.4, phase: 0.62 },
   { cx: 46, r: 1.0, dur: 6.6, phase: 0.3 },
@@ -370,7 +373,12 @@ export function LiquidGraphic({
       cy="0"
       r={b.r}
       fill="rgba(255,255,255,0.55)"
-      style={{ animationDuration: `${b.dur}s`, animationDelay: `${-(b.dur * b.phase).toFixed(2)}s` }}
+      style={{
+        animationDuration: `${b.dur}s`,
+        animationDelay: `${-(b.dur * b.phase).toFixed(2)}s`,
+        // Aufstieg in rund 30 Schritten je Sekunde statt in jedem Bild (index.css)
+        animationTimingFunction: `steps(${Math.round(b.dur * BLASEN_SCHRITTE_JE_S)}), linear`,
+      }}
     />
     ))}
     </g>

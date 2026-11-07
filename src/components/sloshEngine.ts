@@ -31,6 +31,10 @@ const MAX_DT = 1 / 30 // clamp long frames so tab-switches don't explode the spr
 // Any slosh energy, a subscriber's own animation or a fresh impulse returns to
 // every frame at once.
 export const REST_ENERGY = 0.004
+// Auch beim Schwappen höchstens 60-mal je Sekunde neu zeichnen: auf 120-Hz-
+// Bildschirmen jedes zweite Bild. Jede Zeichnung malt das Fläschchen neu, und
+// Hoku braucht die halbe Zeit (iPhone 07.11.2026: wach 66 Bilder/s, in Ruhe 120).
+const ACTIVE_FRAME_MS = 1000 / 60 - 4
 const REST_FRAME_MS = 1000 / 30 - 6 // slack for rAF timestamps that aren't snapped to vsync
 // Ruhe (Messung am iPhone 05.11.2026): Solange die Ruhewelle läuft, malt Safari
 // das ganze Fläschchen in jedem Bild neu, samt Verläufen und Bläschen; auf
@@ -113,7 +117,7 @@ export function createSloshEngine(): SloshEngine {
     const resting = !busy && Math.abs(angle) + Math.abs(vel) * 0.12 < REST_ENERGY
     // Schwappen oder eine eigene Animation zählen als Regung
     if (regungOffen || !resting) { letzteRegung = ts; regungOffen = false }
-    if (!resting || ts - lastNotify >= REST_FRAME_MS) {
+    if ((!resting && ts - lastNotify >= ACTIVE_FRAME_MS) || ts - lastNotify >= REST_FRAME_MS) {
       lastNotify = ts
       notify()
     }
