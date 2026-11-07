@@ -84,9 +84,9 @@
     "semantic_hash": ""
   },
   "api/peptide-ai.js": {
-    "mtime": 1793889723.0919383,
-    "seen": 1794036454.7557144,
-    "ast_hash": "f6b8665fe0f824255156a942bb9f48c0",
+    "mtime": 1794048610.000526,
+    "seen": 1794048689.263649,
+    "ast_hash": "8648211f486132ae67ecb595105ae698",
     "semantic_hash": ""
   },
   "api/send-reminders.js": {
@@ -186,9 +186,9 @@
     "semantic_hash": ""
   },
   "scripts/seed-health-data.mjs": {
-    "mtime": 1793889729.117018,
-    "seen": 1794036454.7559764,
-    "ast_hash": "01708fca51b16e8569aaae89888b6930",
+    "mtime": 1794048346.025089,
+    "seen": 1794048689.265967,
+    "ast_hash": "c014242c99b67362615217de06349d98",
     "semantic_hash": ""
   },
   "scripts/seed-pk-profiles.ts": {
@@ -198,15 +198,15 @@
     "semantic_hash": ""
   },
   "scripts/seed-test-data.mjs": {
-    "mtime": 1793889729.117018,
-    "seen": 1794036454.7559836,
-    "ast_hash": "4a44e65852e5c20c5ebfa3858a43f6f7",
+    "mtime": 1794048346.0240006,
+    "seen": 1794048689.2660034,
+    "ast_hash": "2eb58e02dbcc9d2b2db8405f7bb9b062",
     "semantic_hash": ""
   },
   "scripts/seed-test-data.ts": {
-    "mtime": 1793889729.117018,
-    "seen": 1794036454.7559853,
-    "ast_hash": "9deb6c4df154214fc479cb435b93a3e7",
+    "mtime": 1794048346.0245755,
+    "seen": 1794048689.2660055,
+    "ast_hash": "e59c0e57381dfa84d85f664ae1b8ac6b",
     "semantic_hash": ""
   },
   "src/App.tsx": {
@@ -1062,9 +1062,9 @@
     "semantic_hash": ""
   },
   "src/pages/lab/AdminPanel.tsx": {
-    "mtime": 1793889729.2847903,
-    "seen": 1794036454.7577744,
-    "ast_hash": "a2cb5dfa314903e236b272994e6b5e00",
+    "mtime": 1794048594.5904806,
+    "seen": 1794048689.2898712,
+    "ast_hash": "66b37af2d8809cda29ae7620f9c3e203",
     "semantic_hash": ""
   },
   "src/pages/lab/ArticleCards.tsx": {
@@ -1350,9 +1350,9 @@
     "semantic_hash": ""
   },
   ".claude/CLAUDE.md": {
-    "mtime": 1793889722.9727898,
-    "seen": 1794036454.7580473,
-    "ast_hash": "21343d02ad7ead3a1681e3a030143c41",
+    "mtime": 1794037480.691354,
+    "seen": 1794048689.2933402,
+    "ast_hash": "31f17f8d81b06b8f571b1a1fc7bda46f",
     "semantic_hash": ""
   },
   "CLAUDE.md": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793889729.3007903,
-    "seen": 1794036454.7579262,
+    "mtime": 1794048473.0904732,
+    "seen": 1794048689.2917476,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -22017,6 +22017,102 @@
     "mtime": 1793889729.0807903,
     "seen": 1794036454.7616317,
     "ast_hash": "a73b56bc1dc1c7d8001664c3a25e18fd",
+    "semantic_hash": ""
+  },
+  "api/peptide-ai.test.js": {
+    "mtime": 1794048610.000932,
+    "seen": 1794048689.2636518,
+    "ast_hash": "694ef68ac2c4337fbe901d91f9d886fc",
+    "semantic_hash": ""
+  },
+  ".claude/skills/owasp-security/SKILL.md": {
+    "mtime": 1794037465.2613778,
+    "seen": 1794048689.294019,
+    "ast_hash": "47f05463136360931a56c9ff188b8638",
+    "semantic_hash": ""
+  },
+  ".claude/skills/owasp-security/reference/config-and-supply-chain.md": {
+    "mtime": 1794037465.261542,
+    "seen": 1794048689.2940204,
+    "ast_hash": "a83c1e710372bb1314304601cd4fba8a",
+    "semantic_hash": ""
+  },
+  ".claude/skills/owasp-security/reference/languages.md": {
+    "mtime": 1794037465.2616272,
+    "seen": 1794048689.2940395,
+    "ast_hash": "2ba09eebdec33150d20e670846bc9609",
+    "semantic_hash": ""
+  },
+  ".claude/skills/owasp-security/reference/owasp-report.md": {
+    "mtime": 1794037465.2618332,
+    "seen": 1794048689.294041,
+    "ast_hash": "bd47dac3573c59ae9f7896b4a9649aac",
+    "semantic_hash": ""
+  },
+  ".claude/skills/owasp-security/reference/review-checklist.md": {
+    "mtime": 1794037465.2619774,
+    "seen": 1794048689.2940423,
+    "ast_hash": "9c34f04802f9427e3908e85c37a7b7fa",
+    "semantic_hash": ""
+  },
+  ".claude/skills/vibe-security/SKILL.md": {
+    "mtime": 1794037465.2647717,
+    "seen": 1794048689.2942004,
+    "ast_hash": "e853c4d36c850ac50701605556ae4b8e",
+    "semantic_hash": ""
+  },
+  ".claude/skills/vibe-security/references/ai-integration.md": {
+    "mtime": 1794037465.2650976,
+    "seen": 1794048689.294204,
+    "ast_hash": "fff362c3e3abe7d7ba2141cc21ed8a50",
+    "semantic_hash": ""
+  },
+  ".claude/skills/vibe-security/references/authentication.md": {
+    "mtime": 1794037465.265194,
+    "seen": 1794048689.294206,
+    "ast_hash": "1b23e70699ef7d1921564407509f8ffa",
+    "semantic_hash": ""
+  },
+  ".claude/skills/vibe-security/references/data-access.md": {
+    "mtime": 1794037465.2652526,
+    "seen": 1794048689.2942069,
+    "ast_hash": "4db7df40c9352aa483c3e8f4685c533e",
+    "semantic_hash": ""
+  },
+  ".claude/skills/vibe-security/references/database-security.md": {
+    "mtime": 1794037465.2653065,
+    "seen": 1794048689.2942088,
+    "ast_hash": "56ac444958e470cbd958550a7c00511c",
+    "semantic_hash": ""
+  },
+  ".claude/skills/vibe-security/references/deployment.md": {
+    "mtime": 1794037465.2653625,
+    "seen": 1794048689.29421,
+    "ast_hash": "c56c34187875f0d4db75d5f9c11f8c20",
+    "semantic_hash": ""
+  },
+  ".claude/skills/vibe-security/references/mobile.md": {
+    "mtime": 1794037465.265427,
+    "seen": 1794048689.2942114,
+    "ast_hash": "a87000da34cbe9cdca323eb38260c70a",
+    "semantic_hash": ""
+  },
+  ".claude/skills/vibe-security/references/payments.md": {
+    "mtime": 1794037465.265495,
+    "seen": 1794048689.2942126,
+    "ast_hash": "9ec0704d3adfc72c8a859db3fbf774f5",
+    "semantic_hash": ""
+  },
+  ".claude/skills/vibe-security/references/rate-limiting.md": {
+    "mtime": 1794037465.2656012,
+    "seen": 1794048689.2942142,
+    "ast_hash": "2619cf121dddfc26bc1ebe0aaa70423a",
+    "semantic_hash": ""
+  },
+  ".claude/skills/vibe-security/references/secrets-and-env.md": {
+    "mtime": 1794037465.2656596,
+    "seen": 1794048689.2942154,
+    "ast_hash": "2dae30a9cbc0c29a6a12651d92d07250",
     "semantic_hash": ""
   }
 }
