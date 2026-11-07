@@ -126,3 +126,124 @@ test('Kalorientracker sonst: nur ein Umlauf, ohne Sätze; der Rundflug kommt ers
   expect(JSON.parse((await page.evaluate(() => localStorage.getItem('tyd.dot.rundflug.v1')))!).n).toBe(1)
   expect(mock.coach.calls).toEqual([])
 })
+
+test('nach dem Abmelden: auf der Anmeldung gilt die Leiste der App nicht mehr, Hoku kommt bis an den unteren Rand', async ({ page, mock }) => {
+  // Nutzer 02.11.2026: im Login nur oben an den Rand, und das Tor seines Hauses leuchtete über der Fußzeile
+  void mock
+  await page.goto('/profil')
+  await bereit(page)
+  await logo(page).click()
+  await lassLaufen(page, 3000)
+  page.on('dialog', d => d.accept())
+  await page.getByRole('button', { name: /Abmelden/ }).click()
+  await lassLaufen(page, 7000)
+  await expect(page).toHaveURL(/auth/)
+  const figur = page.getByRole('button', { name: /Hoku, dein KI-Coach/ })
+  const { width: W, height: H } = page.viewportSize()!
+  const b = (await figur.boundingBox())!
+  const x = b.x + b.width / 2, y = b.y + b.height / 2
+  await page.mouse.move(x, y)
+  await page.mouse.down()
+  for (let i = 1; i <= 20; i++) { await page.mouse.move(x + (W / 2 - x) * i / 20, y + (H - 2 - y) * i / 20); await page.clock.runFor(16) }
+  await lassLaufen(page, 300)
+  const g = (await figur.boundingBox())!
+  await page.mouse.up()
+  expect(g.y + g.height).toBeGreaterThan(H - 12)
+})
+
+test('Seite „Hoku“: er kommt aus dem Haus ins Glasgehäuse und geht beim Verlassen wieder hinein', async ({ page, mock }) => {
+  void mock
+  await page.goto('/profil')
+  await bereit(page)
+  await expect(logo(page)).toHaveAttribute('data-dot-drinnen', 'true')
+  await page.locator('[data-profil-hoku]').click()
+  await expect(page).toHaveURL(/\/profil\/hoku$/)
+  await lassLaufen(page, 4000)
+  await expect(logo(page)).toHaveAttribute('data-dot-drinnen', 'false')
+  // er schwebt im Glas
+  const glas = (await page.locator('[data-hoku-buehne]').boundingBox())!
+  const b = (await page.getByRole('button', { name: /Hoku, dein KI-Coach/ }).boundingBox())!
+  expect(b.x + b.width / 2).toBeGreaterThan(glas.x)
+  expect(b.x + b.width / 2).toBeLessThan(glas.x + glas.width)
+  expect(b.y + b.height / 2).toBeGreaterThan(glas.y)
+  expect(b.y + b.height / 2).toBeLessThan(glas.y + glas.height)
+  // Einstellungen bleiben auf dem Gerät (Glas-Schalter: antippen schaltet um)
+  await page.locator('[data-hoku-einst="raus"] [role="switch"]').click()
+  await expect(page.locator('[data-hoku-einst="raus"] [role="switch"]')).toHaveAttribute('aria-checked', 'false')
+  expect(await page.evaluate(() => localStorage.getItem('tyd.hoku.raus'))).toBe('0')
+  await page.goBack()
+  await lassLaufen(page, 4000)
+  await expect(logo(page)).toHaveAttribute('data-dot-drinnen', 'true')
+})
+
+test('Glasgehäuse: geworfen bleibt er im Glas, klebt platt an der Scheibe und liegt in der Ecke ruhig auf dem Boden', async ({ page, mock }) => {
+  // Nutzer 04.11.2026: nur innerhalb des Gehäuses beweglich; in den Ecken nicht zucken, vernünftig hinlegen
+  void mock
+  await page.goto('/profil/hoku')
+  await lassLaufen(page, 4500)
+  const glas = (await page.locator('[data-hoku-buehne]').boundingBox())!
+  const figur = page.getByRole('button', { name: /Hoku, dein KI-Coach/ })
+  const wirf = async (dx: number, dy: number) => {
+    const b = (await figur.boundingBox())!, x = b.x + b.width / 2, y = b.y + b.height / 2
+    await page.mouse.move(x, y)
+    await page.mouse.down()
+    for (let i = 1; i <= 5; i++) { await page.mouse.move(x + dx * i, y + dy * i); await page.clock.runFor(16) }
+    await page.mouse.up()
+  }
+  // kräftig nach rechts: er fliegt an die Scheibe und ragt nicht hinaus
+  await wirf(40, 0)
+  await lassLaufen(page, 900)
+  let b = (await figur.boundingBox())!
+  expect(b.x + b.width / 2).toBeGreaterThan(glas.x + glas.width * 0.6)
+  // (die Trefferfläche ist ringsum etwas größer als sein Körper)
+  expect(b.x + b.width).toBeLessThan(glas.x + glas.width + 12)
+  // nach dem Lösen: nach unten rechts in die Ecke; dort liegt er flach auf dem Boden statt um die Ecke gebogen
+  await lassLaufen(page, 6500)
+  await wirf(30, 22)
+  // er schwingt einmal sanft nach; danach darf er sich nicht mehr bewegen
+  await lassLaufen(page, 2800)
+  const lagen: number[] = []
+  for (let i = 0; i < 10; i++) { await lassLaufen(page, 60); const q = (await figur.boundingBox())!; lagen.push(q.x + q.width / 2) }
+  b = (await figur.boundingBox())!
+  expect(b.width).toBeGreaterThan(b.height * 1.5)
+  expect(b.y + b.height).toBeLessThan(glas.y + glas.height)
+  // ruhig: langsames Anschmiegen darf noch ein paar px sein (die Trefferfläche atmet mit dem Umriss)
+  expect(Math.max(...lagen) - Math.min(...lagen), 'liegt ruhig').toBeLessThan(5)
+})
+
+test('„Kommt für Hinweise heraus“ aus: auf einer Seite ohne Leiste bleibt er im Haus', async ({ page, mock }) => {
+  void mock
+  await page.addInitScript(() => { try { localStorage.setItem('tyd.hoku.raus', '0') } catch { /* ohne Speicher */ } })
+  await page.goto('/injektionen')
+  await lassLaufen(page, 5000)
+  await expect(page.getByRole('button', { name: /Hoku, dein KI-Coach/ })).toBeHidden()
+})
+
+test('Hinweise aus: im Kalorientracker kein Rundflug und keine Sprechblase', async ({ page, mock }) => {
+  void mock
+  await page.addInitScript(() => { try { localStorage.setItem('tyd.hoku.hinweise', '0') } catch { /* ohne Speicher */ } })
+  await page.goto('/ernaehrung')
+  await expect(page.getByRole('region', { name: 'Frühstück' })).toBeVisible()
+  const blase = page.locator('.tyd-dot-blase')
+  for (let t = 0; t < 12_000; t += 100) {
+    await page.clock.runFor(100)
+    expect(await blase.getAttribute('data-zeigen')).toBeNull()
+  }
+})
+
+test('Farbwahl als Karussell: antippen wählt, wischen wählt die Kugel in der Mitte', async ({ page, mock }) => {
+  void mock
+  await page.goto('/profil/hoku')
+  await lassLaufen(page, 1500)
+  const band = page.locator('.tyd-farbe-band')
+  await expect(page.locator('[data-hoku-farbe="auto"]')).toHaveAttribute('aria-checked', 'true')
+  await page.locator('[data-hoku-farbe="minze"]').click()
+  await lassLaufen(page, 800)
+  await expect(page.locator('[data-hoku-farbe="minze"]')).toHaveAttribute('aria-checked', 'true')
+  expect(await page.evaluate(() => localStorage.getItem('tyd.hoku.farbe'))).toBe('minze')
+  // eine Kugel weiter wischen
+  await band.evaluate(b => b.scrollBy({ left: 86 }))
+  await lassLaufen(page, 600)
+  await expect(page.locator('[data-hoku-farbe="minze"]')).toHaveAttribute('aria-checked', 'false')
+  expect(await page.evaluate(() => localStorage.getItem('tyd.hoku.farbe'))).not.toBe('minze')
+})

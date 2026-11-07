@@ -1,5 +1,8 @@
 import type { RoutineIntake } from '../intakeGroups'
 
+/** Was ein Bündel von einer Einnahme braucht — offen oder schon entschieden. */
+type BuendelEinnahme = Pick<RoutineIntake, 'key' | 'stackItemId' | 'scheduledAt'>
+
 /**
  * Ein selbst zusammengestelltes Bündel („Morgen-Stack", „Vor dem Training").
  *
@@ -30,11 +33,11 @@ export const BUNDLE_MIN_DUE = 2
  *
  * Die Reihenfolge folgt dem Bündel, nicht der Uhr: so steht es auch im Blatt.
  */
-export function bundleDueIntakes(
+export function bundleDueIntakes<I extends BuendelEinnahme = RoutineIntake>(
   bundle: Pick<IntakeBundle, 'stack_item_ids'>,
-  dueIntakes: readonly RoutineIntake[],
-): RoutineIntake[] {
-  const earliestByItem = new Map<string, RoutineIntake>()
+  dueIntakes: readonly I[],
+): I[] {
+  const earliestByItem = new Map<string, I>()
   for (const intake of dueIntakes) {
     const current = earliestByItem.get(intake.stackItemId)
     if (!current || intake.scheduledAt < current.scheduledAt) {
@@ -43,7 +46,7 @@ export function bundleDueIntakes(
   }
   return [...new Set(bundle.stack_item_ids)]
     .map(id => earliestByItem.get(id))
-    .filter((intake): intake is RoutineIntake => Boolean(intake))
+    .filter((intake): intake is I => Boolean(intake))
 }
 
 /**
@@ -65,12 +68,12 @@ export function bundleDueIntakes(
  * Gespeichert bleibt jedes Bündel, wie es ist; an anderen Tagen steht jedes
  * für sich. `bundle` ist das erste der Gruppe (Reihenfolge der Liste).
  */
-export function bundlesForPeriod<B>(
+export function bundlesForPeriod<B, I extends BuendelEinnahme = RoutineIntake>(
   bundles: readonly { bundle: B; itemIds: readonly string[] }[],
-  periodIntakes: readonly RoutineIntake[],
+  periodIntakes: readonly I[],
   /** Die an diesem Tag in dieser Tageszeit geplanten Substanzen, auch die schon bestätigten. */
   geplant?: ReadonlySet<string>,
-): { entries: { bundle: B; alle: B[]; intakes: RoutineIntake[]; anzahl: number }[]; vergeben: Set<string> } {
+): { entries: { bundle: B; alle: B[]; intakes: I[]; anzahl: number }[]; vergeben: Set<string> } {
   const offen = new Set(periodIntakes.map(intake => intake.stackItemId))
   // Die Bündel, die heute hier als Bündel dastehen, zu Gruppen über gemeinsame
   // Substanzen zusammengefasst — in der Reihenfolge ihres ersten Bündels.
@@ -90,7 +93,7 @@ export function bundlesForPeriod<B>(
     ziel.mitglieder.push(...mitglieder.filter(id => !ziel.mitglieder.includes(id)))
   }
   const vergeben = new Set<string>()
-  const entries: { bundle: B; alle: B[]; intakes: RoutineIntake[]; anzahl: number }[] = []
+  const entries: { bundle: B; alle: B[]; intakes: I[]; anzahl: number }[] = []
   for (const { alle, mitglieder } of gruppen) {
     const frei = periodIntakes.filter(intake => !vergeben.has(intake.key))
     const intakes = bundleDueIntakes({ stack_item_ids: mitglieder }, frei)

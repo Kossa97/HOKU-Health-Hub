@@ -6,7 +6,7 @@ import { useTrainingText } from '../../i18n'
 import { usesDistance, usesDuration, usesReps, usesWeight } from '../../lib/exerciseLookup'
 import { formatClock, formatNumber, parseDecimal, parseStopwatchDigits, stopwatchDigits } from '../../lib/format'
 import { toDisplayWeight } from '../../lib/stats'
-import { TRAINING_ACCENT } from '../ui'
+import { accentMix, TRAINING_ACCENT } from '../ui'
 import { SetWheelSheet } from './SetWheelSheet'
 
 /**
@@ -197,7 +197,7 @@ export function SetRow({ set, number, previous, tracking, unit, isNext = false, 
         display: 'grid', gridTemplateColumns: gridColumns(tracking), gap: 6, alignItems: 'center',
         padding: '4px 6px', borderRadius: 12,
         background: set.done ? DONE_TINT : 'transparent',
-        boxShadow: isNext && !set.done ? `inset 0 0 0 1.5px ${TRAINING_ACCENT}99` : undefined,
+        boxShadow: isNext && !set.done ? `inset 0 0 0 1.5px ${accentMix(60)}` : undefined,
         transition: 'background 160ms ease-out',
       }}
     >

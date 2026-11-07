@@ -19,16 +19,23 @@ import { setzeStoerungSimuliert, useStoerung } from '../../../lib/stoerung'
 
 // ── LookSwitcher ─────────────────────────────────────────────────────────────
 
-export function LookSwitcher() {
+/** `vorschau`: auch Looks zeigen, die noch nicht die ganze App erreichen (nur Admin/Entwicklung). */
+export function LookSwitcher({ vorschau = false }: { vorschau?: boolean }) {
   const { t } = useTranslation()
   const { look, setLook } = useLook()
   const options: SegmentOption<Look>[] = [
     { key: 'schwarz', label: String(t('look_black', { defaultValue: 'Schwarz' })) },
     { key: 'softdark', label: String(t('look_softdark', { defaultValue: 'Soft Dark' })) },
+    { key: 'frost', label: String(t('look_frost', { defaultValue: 'Frost' })) },
+    { key: 'labor', label: String(t('look_lab', { defaultValue: 'Labor' })) },
+    { key: 'neon', label: String(t('look_neon', { defaultValue: 'Neon' })) },
+    { key: 'tiefsee', label: String(t('look_deepsea', { defaultValue: 'Tiefsee' })) },
+    { key: 'obsidian', label: String(t('look_obsidian', { defaultValue: 'Obsidian' })) },
     { key: 'instrument', label: String(t('look_instrument', { defaultValue: 'Instrument' })) },
     { key: 'satin', label: String(t('look_satin', { defaultValue: 'Satin' })) },
     { key: 'licht', label: String(t('look_light', { defaultValue: 'Licht' })) },
     { key: 'nacht', label: String(t('look_night', { defaultValue: 'Nacht' })) },
+    ...(vorschau || look === 'papier' ? [{ key: 'papier' as const, label: String(t('look_paper', { defaultValue: 'Papier' })) }] : []),
   ]
   return (
     <div style={{ marginTop: 24 }} data-look-switcher>
@@ -46,7 +53,7 @@ export function LookSwitcher() {
       />
       {look === 'schwarz' && <TiltToggle />}
       <p style={{ marginTop: 10, fontSize: 13, lineHeight: 1.45, color: 'var(--lg-text-3)' }}>
-        {t('look_hint', { defaultValue: 'Schwarz: Glaskante, die wie unter einer Taschenlampe glänzt. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas. Nacht: gedämpftes Licht hinter klarem Glas mit feinem Prismasaum. Instrument: reines Schwarz, klare Flächen, kein Glas – wie ein Messgerät. Soft Dark: weiches Anthrazit, erhabene Flächen mit weichem Schatten, blaue Bedienung.' })}
+        {t('look_hint', { defaultValue: 'Schwarz: Glaskante, die wie unter einer Taschenlampe glänzt. Satin: matte, dicke Glaskante mit wanderndem Lichtreflex. Licht: farbiges Licht schimmert durch das Glas. Nacht: gedämpftes Licht hinter klarem Glas mit feinem Prismasaum. Instrument: reines Schwarz, klare Flächen, kein Glas – wie ein Messgerät. Soft Dark: weiches Anthrazit, erhabene Flächen mit weichem Schatten, blaue Bedienung. Frost: dunkles Cyan wie mattiertes Glas. Labor: Raster und Eckwinkel wie ein Messgerät. Neon: Kanten wie Leuchtröhren. Tiefsee: Biolumineszenz in Petrol. Obsidian: schwarzes Vulkanglas. In diesen fünf ist Hoku das Licht: wo er ist, leuchten die Kanten.' })}
       </p>
       </div>
     </div>

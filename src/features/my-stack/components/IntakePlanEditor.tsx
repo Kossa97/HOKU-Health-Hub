@@ -28,6 +28,7 @@ import type {
   IntakeSlotDraft,
   IntervalUnit,
   RoutineGroup,
+  StackCategory,
   SubstanceCatalogEntry,
   TrackingLevel,
 } from '../types'
@@ -45,6 +46,8 @@ export interface IntakePlanEditorProps {
   plan: IntakePlanDraft
   dosageForm: DosageFormKey
   catalogEntry?: SubstanceCatalogEntry
+  /** Kombipraeparat: als Einheit nur Stueck oder ml — „mg" waere mehrdeutig. */
+  kombi?: { category: StackCategory | null } | null
   errors?: IntakePlanValidationErrors
   onChange: (changes: Partial<IntakePlanDraft>) => void
 }
@@ -128,13 +131,14 @@ export function IntakePlanEditor({
   plan,
   dosageForm,
   catalogEntry,
+  kombi = null,
   errors = {},
   onChange,
 }: IntakePlanEditorProps) {
   const { t } = useTranslation()
   const form = getDosageForm(dosageForm)
   const tracksQuantity = trackingCapabilities(trackingLevel).quantity
-  const unitSuggestions = getIntakePlanUnitSuggestions(dosageForm, catalogEntry?.suggested_units)
+  const unitSuggestions = getIntakePlanUnitSuggestions(dosageForm, catalogEntry?.suggested_units, kombi)
   const canSuggestFractions = dosageForm === 'tablet' && form.capabilities.includes('divisible')
   const rhythm = plan.rhythm
   const onDemand = rhythm.kind === 'on_demand'

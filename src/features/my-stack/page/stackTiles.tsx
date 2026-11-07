@@ -10,7 +10,7 @@ export function AddVialTile({ onClick, label }: { onClick: () => void; label: st
       aria-label={label}
       className="group mx-auto flex w-20 flex-col items-center sm:w-24"
     >
-      <div className="flex h-28 w-full flex-col items-center justify-center gap-1.5 rounded-2xl border-[1.5px] border-dashed border-white/25 bg-[rgba(28,28,30,0.72)] text-[var(--lg-text-3)] transition-colors group-hover:border-[rgba(100,210,255,0.6)] group-focus-visible:border-cyan-300/60 sm:h-36">
+      <div className="flex h-28 w-full flex-col items-center justify-center gap-1.5 rounded-2xl border-[1.5px] border-dashed border-white/25 bg-[var(--glass-bg)] text-[var(--lg-text-3)] transition-colors group-hover:border-[rgba(100,210,255,0.6)] group-focus-visible:border-cyan-300/60 sm:h-36">
         <span className="lg-glass lg-icon-btn !h-9 !w-9 !text-[#64d2ff]">
           <Plus size={18} strokeWidth={2} />
         </span>
@@ -37,7 +37,7 @@ export function AddStageTile({ active, title, hint, onClick }: { active: boolean
         {/* Volle Breite und ein Schimmer am Rand: steht die erste Substanz
             in der Mitte, lugt von der Karte nur der rechte Rand herein. Der
             muss auffallen, sonst weiss niemand, dass links noch etwas ist. */}
-        <span className={`flex h-[78%] w-full flex-col items-center justify-center gap-4 rounded-[2rem] border-[1.5px] border-dashed bg-[rgba(28,28,30,0.72)] px-5 text-center transition-[border-color,box-shadow] duration-300 group-focus-visible:border-cyan-300 ${
+        <span className={`flex h-[78%] w-full flex-col items-center justify-center gap-4 rounded-[2rem] border-[1.5px] border-dashed bg-[var(--glass-bg)] px-5 text-center transition-[border-color,box-shadow] duration-300 group-focus-visible:border-cyan-300 ${
           active
             ? 'border-white/25'
             : 'border-[rgba(100,210,255,0.6)] shadow-[0_0_28px_rgba(0,204,245,0.18)]'

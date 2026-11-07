@@ -11,12 +11,12 @@ import { useTranslation } from 'react-i18next'
 import { fractionEliminatedPerHour } from '../../lib/pkModel'
 import { methodLabel } from '../../lib/intakeMethods'
 import type { PkRequirement } from '../my-stack/lib/pkReadiness'
-import { behebbar, type EntryCurve, type MissingEntry, type ReadyEntry, type UnsupportedEntry } from './entries'
+import { behebbar, gruppeZu, type EntryCurve, type MissingEntry, type ProduktGruppe, type ReadyEntry, type UnsupportedEntry } from './entries'
 import { useBlutspiegelData } from './useBlutspiegelData'
 import { UEBERSICHT_PFAD, detailPfad } from './pfade'
 import { LiveStatus } from './LiveStatus'
 import { formatOffset, useBlutspiegelFormat } from './format'
-import { StocksChart } from './chart/StocksChart'
+import { StocksChart, type ExtraSeries } from './chart/StocksChart'
 import {
   CHART_RANGES,
   aenderungSeit,
@@ -31,20 +31,32 @@ const DAY = 24 * 3_600_000
 
 const MUTED: CSSProperties = { color: 'var(--lg-text-2)' }
 
-function Sparkline({ points, accent }: { points: LevelPoint[]; accent: string }) {
-  if (points.length < 2) return <span style={{ width: 48, height: 20, display: 'inline-block' }} />
+function Sparkline({ linien }: { linien: Array<{ key: string; points: LevelPoint[]; accent: string }> }) {
+  const sichtbar = linien.filter(l => l.points.length >= 2)
+  if (!sichtbar.length) return <span style={{ width: 48, height: 20, display: 'inline-block' }} />
+  // Gemeinsame Achsen fuer alle Wirkstoffe eines Produkts.
   let min = Infinity
   let max = -Infinity
-  for (const p of points) { min = Math.min(min, p.level); max = Math.max(max, p.level) }
+  let t0 = Infinity
+  let t1 = -Infinity
+  for (const { points } of sichtbar) {
+    for (const p of points) { min = Math.min(min, p.level); max = Math.max(max, p.level) }
+    t0 = Math.min(t0, points[0].ts)
+    t1 = Math.max(t1, points[points.length - 1].ts)
+  }
   const span = Math.max(1, max - min)
-  const t0 = points[0].ts
-  const dt = Math.max(1, points[points.length - 1].ts - t0)
-  const d = points.map((p, i) => `${i ? 'L' : 'M'}${((p.ts - t0) / dt * 48).toFixed(1)},${(18 - (p.level - min) / span * 16).toFixed(1)}`).join('')
+  const dt = Math.max(1, t1 - t0)
+  const pfad = (points: LevelPoint[]) => points.map((p, i) => `${i ? 'L' : 'M'}${((p.ts - t0) / dt * 48).toFixed(1)},${(18 - (p.level - min) / span * 16).toFixed(1)}`).join('')
   return (
     <svg width={48} height={20} viewBox="0 0 48 20" aria-hidden="true" style={{ flexShrink: 0 }}>
-      <path d={d} fill="none" stroke={accent} strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" />
+      {sichtbar.map(l => <path key={l.key} d={pfad(l.points)} fill="none" stroke={l.accent} strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" />)}
     </svg>
   )
+}
+
+/** Wert mit Farbpunkt: verbindet die Zahl mit ihrer Linie im Graph. */
+function Farbpunkt({ color, size = 8 }: { color: string; size?: number }) {
+  return <span aria-hidden="true" style={{ display: 'inline-block', width: size, height: size, borderRadius: 999, background: color, flexShrink: 0 }} />
 }
 
 function lastDay(points: LevelPoint[], now: number): LevelPoint[] {
@@ -52,9 +64,9 @@ function lastDay(points: LevelPoint[], now: number): LevelPoint[] {
 }
 
 const TickerStrip = memo(function TickerStrip({
-  entries, curves, selectedKey, onSelect, compact, now,
+  produkte, curves, selectedKey, onSelect, compact, now,
 }: {
-  entries: ReadyEntry[]
+  produkte: ProduktGruppe[]
   curves: Map<string, EntryCurve>
   selectedKey: string
   onSelect: (key: string) => void
@@ -71,15 +83,15 @@ const TickerStrip = memo(function TickerStrip({
         margin: '0 -16px', padding: '0 16px 2px', WebkitOverflowScrolling: 'touch',
       }}
     >
-      {entries.map(entry => {
-        const curve = curves.get(entry.key)
-        const selected = entry.key === selectedKey
+      {produkte.map(gruppe => {
+        const selected = gruppe.key === selectedKey
         return (
           <button
-            key={entry.key}
+            key={gruppe.key}
             type="button"
             aria-pressed={selected}
-            onClick={() => onSelect(entry.key)}
+            onClick={() => onSelect(gruppe.key)}
+            data-bs-ticker={gruppe.key}
             style={{
               flexShrink: 0, display: 'flex', alignItems: 'center', gap: 10, minHeight: 44,
               padding: compact ? '6px 10px' : '8px 12px', borderRadius: 12, border: 'none', cursor: 'pointer',
@@ -90,19 +102,73 @@ const TickerStrip = memo(function TickerStrip({
           >
             <span style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
               <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', whiteSpace: 'nowrap', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {entry.name}
+                {gruppe.name}
               </span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--lg-text-3)', fontVariantNumeric: 'tabular-nums' }}>
-                {curve?.current != null ? `${f.pct(curve.current)} %` : '—'}
+              <span style={{ display: 'flex', gap: 8, fontSize: 12, fontWeight: 700, color: 'var(--lg-text-3)', fontVariantNumeric: 'tabular-nums' }}>
+                {gruppe.wirkstoffe.map(w => {
+                  const wert = curves.get(w.key)?.current
+                  return (
+                    <span key={w.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
+                      {gruppe.wirkstoffe.length > 1 && <Farbpunkt color={w.accent} size={6} />}
+                      {gruppe.wirkstoffe.length > 1 && <span className="sr-only">{w.wirkstoff}:</span>}
+                      {wert != null ? `${f.pct(wert)} %` : '—'}
+                    </span>
+                  )
+                })}
               </span>
             </span>
-            {!compact && curve && <Sparkline points={lastDay(curve.points, now)} accent={entry.accent} />}
+            {!compact && (
+              <Sparkline linien={gruppe.wirkstoffe.map(w => ({ key: w.key, points: lastDay(curves.get(w.key)?.points ?? [], now), accent: w.accent }))} />
+            )}
           </button>
         )
       })}
     </div>
   )
 })
+
+/**
+ * Legende eines Kombipraeparats: je Wirkstoff Farbpunkt, Name und Wert.
+ * Antippen holt ihn nach vorn — seine Linie wird zur Hauptlinie, Kennzahlen
+ * und Ablesen gelten dann ihm.
+ */
+function WirkstoffLegende({ gruppe, curves, fokusKey, onFokus }: {
+  gruppe: ProduktGruppe
+  curves: Map<string, EntryCurve>
+  fokusKey: string
+  onFokus: (key: string) => void
+}) {
+  const f = useBlutspiegelFormat()
+  return (
+    <div role="radiogroup" aria-label={f.t('pk_select_ingredient')} style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }} data-bs-legend>
+      {gruppe.wirkstoffe.map(w => {
+        const aktiv = w.key === fokusKey
+        const wert = curves.get(w.key)?.current
+        return (
+          <button
+            key={w.key}
+            type="button"
+            role="radio"
+            aria-checked={aktiv}
+            onClick={() => onFokus(w.key)}
+            data-bs-ingredient={w.key}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 36, padding: '0 12px', borderRadius: 999,
+              border: 'none', cursor: 'pointer', fontFamily: 'inherit', maxWidth: '100%',
+              background: aktiv ? 'var(--lg-fill-selected)' : 'var(--lg-fill)',
+              color: aktiv ? 'var(--lg-text)' : 'var(--lg-text-2)',
+              fontSize: 14, fontWeight: 600, transition: 'background 0.2s ease, color 0.2s ease',
+            }}
+          >
+            <Farbpunkt color={w.accent} />
+            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{w.wirkstoff}</span>
+            <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--lg-text-3)' }}>{wert != null ? `${f.pct(wert)} %` : '—'}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
 
 function RangeControl({ value, onChange }: { value: ChartRange; onChange: (r: ChartRange) => void }) {
   const { t } = useTranslation()
@@ -313,15 +379,27 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
   const { t } = f
   const compact = variant === 'compact'
   const [pickedKey, setPickedKey] = useState<string | null>(initialKey ?? null)
+  // Welcher Wirkstoff eines Kombipraeparats vorn steht; null = der erste.
+  const [fokusKey, setFokusKey] = useState<string | null>(null)
   const [range, setRange] = useState<ChartRange>('1d')
   const [scrub, setScrub] = useState<LevelPoint | null>(null)
   // Zurueckgeblaettert: Ende des sichtbaren Fensters; null folgt „jetzt".
   const [viewEnd, setViewEnd] = useState<number | null>(null)
 
-  const gefunden = data.ready.find(e => e.key === pickedKey)
+  const gefunden = gruppeZu(data.produkte, pickedKey)
   // Detailseite: eine unbekannte Adresse zeigt nie still eine andere Substanz.
-  const selected = gefunden ?? (einzeln && pickedKey ? null : data.ready[0] ?? null)
+  const gruppe = gefunden?.gruppe ?? (einzeln && pickedKey ? null : data.produkte[0] ?? null)
+  const selected = gruppe
+    ? gruppe.wirkstoffe.find(w => w.key === fokusKey) ?? (gefunden?.gruppe === gruppe ? gefunden.wirkstoff : gruppe.wirkstoffe[0])
+    : null
+  const kombi = (gruppe?.wirkstoffe.length ?? 0) > 1
   const curve = selected ? data.curves.get(selected.key) : undefined
+  // Die uebrigen Wirkstoffe als weitere Linien im selben Graph.
+  const others = useMemo<ExtraSeries[] | undefined>(() => (gruppe && selected && kombi
+    ? gruppe.wirkstoffe.filter(w => w.key !== selected.key).map(w => ({
+      key: w.key, name: w.wirkstoff, points: data.curves.get(w.key)?.points ?? [], color: w.accent,
+    }))
+    : undefined), [gruppe, selected, kombi, data.curves])
   // Nur, was sich beheben laesst; ein Vitamin ohne PK-Profil waere bloss
   // Rauschen. Kompakt (Home) nur fehlende Angaben.
   const missing = useMemo(
@@ -341,7 +419,8 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
       },
     }
   }, [f, curve?.doses])
-  const select = useCallback((key: string) => { setPickedKey(key); setScrub(null); setViewEnd(null) }, [])
+  const select = useCallback((key: string) => { setPickedKey(key); setFokusKey(null); setScrub(null); setViewEnd(null) }, [])
+  const fokussiere = useCallback((key: string) => { setFokusKey(key); setScrub(null) }, [])
   const changeRange = useCallback((r: ChartRange) => { setRange(r); setScrub(null); setViewEnd(null) }, [])
 
   // Zeitraum friert „jetzt" je Datenstand ein — sonst liefe die Achse jede Sekunde.
@@ -381,7 +460,7 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
     )
   }
 
-  if (!selected) {
+  if (!selected || !gruppe) {
     return (
       <div>
         {missing.length > 0
@@ -411,8 +490,8 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? 10 : 14 }}>
-      {data.ready.length > 1 && !einzeln && (
-        <TickerStrip entries={data.ready} curves={data.curves} selectedKey={selected.key} onSelect={select} compact={compact} now={asOf} />
+      {data.produkte.length > 1 && !einzeln && (
+        <TickerStrip produkte={data.produkte} curves={data.curves} selectedKey={gruppe.key} onSelect={select} compact={compact} now={asOf} />
       )}
 
       {/* Kopf: Name, Wert, Veraenderung */}
@@ -422,16 +501,16 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
             fontSize: compact ? 22 : 34, fontWeight: 700, letterSpacing: compact ? '-0.01em' : '0.011em', color: 'var(--lg-text)', lineHeight: compact ? 1.05 : '41px',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0,
           }}>
-            {selected.name}
+            {gruppe.name}
           </h2>
-          {selected.profile.name !== selected.name && (
+          {!kombi && selected.profile.name !== selected.name && (
             <span style={{ fontSize: compact ? 13 : 16, ...MUTED, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {selected.profile.name}
             </span>
           )}
           {compact && (
             <Link
-              to={detailPfad(selected.key)}
+              to={detailPfad(gruppe.key)}
               style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', minHeight: 44, fontSize: 14, fontWeight: 700, color: 'var(--accent)', flexShrink: 0 }}
             >
               {t('pk_more')} <ChevronRight size={16} />
@@ -458,6 +537,8 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
         )}
       </div>
 
+      {kombi && <WirkstoffLegende gruppe={gruppe} curves={data.curves} fokusKey={selected.key} onFokus={fokussiere} />}
+
       {!compact && <RangeControl value={range} onChange={changeRange} />}
 
       {/* Fuer Screenreader: der abgelesene Wert (sichtbar steht er im Schild im Graph). */}
@@ -471,6 +552,8 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
           accent={selected.accent}
           height={compact ? 210 : 340}
           seriesKey={selected.key}
+          seriesName={kombi ? selected.wirkstoff : undefined}
+          others={others}
           intakes={curve?.intakes}
           snapTimes={curve?.intakes}
           formatTick={f.tick}
@@ -490,6 +573,11 @@ export function BlutspiegelView({ variant, initialKey, einzeln = false }: {
 
       {!compact && (
         <>
+          {kombi && (
+            <p className="lg-group-title" style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 4 }} data-bs-stats-for>
+              <Farbpunkt color={selected.accent} />{t('pk_stats_for', { name: selected.wirkstoff })}
+            </p>
+          )}
           <DetailStats entry={selected} curve={curve} start={bounds.start} end={bounds.end} now={asOf} />
           {einzeln && curve && curve.doses.length > 0 && <LetzteEinnahmen doses={curve.doses} />}
           {missing.length > 0 && !einzeln && (

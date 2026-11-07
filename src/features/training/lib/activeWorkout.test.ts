@@ -271,3 +271,36 @@ describe('finishWorkout', () => {
     expect(s.exercises[0].sets).toHaveLength(2)
   })
 })
+
+describe('reduceWorkout: Einträge per Sprache (batch, rest_start)', () => {
+  it('ein Eintrag = Werte + Haken + Pause, ein Rückgängig holt alles zurück', () => {
+    const w = startWorkout({ routine, history, now })
+    const t = now.getTime()
+    const next = reduceWorkout(w, { type: 'batch', actions: [
+      { type: 'update_set', index: 0, setIndex: 0, patch: { weightKg: 50, reps: 8 } },
+      { type: 'toggle_done', index: 0, setIndex: 0, defaultRestS: 90, now: t },
+    ] })
+    expect(next.exercises[0].sets[0]).toMatchObject({ weightKg: 50, reps: 8, done: true, touched: true })
+    expect(next.restEndsAt).toBe(t + 120_000)
+    expect(next.undo?.label).toBe('entry')
+    const back = reduceWorkout(next, { type: 'undo', id: next.undo!.id })
+    expect(back.exercises).toBe(w.exercises)
+    expect(back.restEndsAt).toBeNull()
+    expect(back.undo).toBeNull()
+  })
+
+  it('Pause starten mit fester Länge; Rückgängig stellt die laufende Pause wieder her', () => {
+    const w = { ...startWorkout({ routine, history, now }), restEndsAt: 5000, restTotalS: 60 }
+    const next = reduceWorkout(w, { type: 'batch', actions: [{ type: 'rest_start', seconds: 120, now: 1000 }] })
+    expect([next.restEndsAt, next.restTotalS]).toEqual([121_000, 120])
+    const back = reduceWorkout(next, { type: 'undo', id: next.undo!.id })
+    expect([back.restEndsAt, back.restTotalS]).toEqual([5000, 60])
+  })
+
+  it('ein leerer oder wirkungsloser Eintrag ändert nichts', () => {
+    const w = startWorkout({ routine, history, now })
+    expect(reduceWorkout(w, { type: 'batch', actions: [] })).toBe(w)
+    expect(reduceWorkout(w, { type: 'batch', actions: [{ type: 'rest_skip' }] }).undo?.label).toBe('entry')
+    expect(reduceWorkout(w, { type: 'batch', actions: [{ type: 'update_set', index: 9, setIndex: 0, patch: { reps: 1 } }] })).toBe(w)
+  })
+})

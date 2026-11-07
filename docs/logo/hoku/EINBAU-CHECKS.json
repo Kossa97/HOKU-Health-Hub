@@ -1,0 +1,1130 @@
+{
+  "source": "docs/logo/hoku/brand-kit-v2/QUELLEN/hoku-app-icon-organisch-cyan-v3-master.png",
+  "sourceSha256": "7ad6eb3a98518403f02d7da1bd1d754581c10aa21f8b869997e014fabdba5348",
+  "sourceBounds": {
+    "left": 199,
+    "right": 1051,
+    "top": 174,
+    "bottom": 1041,
+    "width": 853,
+    "height": 868,
+    "radius": 454.95329430612986
+  },
+  "background": "#000101",
+  "ratios": {
+    "app": 0.74,
+    "favicon": 0.92,
+    "maskable": 0.67,
+    "adaptive": 0.52,
+    "symbol": 0.92,
+    "splash": 0.24
+  },
+  "pngs": [
+    {
+      "file": "public/icons/hoku-organisch-v4-180.png",
+      "kind": "app",
+      "width": 180,
+      "height": 180,
+      "colorType": 2,
+      "occupied": {
+        "left": 25,
+        "right": 154,
+        "top": 23,
+        "bottom": 156,
+        "width": 130,
+        "height": 134,
+        "radius": 66.59204156654157
+      },
+      "sha256": "fe02d3c2566cdf8f44808aad118cb6ecbadfcc5d50abe2babfc22fde2e38efc0"
+    },
+    {
+      "file": "public/icons/hoku-organisch-v3-180.png",
+      "kind": "app",
+      "width": 180,
+      "height": 180,
+      "colorType": 2,
+      "occupied": {
+        "left": 25,
+        "right": 154,
+        "top": 23,
+        "bottom": 156,
+        "width": 130,
+        "height": 134,
+        "radius": 66.59204156654157
+      },
+      "sha256": "fe02d3c2566cdf8f44808aad118cb6ecbadfcc5d50abe2babfc22fde2e38efc0"
+    },
+    {
+      "file": "public/icons/hoku-dunkel-180.png",
+      "kind": "app",
+      "width": 180,
+      "height": 180,
+      "colorType": 2,
+      "occupied": {
+        "left": 25,
+        "right": 154,
+        "top": 23,
+        "bottom": 156,
+        "width": 130,
+        "height": 134,
+        "radius": 66.59204156654157
+      },
+      "sha256": "fe02d3c2566cdf8f44808aad118cb6ecbadfcc5d50abe2babfc22fde2e38efc0"
+    },
+    {
+      "file": "public/icons/hoku-180.png",
+      "kind": "app",
+      "width": 180,
+      "height": 180,
+      "colorType": 2,
+      "occupied": {
+        "left": 25,
+        "right": 154,
+        "top": 23,
+        "bottom": 156,
+        "width": 130,
+        "height": 134,
+        "radius": 66.59204156654157
+      },
+      "sha256": "fe02d3c2566cdf8f44808aad118cb6ecbadfcc5d50abe2babfc22fde2e38efc0"
+    },
+    {
+      "file": "public/icons/hoku-organisch-v4-192.png",
+      "kind": "app",
+      "width": 192,
+      "height": 192,
+      "colorType": 2,
+      "occupied": {
+        "left": 26,
+        "right": 165,
+        "top": 25,
+        "bottom": 166,
+        "width": 140,
+        "height": 142,
+        "radius": 71.13719139803032
+      },
+      "sha256": "d110b0dfe325e2125ae32f751db10182d08b1bb44959181b46c1979d61277baf"
+    },
+    {
+      "file": "public/icons/hoku-organisch-v3-192.png",
+      "kind": "app",
+      "width": 192,
+      "height": 192,
+      "colorType": 2,
+      "occupied": {
+        "left": 26,
+        "right": 165,
+        "top": 25,
+        "bottom": 166,
+        "width": 140,
+        "height": 142,
+        "radius": 71.13719139803032
+      },
+      "sha256": "d110b0dfe325e2125ae32f751db10182d08b1bb44959181b46c1979d61277baf"
+    },
+    {
+      "file": "public/icons/hoku-dunkel-192.png",
+      "kind": "app",
+      "width": 192,
+      "height": 192,
+      "colorType": 2,
+      "occupied": {
+        "left": 26,
+        "right": 165,
+        "top": 25,
+        "bottom": 166,
+        "width": 140,
+        "height": 142,
+        "radius": 71.13719139803032
+      },
+      "sha256": "d110b0dfe325e2125ae32f751db10182d08b1bb44959181b46c1979d61277baf"
+    },
+    {
+      "file": "public/icons/hoku-192.png",
+      "kind": "app",
+      "width": 192,
+      "height": 192,
+      "colorType": 2,
+      "occupied": {
+        "left": 26,
+        "right": 165,
+        "top": 25,
+        "bottom": 166,
+        "width": 140,
+        "height": 142,
+        "radius": 71.13719139803032
+      },
+      "sha256": "d110b0dfe325e2125ae32f751db10182d08b1bb44959181b46c1979d61277baf"
+    },
+    {
+      "file": "public/icons/hoku-organisch-v4-512.png",
+      "kind": "app",
+      "width": 512,
+      "height": 512,
+      "colorType": 2,
+      "occupied": {
+        "left": 70,
+        "right": 441,
+        "top": 66,
+        "bottom": 445,
+        "width": 372,
+        "height": 380,
+        "radius": 190.08550707510557
+      },
+      "sha256": "ec0951a90c3c6f4615c59849d72b80468f63084ef8c03a24e82080bec012e26c"
+    },
+    {
+      "file": "public/icons/hoku-organisch-v3-512.png",
+      "kind": "app",
+      "width": 512,
+      "height": 512,
+      "colorType": 2,
+      "occupied": {
+        "left": 70,
+        "right": 441,
+        "top": 66,
+        "bottom": 445,
+        "width": 372,
+        "height": 380,
+        "radius": 190.08550707510557
+      },
+      "sha256": "ec0951a90c3c6f4615c59849d72b80468f63084ef8c03a24e82080bec012e26c"
+    },
+    {
+      "file": "public/icons/hoku-dunkel-512.png",
+      "kind": "app",
+      "width": 512,
+      "height": 512,
+      "colorType": 2,
+      "occupied": {
+        "left": 70,
+        "right": 441,
+        "top": 66,
+        "bottom": 445,
+        "width": 372,
+        "height": 380,
+        "radius": 190.08550707510557
+      },
+      "sha256": "ec0951a90c3c6f4615c59849d72b80468f63084ef8c03a24e82080bec012e26c"
+    },
+    {
+      "file": "public/icons/hoku-512.png",
+      "kind": "app",
+      "width": 512,
+      "height": 512,
+      "colorType": 2,
+      "occupied": {
+        "left": 70,
+        "right": 441,
+        "top": 66,
+        "bottom": 445,
+        "width": 372,
+        "height": 380,
+        "radius": 190.08550707510557
+      },
+      "sha256": "ec0951a90c3c6f4615c59849d72b80468f63084ef8c03a24e82080bec012e26c"
+    },
+    {
+      "file": "public/apple-touch-icon.png",
+      "kind": "app",
+      "width": 180,
+      "height": 180,
+      "colorType": 2,
+      "occupied": {
+        "left": 25,
+        "right": 154,
+        "top": 23,
+        "bottom": 156,
+        "width": 130,
+        "height": 134,
+        "radius": 66.59204156654157
+      },
+      "sha256": "fe02d3c2566cdf8f44808aad118cb6ecbadfcc5d50abe2babfc22fde2e38efc0"
+    },
+    {
+      "file": "public/icons/hoku-organisch-v4-1024.png",
+      "kind": "app",
+      "width": 1024,
+      "height": 1024,
+      "colorType": 2,
+      "occupied": {
+        "left": 140,
+        "right": 884,
+        "top": 133,
+        "bottom": 890,
+        "width": 745,
+        "height": 758,
+        "radius": 380.424105440231
+      },
+      "sha256": "6c27113fa3823634ebd7cc35dd1d135a2196149bbfdc4a3f734d2ae755886b16"
+    },
+    {
+      "file": "public/icons/hoku-organisch-v3-1024.png",
+      "kind": "app",
+      "width": 1024,
+      "height": 1024,
+      "colorType": 2,
+      "occupied": {
+        "left": 140,
+        "right": 884,
+        "top": 133,
+        "bottom": 890,
+        "width": 745,
+        "height": 758,
+        "radius": 380.424105440231
+      },
+      "sha256": "6c27113fa3823634ebd7cc35dd1d135a2196149bbfdc4a3f734d2ae755886b16"
+    },
+    {
+      "file": "public/icons/hoku-dunkel-1024.png",
+      "kind": "app",
+      "width": 1024,
+      "height": 1024,
+      "colorType": 2,
+      "occupied": {
+        "left": 140,
+        "right": 884,
+        "top": 133,
+        "bottom": 890,
+        "width": 745,
+        "height": 758,
+        "radius": 380.424105440231
+      },
+      "sha256": "6c27113fa3823634ebd7cc35dd1d135a2196149bbfdc4a3f734d2ae755886b16"
+    },
+    {
+      "file": "public/icons/hoku-organisch-v4-maskable-512.png",
+      "kind": "maskable",
+      "width": 512,
+      "height": 512,
+      "colorType": 2,
+      "occupied": {
+        "left": 88,
+        "right": 424,
+        "top": 84,
+        "bottom": 427,
+        "width": 337,
+        "height": 344,
+        "radius": 172.25126995177715
+      },
+      "sha256": "8a02ef4d21a5bce8153d81922f80759bc31d17992a9cf55df3e3cd45bb709f86"
+    },
+    {
+      "file": "public/icons/hoku-organisch-v3-maskable-512.png",
+      "kind": "maskable",
+      "width": 512,
+      "height": 512,
+      "colorType": 2,
+      "occupied": {
+        "left": 88,
+        "right": 424,
+        "top": 84,
+        "bottom": 427,
+        "width": 337,
+        "height": 344,
+        "radius": 172.25126995177715
+      },
+      "sha256": "8a02ef4d21a5bce8153d81922f80759bc31d17992a9cf55df3e3cd45bb709f86"
+    },
+    {
+      "file": "public/icons/hoku-dunkel-maskable-512.png",
+      "kind": "maskable",
+      "width": 512,
+      "height": 512,
+      "colorType": 2,
+      "occupied": {
+        "left": 88,
+        "right": 424,
+        "top": 84,
+        "bottom": 427,
+        "width": 337,
+        "height": 344,
+        "radius": 172.25126995177715
+      },
+      "sha256": "8a02ef4d21a5bce8153d81922f80759bc31d17992a9cf55df3e3cd45bb709f86"
+    },
+    {
+      "file": "public/icons/hoku-maskable-512.png",
+      "kind": "maskable",
+      "width": 512,
+      "height": 512,
+      "colorType": 2,
+      "occupied": {
+        "left": 88,
+        "right": 424,
+        "top": 84,
+        "bottom": 427,
+        "width": 337,
+        "height": 344,
+        "radius": 172.25126995177715
+      },
+      "sha256": "8a02ef4d21a5bce8153d81922f80759bc31d17992a9cf55df3e3cd45bb709f86"
+    },
+    {
+      "file": "public/icon-192.png",
+      "kind": "app",
+      "width": 192,
+      "height": 192,
+      "colorType": 2,
+      "occupied": {
+        "left": 26,
+        "right": 165,
+        "top": 25,
+        "bottom": 166,
+        "width": 140,
+        "height": 142,
+        "radius": 71.13719139803032
+      },
+      "sha256": "d110b0dfe325e2125ae32f751db10182d08b1bb44959181b46c1979d61277baf"
+    },
+    {
+      "file": "public/icon-512.png",
+      "kind": "app",
+      "width": 512,
+      "height": 512,
+      "colorType": 2,
+      "occupied": {
+        "left": 70,
+        "right": 441,
+        "top": 66,
+        "bottom": 445,
+        "width": 372,
+        "height": 380,
+        "radius": 190.08550707510557
+      },
+      "sha256": "ec0951a90c3c6f4615c59849d72b80468f63084ef8c03a24e82080bec012e26c"
+    },
+    {
+      "file": "public/icons/hoku-fav-organisch-v3-16.png",
+      "kind": "favicon",
+      "width": 16,
+      "height": 16,
+      "colorType": 2,
+      "occupied": {
+        "left": 1,
+        "right": 13,
+        "top": 1,
+        "bottom": 14,
+        "width": 13,
+        "height": 14,
+        "radius": 7.1063352017759485
+      },
+      "sha256": "fddff42d5bc67a3a6609fe05f76c26c8ae573dd8f16246a74ec40a4506be38f3"
+    },
+    {
+      "file": "public/icons/hoku-fav-dunkel-16.png",
+      "kind": "favicon",
+      "width": 16,
+      "height": 16,
+      "colorType": 2,
+      "occupied": {
+        "left": 1,
+        "right": 13,
+        "top": 1,
+        "bottom": 14,
+        "width": 13,
+        "height": 14,
+        "radius": 7.1063352017759485
+      },
+      "sha256": "fddff42d5bc67a3a6609fe05f76c26c8ae573dd8f16246a74ec40a4506be38f3"
+    },
+    {
+      "file": "public/icons/hoku-fav-organisch-v3-32.png",
+      "kind": "favicon",
+      "width": 32,
+      "height": 32,
+      "colorType": 2,
+      "occupied": {
+        "left": 2,
+        "right": 29,
+        "top": 1,
+        "bottom": 30,
+        "width": 28,
+        "height": 30,
+        "radius": 14.57737973711325
+      },
+      "sha256": "2a775deb5f9910ddf9f24994e1298742a087fc924637bf34b7981ccccbacb5b1"
+    },
+    {
+      "file": "public/icons/hoku-fav-dunkel-32.png",
+      "kind": "favicon",
+      "width": 32,
+      "height": 32,
+      "colorType": 2,
+      "occupied": {
+        "left": 2,
+        "right": 29,
+        "top": 1,
+        "bottom": 30,
+        "width": 28,
+        "height": 30,
+        "radius": 14.57737973711325
+      },
+      "sha256": "2a775deb5f9910ddf9f24994e1298742a087fc924637bf34b7981ccccbacb5b1"
+    },
+    {
+      "file": "public/icons/hoku-fav-blau-32.png",
+      "kind": "favicon",
+      "width": 32,
+      "height": 32,
+      "colorType": 2,
+      "occupied": {
+        "left": 2,
+        "right": 29,
+        "top": 1,
+        "bottom": 30,
+        "width": 28,
+        "height": 30,
+        "radius": 14.57737973711325
+      },
+      "sha256": "2a775deb5f9910ddf9f24994e1298742a087fc924637bf34b7981ccccbacb5b1"
+    },
+    {
+      "file": "public/icons/hoku-fav-organisch-v3-48.png",
+      "kind": "favicon",
+      "width": 48,
+      "height": 48,
+      "colorType": 2,
+      "occupied": {
+        "left": 2,
+        "right": 45,
+        "top": 2,
+        "bottom": 45,
+        "width": 44,
+        "height": 44,
+        "radius": 21.965882636488796
+      },
+      "sha256": "50111af0a0e1f107c2270ee0ba9a4dafa15e53ec440aca7d6f316ebfc7b5e73c"
+    },
+    {
+      "file": "public/icons/hoku-fav-dunkel-48.png",
+      "kind": "favicon",
+      "width": 48,
+      "height": 48,
+      "colorType": 2,
+      "occupied": {
+        "left": 2,
+        "right": 45,
+        "top": 2,
+        "bottom": 45,
+        "width": 44,
+        "height": 44,
+        "radius": 21.965882636488796
+      },
+      "sha256": "50111af0a0e1f107c2270ee0ba9a4dafa15e53ec440aca7d6f316ebfc7b5e73c"
+    },
+    {
+      "file": "public/icons/hoku-fav-blau-48.png",
+      "kind": "favicon",
+      "width": 48,
+      "height": 48,
+      "colorType": 2,
+      "occupied": {
+        "left": 2,
+        "right": 45,
+        "top": 2,
+        "bottom": 45,
+        "width": 44,
+        "height": 44,
+        "radius": 21.965882636488796
+      },
+      "sha256": "50111af0a0e1f107c2270ee0ba9a4dafa15e53ec440aca7d6f316ebfc7b5e73c"
+    },
+    {
+      "file": "public/icons/hoku-fav-organisch-v3-64.png",
+      "kind": "favicon",
+      "width": 64,
+      "height": 64,
+      "colorType": 2,
+      "occupied": {
+        "left": 3,
+        "right": 60,
+        "top": 3,
+        "bottom": 60,
+        "width": 58,
+        "height": 58,
+        "radius": 29.334280287745255
+      },
+      "sha256": "04d09ce2a69a2746b4382e6010fe7fcff94336f88afc92067386ec404c337f35"
+    },
+    {
+      "file": "public/icons/hoku-fav-dunkel-64.png",
+      "kind": "favicon",
+      "width": 64,
+      "height": 64,
+      "colorType": 2,
+      "occupied": {
+        "left": 3,
+        "right": 60,
+        "top": 3,
+        "bottom": 60,
+        "width": 58,
+        "height": 58,
+        "radius": 29.334280287745255
+      },
+      "sha256": "04d09ce2a69a2746b4382e6010fe7fcff94336f88afc92067386ec404c337f35"
+    },
+    {
+      "file": "public/icons/hoku-fav-blau-64.png",
+      "kind": "favicon",
+      "width": 64,
+      "height": 64,
+      "colorType": 2,
+      "occupied": {
+        "left": 3,
+        "right": 60,
+        "top": 3,
+        "bottom": 60,
+        "width": 58,
+        "height": 58,
+        "radius": 29.334280287745255
+      },
+      "sha256": "04d09ce2a69a2746b4382e6010fe7fcff94336f88afc92067386ec404c337f35"
+    },
+    {
+      "file": "public/icons/hoku-dunkel-symbol-64.png",
+      "kind": "symbol",
+      "width": 64,
+      "height": 64,
+      "colorType": 6,
+      "occupied": {
+        "left": 3,
+        "right": 60,
+        "top": 3,
+        "bottom": 60,
+        "width": 58,
+        "height": 58,
+        "radius": 29.334280287745255
+      },
+      "sha256": "568ca8970c6638c122e9899ed454bea04ff6ff97bd46d590c5af56b8b99efd2b"
+    },
+    {
+      "file": "public/icons/hoku-dunkel-symbol-128.png",
+      "kind": "symbol",
+      "width": 128,
+      "height": 128,
+      "colorType": 6,
+      "occupied": {
+        "left": 6,
+        "right": 121,
+        "top": 5,
+        "bottom": 122,
+        "width": 116,
+        "height": 118,
+        "radius": 59.11429607125505
+      },
+      "sha256": "37e90a19053b37efef6aa07dab7a39ecb02fef2afe6fbf1b4a5e6e2c883a4ce7"
+    },
+    {
+      "file": "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png",
+      "kind": "app",
+      "width": 1024,
+      "height": 1024,
+      "colorType": 2,
+      "occupied": {
+        "left": 140,
+        "right": 884,
+        "top": 133,
+        "bottom": 890,
+        "width": 745,
+        "height": 758,
+        "radius": 380.424105440231
+      },
+      "sha256": "6c27113fa3823634ebd7cc35dd1d135a2196149bbfdc4a3f734d2ae755886b16"
+    },
+    {
+      "file": "android/app/src/main/res/mipmap-mdpi/ic_launcher.png",
+      "kind": "legacy",
+      "width": 48,
+      "height": 48,
+      "colorType": 6,
+      "occupied": {
+        "left": 0,
+        "right": 47,
+        "top": 0,
+        "bottom": 47,
+        "width": 48,
+        "height": 48,
+        "radius": 30.43846251044885
+      },
+      "sha256": "3a0ac53403a2276beb6819993ba30f76d2c1a2d0f94ac2d51b06c6f225a54a0a"
+    },
+    {
+      "file": "android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png",
+      "kind": "legacy",
+      "width": 48,
+      "height": 48,
+      "colorType": 6,
+      "occupied": {
+        "left": 0,
+        "right": 47,
+        "top": 0,
+        "bottom": 47,
+        "width": 48,
+        "height": 48,
+        "radius": 24.010414407085936
+      },
+      "sha256": "f7c7abf934c796539f8425ecbca880e513256995b45f761fca321295b6aff32c"
+    },
+    {
+      "file": "android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png",
+      "kind": "adaptive",
+      "width": 108,
+      "height": 108,
+      "colorType": 6,
+      "occupied": {
+        "left": 26,
+        "right": 81,
+        "top": 26,
+        "bottom": 81,
+        "width": 56,
+        "height": 56,
+        "radius": 28.044607324760317
+      },
+      "sha256": "78fa49be06d110e217d59c69a2cdfba68a3563220095492df85a3fe3143b4762"
+    },
+    {
+      "file": "android/app/src/main/res/mipmap-hdpi/ic_launcher.png",
+      "kind": "legacy",
+      "width": 72,
+      "height": 72,
+      "colorType": 6,
+      "occupied": {
+        "left": 0,
+        "right": 71,
+        "top": 0,
+        "bottom": 71,
+        "width": 72,
+        "height": 72,
+        "radius": 45.39273069556402
+      },
+      "sha256": "ba210ab08928481cecc44ad86db62e8316e8b69963c918b91b4a62e1683bda39"
+    },
+    {
+      "file": "android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png",
+      "kind": "legacy",
+      "width": 72,
+      "height": 72,
+      "colorType": 6,
+      "occupied": {
+        "left": 0,
+        "right": 71,
+        "top": 0,
+        "bottom": 71,
+        "width": 72,
+        "height": 72,
+        "radius": 36.0347054934545
+      },
+      "sha256": "4e5499a6c3252f73baecb40ddb521db30a5bd3b8c7f493022ccdc992f71b1a19"
+    },
+    {
+      "file": "android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png",
+      "kind": "adaptive",
+      "width": 162,
+      "height": 162,
+      "colorType": 6,
+      "occupied": {
+        "left": 40,
+        "right": 122,
+        "top": 39,
+        "bottom": 122,
+        "width": 83,
+        "height": 84,
+        "radius": 42.101068870041765
+      },
+      "sha256": "3a1d49116e8eb5a617d32c8de0e714e3af9c346f130ac59eb65674b945005953"
+    },
+    {
+      "file": "android/app/src/main/res/mipmap-xhdpi/ic_launcher.png",
+      "kind": "legacy",
+      "width": 96,
+      "height": 96,
+      "colorType": 6,
+      "occupied": {
+        "left": 0,
+        "right": 95,
+        "top": 0,
+        "bottom": 95,
+        "width": 96,
+        "height": 96,
+        "radius": 60.848171706305195
+      },
+      "sha256": "79b34a02b3d83ae8645048beeb2f09fecfcdeada52db27b973335b44a7380dac"
+    },
+    {
+      "file": "android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png",
+      "kind": "legacy",
+      "width": 96,
+      "height": 96,
+      "colorType": 6,
+      "occupied": {
+        "left": 0,
+        "right": 95,
+        "top": 0,
+        "bottom": 95,
+        "width": 96,
+        "height": 96,
+        "radius": 47.94267410147248
+      },
+      "sha256": "c978a61bab64a01c373dd01793202ad76acbb599035b2e444130277f20cd5b1b"
+    },
+    {
+      "file": "android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png",
+      "kind": "adaptive",
+      "width": 216,
+      "height": 216,
+      "colorType": 6,
+      "occupied": {
+        "left": 53,
+        "right": 163,
+        "top": 52,
+        "bottom": 163,
+        "width": 111,
+        "height": 112,
+        "radius": 56.14712815451917
+      },
+      "sha256": "077f95d6fd153cb90864f21a1d85c62b52e8827adf1e0670ed622256bbc6c69e"
+    },
+    {
+      "file": "android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png",
+      "kind": "legacy",
+      "width": 144,
+      "height": 144,
+      "colorType": 6,
+      "occupied": {
+        "left": 0,
+        "right": 143,
+        "top": 0,
+        "bottom": 143,
+        "width": 144,
+        "height": 144,
+        "radius": 91.31538753134654
+      },
+      "sha256": "aef65211cacb29180c2e254261192bb03a3784d9a42dbd4966686a1715895188"
+    },
+    {
+      "file": "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png",
+      "kind": "legacy",
+      "width": 144,
+      "height": 144,
+      "colorType": 6,
+      "occupied": {
+        "left": 0,
+        "right": 143,
+        "top": 0,
+        "bottom": 143,
+        "width": 144,
+        "height": 144,
+        "radius": 72.00347213850178
+      },
+      "sha256": "f3b2ddd954ff0ceafdbaf05ff392feceaa5eec151185948c8d50b013dd740324"
+    },
+    {
+      "file": "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png",
+      "kind": "adaptive",
+      "width": 324,
+      "height": 324,
+      "colorType": 6,
+      "occupied": {
+        "left": 79,
+        "right": 244,
+        "top": 78,
+        "bottom": 245,
+        "width": 166,
+        "height": 168,
+        "radius": 84.4422879841611
+      },
+      "sha256": "cd79988727227da8cd9afb707da19032e1c2571e8607337b370cd5b6fdb291f2"
+    },
+    {
+      "file": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+      "kind": "legacy",
+      "width": 192,
+      "height": 192,
+      "colorType": 6,
+      "occupied": {
+        "left": 0,
+        "right": 191,
+        "top": 0,
+        "bottom": 191,
+        "width": 192,
+        "height": 192,
+        "radius": 121.78875153313626
+      },
+      "sha256": "fd1a0d0a92977e044b891e42f96333ceb0f693a9ed0225bae0d9e453186a7cb0"
+    },
+    {
+      "file": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png",
+      "kind": "legacy",
+      "width": 192,
+      "height": 192,
+      "colorType": 6,
+      "occupied": {
+        "left": 0,
+        "right": 191,
+        "top": 0,
+        "bottom": 191,
+        "width": 192,
+        "height": 192,
+        "radius": 96.07549115148983
+      },
+      "sha256": "ff7a856c7673907e3bcd7f56c4ccbe964e0906b3cf38e5c5ec9cb6abf33b6519"
+    },
+    {
+      "file": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png",
+      "kind": "adaptive",
+      "width": 432,
+      "height": 432,
+      "colorType": 6,
+      "occupied": {
+        "left": 105,
+        "right": 326,
+        "top": 103,
+        "bottom": 327,
+        "width": 222,
+        "height": 225,
+        "radius": 113.19231422671771
+      },
+      "sha256": "19b591c1e5177e08841c3d6e9477d6a49495bada8196c20645afbd857be1cd1e"
+    },
+    {
+      "file": "ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732.png",
+      "kind": "splash",
+      "width": 2732,
+      "height": 2732,
+      "colorType": 2,
+      "occupied": {
+        "left": 1044,
+        "right": 1687,
+        "top": 1038,
+        "bottom": 1693,
+        "width": 644,
+        "height": 656,
+        "radius": 329.12687523202965
+      },
+      "sha256": "73ae1141ebbc7a8b86d6c237cd2ac593f42f7c72da6f54c43011221b9f848624"
+    },
+    {
+      "file": "ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732-1.png",
+      "kind": "splash",
+      "width": 2732,
+      "height": 2732,
+      "colorType": 2,
+      "occupied": {
+        "left": 1044,
+        "right": 1687,
+        "top": 1038,
+        "bottom": 1693,
+        "width": 644,
+        "height": 656,
+        "radius": 329.12687523202965
+      },
+      "sha256": "73ae1141ebbc7a8b86d6c237cd2ac593f42f7c72da6f54c43011221b9f848624"
+    },
+    {
+      "file": "ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732-2.png",
+      "kind": "splash",
+      "width": 2732,
+      "height": 2732,
+      "colorType": 2,
+      "occupied": {
+        "left": 1044,
+        "right": 1687,
+        "top": 1038,
+        "bottom": 1693,
+        "width": 644,
+        "height": 656,
+        "radius": 329.12687523202965
+      },
+      "sha256": "73ae1141ebbc7a8b86d6c237cd2ac593f42f7c72da6f54c43011221b9f848624"
+    },
+    {
+      "file": "android/app/src/main/res/drawable/splash.png",
+      "kind": "splash",
+      "width": 480,
+      "height": 320,
+      "colorType": 2,
+      "occupied": {
+        "left": 202,
+        "right": 277,
+        "top": 122,
+        "bottom": 197,
+        "width": 76,
+        "height": 76,
+        "radius": 38.451267859460756
+      },
+      "sha256": "003be21a2672c6fd0db4cb791405e4c519e8a496716da6ff3f5aaebb9fac811b"
+    },
+    {
+      "file": "android/app/src/main/res/drawable-land-hdpi/splash.png",
+      "kind": "splash",
+      "width": 800,
+      "height": 480,
+      "colorType": 2,
+      "occupied": {
+        "left": 343,
+        "right": 456,
+        "top": 182,
+        "bottom": 297,
+        "width": 114,
+        "height": 116,
+        "radius": 57.55432216610669
+      },
+      "sha256": "2ac70f8207b8f3b6b9db8652393b89eb04422d781465e1d67b28075a56ca011b"
+    },
+    {
+      "file": "android/app/src/main/res/drawable-land-mdpi/splash.png",
+      "kind": "splash",
+      "width": 480,
+      "height": 320,
+      "colorType": 2,
+      "occupied": {
+        "left": 202,
+        "right": 277,
+        "top": 122,
+        "bottom": 197,
+        "width": 76,
+        "height": 76,
+        "radius": 38.451267859460756
+      },
+      "sha256": "003be21a2672c6fd0db4cb791405e4c519e8a496716da6ff3f5aaebb9fac811b"
+    },
+    {
+      "file": "android/app/src/main/res/drawable-land-xhdpi/splash.png",
+      "kind": "splash",
+      "width": 1280,
+      "height": 720,
+      "colorType": 2,
+      "occupied": {
+        "left": 555,
+        "right": 724,
+        "top": 274,
+        "bottom": 445,
+        "width": 170,
+        "height": 172,
+        "radius": 86.40891157745247
+      },
+      "sha256": "4f04f97a4354a911ba97b9a5eed50c52bdac7d719d15ad8d31d763ea3d007e74"
+    },
+    {
+      "file": "android/app/src/main/res/drawable-land-xxhdpi/splash.png",
+      "kind": "splash",
+      "width": 1600,
+      "height": 960,
+      "colorType": 2,
+      "occupied": {
+        "left": 687,
+        "right": 912,
+        "top": 365,
+        "bottom": 594,
+        "width": 226,
+        "height": 230,
+        "radius": 115.68275584545864
+      },
+      "sha256": "3ba5b43c27475fa4f1b5054ed299f8d929d858ba52eae57e1eadbf28ebe1d903"
+    },
+    {
+      "file": "android/app/src/main/res/drawable-land-xxxhdpi/splash.png",
+      "kind": "splash",
+      "width": 1920,
+      "height": 1280,
+      "colorType": 2,
+      "occupied": {
+        "left": 809,
+        "right": 1110,
+        "top": 486,
+        "bottom": 793,
+        "width": 302,
+        "height": 308,
+        "radius": 154.00811666921973
+      },
+      "sha256": "7f6c04aa8f6323059e431e5edd1fff5d54197fe4c1c120d6bc9d25105e9a307e"
+    },
+    {
+      "file": "android/app/src/main/res/drawable-port-hdpi/splash.png",
+      "kind": "splash",
+      "width": 480,
+      "height": 800,
+      "colorType": 2,
+      "occupied": {
+        "left": 183,
+        "right": 296,
+        "top": 342,
+        "bottom": 457,
+        "width": 114,
+        "height": 116,
+        "radius": 57.55432216610669
+      },
+      "sha256": "46a919a6ee76c44288be21a3f0af1bf5678f754931883827a6e1bbff4aa9b657"
+    },
+    {
+      "file": "android/app/src/main/res/drawable-port-mdpi/splash.png",
+      "kind": "splash",
+      "width": 320,
+      "height": 480,
+      "colorType": 2,
+      "occupied": {
+        "left": 122,
+        "right": 197,
+        "top": 202,
+        "bottom": 277,
+        "width": 76,
+        "height": 76,
+        "radius": 38.451267859460756
+      },
+      "sha256": "61d082b218b2be712b384e97e0803e9da78f329a4a5da0e47c9ee23422e9c990"
+    },
+    {
+      "file": "android/app/src/main/res/drawable-port-xhdpi/splash.png",
+      "kind": "splash",
+      "width": 720,
+      "height": 1280,
+      "colorType": 2,
+      "occupied": {
+        "left": 275,
+        "right": 444,
+        "top": 554,
+        "bottom": 725,
+        "width": 170,
+        "height": 172,
+        "radius": 86.40891157745247
+      },
+      "sha256": "4deaa291c7d27c0b9304bdbc098fdac471ecb1ec84ce0b1347e3f333e6d4275a"
+    },
+    {
+      "file": "android/app/src/main/res/drawable-port-xxhdpi/splash.png",
+      "kind": "splash",
+      "width": 960,
+      "height": 1600,
+      "colorType": 2,
+      "occupied": {
+        "left": 367,
+        "right": 592,
+        "top": 685,
+        "bottom": 914,
+        "width": 226,
+        "height": 230,
+        "radius": 115.68275584545864
+      },
+      "sha256": "205ba03945934c6289ab0c7817c7d2d962bb5f396b68d62725c589e1f021cf14"
+    },
+    {
+      "file": "android/app/src/main/res/drawable-port-xxxhdpi/splash.png",
+      "kind": "splash",
+      "width": 1280,
+      "height": 1920,
+      "colorType": 2,
+      "occupied": {
+        "left": 489,
+        "right": 790,
+        "top": 806,
+        "bottom": 1113,
+        "width": 302,
+        "height": 308,
+        "radius": 154.00811666921973
+      },
+      "sha256": "be4b9901b390e3d2023d616651eceadb3e89f87fd63b563b8b9e7752caad87d6"
+    }
+  ],
+  "faviconSha256": "583726503c1e76bee4f5acdf02e74892d0a3b066f4a56c0325d160cea03f9bf7"
+}

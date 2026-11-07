@@ -96,6 +96,7 @@ export class OrbEngine {
   private layout: OrbLayout | null = null
   private reduce: boolean
   private readonly onFocus: (f: OrbFocus | null) => void
+  private readonly onTapMain?: () => void
 
   private dpr = 2
   private cssW = 0
@@ -128,13 +129,20 @@ export class OrbEngine {
   private cost = 0
   private workedAt = 0
 
-  constructor(canvas: HTMLCanvasElement, opts: { reduce: boolean; onFocus: (f: OrbFocus | null) => void; radius?: number }) {
+  constructor(canvas: HTMLCanvasElement, opts: {
+    reduce: boolean
+    onFocus: (f: OrbFocus | null) => void
+    /** Tipp auf die Kugel selbst (kein Mond, keiner hervorgehoben). */
+    onTapMain?: () => void
+    radius?: number
+  }) {
     this.canvas = canvas
     this.baseRadius = opts.radius ?? ORB_RADIUS
     this.radius = this.baseRadius
     this.renderer = new DotRenderer(canvas)
     this.reduce = opts.reduce
     this.onFocus = opts.onFocus
+    this.onTapMain = opts.onTapMain
     if (this.reduce) this.spinF = 0
   }
 
@@ -334,6 +342,12 @@ export class OrbEngine {
       // Vordere Monde gewinnen gegen solche hinter der Kugel.
       const score = d - (g.front ? 20 * this.dpr : 0)
       if (d < g.R + 12 * this.dpr && score < bestD) { bestD = score; best = key }
+    }
+    // Kein Mond getroffen, keiner hervorgehoben, aber die Kugel: das meldet der Aufrufer (öffnet den Tag).
+    const g = this.geo
+    if (best === null && this.focusKey === null && g && this.onTapMain && Math.hypot(x - g.cx, y - g.cy) < g.R + 8 * this.dpr) {
+      this.onTapMain()
+      return
     }
     // Derselbe Mond noch einmal: wieder abwählen (wie der Knopf in der Makrozeile).
     this.focus(best !== null && best === this.focusKey ? null : best)

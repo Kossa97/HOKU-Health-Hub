@@ -30,7 +30,9 @@ describe('Eingabe', () => {
 
 describe('Rechnen', () => {
   it('skaliert je 100 g auf die Menge', () => {
-    expect(nutrientsFor(oats, 50)).toEqual({ kcal: 186, protein: 6.8, carbs: 29.4, fat: 3.5, fiber: 5, sugar: 0.6, satFat: null, salt: 0.01 })
+    expect(nutrientsFor(oats, 50)).toEqual({ kcal: 186, protein: 6.8, carbs: 29.4, fat: 3.5, fiber: 5, sugar: 0.6, satFat: null, salt: 0.01, micros: null })
+    // Vitamine und Mineralstoffe wandern mit, auf die Menge gerechnet.
+    expect(nutrientsFor({ ...oats, micros: { b1: 0.562, mg: 121.3 } }, 50).micros).toEqual({ b1: 0.281, mg: 60.65 })
   })
   it('unbekannt bleibt unbekannt (null statt 0)', () => {
     expect(nutrientsFor({ ...oats, fiber: null }, 50).fiber).toBeNull()

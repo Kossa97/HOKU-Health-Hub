@@ -19,7 +19,11 @@ export interface OffFood {
   name: string
   brand: string | null
   unit: 'g' | 'ml'
-  per100: { kcal: number; protein: number; carbs: number; fat: number; fiber: number | null; sugar: number | null; satFat: number | null; salt: number | null }
+  per100: {
+    kcal: number; protein: number; carbs: number; fat: number; fiber: number | null; sugar: number | null; satFat: number | null; salt: number | null
+    /** Vitamine/Mineralstoffe je 100 g in den Einheiten der App (src/features/ernaehrung/lib/micros.ts); nur Angegebenes. */
+    micros?: Record<string, number> | null
+  }
   serving: { amount: number; label: string | null } | null
 }
 
@@ -36,6 +40,33 @@ const text = (v: unknown, max: number): string | null => {
   return null
 }
 const r1 = (n: number) => Math.round(n * 10) / 10
+
+/**
+ * OFF führt Vitamine und Mineralstoffe je 100 g in Gramm (`vitamin-c_100g` = 0,0024 → 2,4 mg).
+ * App-Schlüssel → [OFF-Name, Faktor zur App-Einheit, Höchstwert je 100 g in App-Einheit].
+ * Werte über dem Höchstwert sind fast immer Einheitenfehler im Eintrag und fallen weg.
+ */
+const OFF_MICROS: Record<string, [string, number, number]> = {
+  vitA: ['vitamin-a', 1e6, 30000], vitD: ['vitamin-d', 1e6, 500], vitE: ['vitamin-e', 1e3, 500], vitK: ['vitamin-k', 1e6, 5000],
+  b1: ['vitamin-b1', 1e3, 100], b2: ['vitamin-b2', 1e3, 100], b3: ['vitamin-pp', 1e3, 500], b5: ['pantothenic-acid', 1e3, 200],
+  b6: ['vitamin-b6', 1e3, 100], b7: ['biotin', 1e6, 5000], b9: ['vitamin-b9', 1e6, 5000], b12: ['vitamin-b12', 1e6, 1000],
+  vitC: ['vitamin-c', 1e3, 5000], k: ['potassium', 1e3, 10000], ca: ['calcium', 1e3, 10000], mg: ['magnesium', 1e3, 5000],
+  p: ['phosphorus', 1e3, 5000], fe: ['iron', 1e3, 200], zn: ['zinc', 1e3, 200], cu: ['copper', 1e3, 50], mn: ['manganese', 1e3, 100],
+  i: ['iodine', 1e6, 5000], se: ['selenium', 1e6, 2000], omega3: ['omega-3-fat', 1, 100], chol: ['cholesterol', 1e3, 3000],
+  trans: ['trans-fat', 1, 100],
+}
+
+export function mapMicros(n: Raw): Record<string, number> | null {
+  const out: Record<string, number> = {}
+  for (const [key, [name, factor, max]] of Object.entries(OFF_MICROS)) {
+    // Folat heißt bei manchen Produkten „folates“ statt „vitamin-b9“.
+    const raw = num(n[`${name}_100g`]) ?? (key === 'b9' ? num(n['folates_100g']) : null)
+    if (raw == null) continue
+    const v = raw * factor
+    if (v <= max) out[key] = v === 0 ? 0 : Number(v.toPrecision(4))
+  }
+  return Object.keys(out).length ? out : null
+}
 
 /**
  * Ziffern prüfen und in die Form bringen, unter der OFF Produkte führt:
@@ -91,6 +122,7 @@ export function mapProduct(p: Raw, lang: 'de' | 'en'): OffFood | null {
       sugar: num(n.sugars_100g) == null ? null : r1(num(n.sugars_100g)!),
       satFat: satFat == null ? null : r1(satFat),
       salt: salt == null ? null : Math.round(salt * 100) / 100,
+      micros: mapMicros(n),
     },
     serving: serving != null && serving > 0 && serving <= 2000
       ? { amount: r1(serving), label: text(p.serving_size, 40) }

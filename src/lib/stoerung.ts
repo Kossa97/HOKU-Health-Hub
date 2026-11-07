@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import { clearAllQueues } from './tagebuch/offlineQueue'
 
 /**
  * Störung und Offline-Betrieb.
@@ -326,6 +327,8 @@ export function installStoerungsFetch(): void {
 export async function vergissOfflineDaten(): Promise<void> {
   generation += 1
   angemeldet = null
+  // Ohne Netz gemerkte Tagebuch-Einträge gehören dazu
+  clearAllQueues()
   try {
     const ablage = await oeffneDb()
     if (!ablage) return

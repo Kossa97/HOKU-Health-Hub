@@ -54,13 +54,13 @@ export default defineConfig(({ mode }) => {
         short_name: 'HOKU',
         description: 'Persönliche Peptid-Management-App für Inventar, Zyklen und Protokoll.',
         theme_color: '#00ccf5',
-        background_color: '#080b13',
+        background_color: '#000101',
         display: 'standalone',
         icons: [
-          // HOKU (docs/logo/hoku/brand-kit-v1). Eigene Dateinamen, damit installierte Apps das neue Icon holen.
-          { src: '/icons/hoku-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-          { src: '/icons/hoku-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-          { src: '/icons/hoku-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          // Bestätigter organischer Cyan-Hoku; neue URLs lösen ältere PWA-Icon-Caches ab.
+          { src: '/icons/hoku-organisch-v4-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icons/hoku-organisch-v4-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icons/hoku-organisch-v4-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
     }),

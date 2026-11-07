@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { FEATURES } from '../../config/features'
-import { buildEntryCurve, loadBlutspiegelEntries, loadEntryHistories, type ReadyEntry } from './entries'
+import { KOMBI_FARBEN, buildEntryCurve, gruppeZu, loadBlutspiegelEntries, loadEntryHistories, nachProdukt, type ReadyEntry } from './entries'
 import { loadDoseHistory } from '../../services/blutspiegelHistory'
 
 vi.mock('../../config/features', () => ({ FEATURES: { planTimelineV2: false } }))
@@ -100,8 +100,8 @@ describe('loadBlutspiegelEntries', () => {
     db.normalized = [normalizedCycle(base)]
     const entries = await loadBlutspiegelEntries('user-1', NOW) as ReadyEntry[]
     expect(entries.map(e => [e.key, e.name, e.umrechnung])).toEqual([
-      ['cycle-1:pk-0', 'BPC-157 · Zutat 0', { iuPerMg: 3, mgPerMl: 2.5 }],
-      ['cycle-1:pk-1', 'BPC-157 · Zutat 1', { iuPerMg: 4, mgPerMl: 5 }],
+      ['cycle-1:pk-0', 'BPC-157 · Zutat 0', { iuPerMg: 3, mgPerMl: 2.5, mgJe: { einheit: 'ml', mg: 2.5 }, anteil: 1 / 3 }],
+      ['cycle-1:pk-1', 'BPC-157 · Zutat 1', { iuPerMg: 4, mgPerMl: 5, mgJe: { einheit: 'ml', mg: 5 }, anteil: 2 / 3 }],
     ])
   })
 
@@ -120,6 +120,50 @@ describe('loadBlutspiegelEntries', () => {
     db.normalized = [normalized]
     const entries = await loadBlutspiegelEntries('user-1', NOW)
     expect(entries.map(e => [e.key, e.kind])).toEqual([['cycle-1:pk-0', 'ready'], ['cycle-1:pk-1', 'unsupported']])
+  })
+
+  it('rechnet eine Kombi-Kapsel je Wirkstoff ueber dessen Staerke je Kapsel um', async () => {
+    ;(FEATURES as { planTimelineV2: boolean }).planTimelineV2 = true
+    const base = legacyCycle()
+    const ingredient = (base.stack_items as { ingredients: Array<Record<string, any>> }).ingredients[0]
+    ;(base.stack_items as { display_name: string }).display_name = 'Focus'
+    ;(base.stack_items as { ingredients: unknown[] }).ingredients = [['Koffein', 100], ['L-Theanin', 200]].map(([name, amount], position) => ({
+      ...ingredient, position, amount_value: amount, amount_unit: 'mg', basis_value: 1, basis_unit: 'capsule',
+      substance_catalog: { canonical_name: name, pk_profile_id: `pk-${position}`, pk_profiles: { ...ingredient.substance_catalog.pk_profiles, category: 'other' } },
+    }))
+    const normalized = normalizedCycle(base)
+    Object.assign(normalized.versions[0] as Record<string, unknown>, { unit: 'capsule', dose: 2, method: 'Oral' })
+    ;(base.stack_items as { pk_profile_method: string }).pk_profile_method = 'Oral'
+    db.normalized = [normalized]
+    const entries = await loadBlutspiegelEntries('user-1', NOW) as ReadyEntry[]
+    expect(entries.map(e => [e.kind, e.produkt, e.wirkstoff, e.umrechnung.mgJe, e.accent])).toEqual([
+      ['ready', 'Focus', 'Koffein', { einheit: 'capsule', mg: 100 }, KOMBI_FARBEN[0]],
+      ['ready', 'Focus', 'L-Theanin', { einheit: 'capsule', mg: 200 }, KOMBI_FARBEN[1]],
+    ])
+    // Zwei Kapseln: je Wirkstoff die eigene Menge.
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-08-10T12:00:00Z'))
+    const events = [{ timestamp: new Date('2026-08-10T08:00:00Z'), dose: 2, unit: 'capsule', status: 'taken' as const }]
+    const [koffein, theanin] = entries.map(e => buildEntryCurve(e, { events, interruptedAt: null }))
+    vi.useRealTimers()
+    expect(koffein.current).toBeGreaterThan(0)
+    expect(theanin.current).toBeGreaterThan(0)
+  })
+
+  it('zeigt den zweiten Wirkstoff, auch wenn dem ersten die Staerke fehlt', async () => {
+    ;(FEATURES as { planTimelineV2: boolean }).planTimelineV2 = true
+    const base = legacyCycle()
+    const ingredient = (base.stack_items as { ingredients: Array<Record<string, any>> }).ingredients[0]
+    ;(base.stack_items as { ingredients: unknown[] }).ingredients = [0, 1].map(position => ({
+      ...ingredient, position,
+      amount_value: position === 1 ? 5 : null, amount_unit: position === 1 ? 'mg' : null, basis_value: 2, basis_unit: 'ml',
+      substance_catalog: { canonical_name: `Zutat ${position}`, pk_profile_id: `pk-${position}`, pk_profiles: ingredient.substance_catalog.pk_profiles },
+    }))
+    const normalized = normalizedCycle(base)
+    Object.assign(normalized.versions[0] as Record<string, unknown>, { unit: 'ml', dose: 0.2 })
+    db.normalized = [normalized]
+    const entries = await loadBlutspiegelEntries('user-1', NOW)
+    expect(entries.map(e => [e.key, e.kind])).toEqual([['cycle-1:pk-0', 'unsupported'], ['cycle-1:pk-1', 'ready']])
   })
 
   it('meldet ein fehlendes PK-Profil, statt den Eintrag zu verschweigen', async () => {
@@ -159,6 +203,7 @@ describe('buildEntryCurve', () => {
     kind: 'ready', key: 'c:p', cycleId: 'c', stackItemId: 's', name: 'X', profileId: 'p',
     profile: { name: 'X', half_life_hours: 4, tmax_hours: 1, bioavailability_sc: 1, iu_per_mg: null, category: 'peptide' },
     accent: '#00ccf5', umrechnung: {}, nextDoseAt: null,
+   produkt: 'X', wirkstoff: 'X', pkProfileMethod: null,
   }
 
   it('liefert Kurve, Einnahmen und den Peak nach der letzten Einnahme', () => {
@@ -180,5 +225,29 @@ describe('buildEntryCurve', () => {
   it('bleibt leer ohne bestaetigte Einnahme', () => {
     expect(buildEntryCurve(entry, { events: [], interruptedAt: null }).points).toEqual([])
     expect(buildEntryCurve(entry, undefined).current).toBeNull()
+  })
+})
+
+describe('nachProdukt / gruppeZu', () => {
+  const entry = (cycleId: string, profileId: string): ReadyEntry => ({
+    kind: 'ready', key: `${cycleId}:${profileId}`, cycleId, stackItemId: `s-${cycleId}`, name: profileId, produkt: `Produkt ${cycleId}`,
+    wirkstoff: profileId, profileId, accent: '#000', umrechnung: {}, pkProfileMethod: null, nextDoseAt: null,
+    profile: { name: profileId, half_life_hours: 4, tmax_hours: 1, bioavailability_sc: 1, iu_per_mg: null, category: 'peptide' },
+  })
+
+  it('fasst die Wirkstoffe eines Zyklus zu einem Produkt zusammen', () => {
+    const gruppen = nachProdukt([entry('a', 'p1'), entry('b', 'p3'), entry('a', 'p2')])
+    expect(gruppen.map(g => [g.key, g.name, g.wirkstoffe.map(w => w.profileId)])).toEqual([
+      ['a', 'Produkt a', ['p1', 'p2']],
+      ['b', 'Produkt b', ['p3']],
+    ])
+  })
+
+  it('findet das Produkt ueber seine Adresse und alte Wirkstoff-Adressen', () => {
+    const gruppen = nachProdukt([entry('a', 'p1'), entry('a', 'p2')])
+    expect(gruppeZu(gruppen, 'a')?.wirkstoff.profileId).toBe('p1')
+    // Alte Links (eine Detailseite je Wirkstoff) holen genau diesen nach vorn.
+    expect(gruppeZu(gruppen, 'a:p2')?.wirkstoff.profileId).toBe('p2')
+    expect(gruppeZu(gruppen, 'x')).toBeNull()
   })
 })

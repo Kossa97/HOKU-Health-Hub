@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  RateLimiter, TtlCache, itemUrl, mapItem, parseItemResponse, mapProduct, normalizeBarcode, normalizeQuery, parseProductResponse, parseSearchResponse, productUrl, searchUrl,
+  RateLimiter, TtlCache, itemUrl, mapItem, mapMicros, parseItemResponse, mapProduct, normalizeBarcode, normalizeQuery, parseProductResponse, parseSearchResponse, productUrl, searchUrl,
 } from './off'
 
 const nutella = {
@@ -13,7 +13,7 @@ describe('mapProduct', () => {
   it('nimmt den Namen in der Sprache der Oberfläche, Werte je 100 g, erste Marke', () => {
     const f = mapProduct(nutella, 'de')!
     expect(f).toMatchObject({ barcode: '3017620422003', name: 'Nutella Nuss-Nougat-Creme', brand: 'Ferrero', unit: 'g' })
-    expect(f.per100).toEqual({ kcal: 539, protein: 6.3, carbs: 57.5, fat: 30.9, fiber: null, sugar: 56.3, satFat: 10.6, salt: 0.11 })
+    expect(f.per100).toEqual({ kcal: 539, protein: 6.3, carbs: 57.5, fat: 30.9, fiber: null, sugar: 56.3, satFat: 10.6, salt: 0.11, micros: null })
     expect(f.serving).toEqual({ amount: 15, label: '15 g' })
     expect(mapProduct(nutella, 'en')!.name).toBe('Nutella')
   })
@@ -139,5 +139,19 @@ describe('mapItem (Substanz-Scan)', () => {
     expect(mapItem({ ...whey, serving_quantity_unit: 'ml' }, 'de')!.protein).toEqual({ amount: 79, per: 100 })
     expect(mapItem({ product_name: 'X', nutriments: { proteins_serving: 40 }, serving_quantity: 30 }, 'de')!.protein).toBeNull()
     expect(mapItem({ product_name: 'X', nutriments: { proteins_100g: 120 } }, 'de')!.protein).toBeNull()
+  })
+})
+
+describe('mapMicros', () => {
+  it('rechnet Gramm in die App-Einheiten um und verwirft Einheitenfehler', () => {
+    expect(mapMicros({ 'vitamin-c_100g': 0.0024, 'vitamin-d_100g': 0.0000025, 'calcium_100g': '0,12', 'selenium_100g': 0.00001, 'iron_100g': 3 })).toEqual({
+      vitD: 2.5, vitC: 2.4, ca: 120, se: 10,
+    })
+    expect(mapMicros({ folates_100g: 0.0002 })).toEqual({ b9: 200 })
+    expect(mapMicros({})).toBeNull()
+  })
+  it('steht im Produkt unter per100.micros', () => {
+    const p = mapProduct({ product_name: 'X', nutriments: { 'energy-kcal_100g': 100, 'magnesium_100g': 0.05 } }, 'de')!
+    expect(p.per100.micros).toEqual({ mg: 50 })
   })
 })

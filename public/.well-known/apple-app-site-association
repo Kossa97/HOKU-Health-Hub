@@ -4,7 +4,8 @@
       {
         "appIDs": ["5K69NY3K6F.com.kossa97.tyd"],
         "components": [
-          { "/": "/u/*", "comment": "Geteilte Profile (Profil 2c)" }
+          { "/": "/u/*", "comment": "Geteilte Profile (Profil 2c)" },
+          { "/": "/auth", "?": { "bestaetigen": "?*" }, "comment": "Knopf „In Hoku öffnen“ in den Mails" }
         ]
       }
     ]

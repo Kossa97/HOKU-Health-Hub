@@ -69,3 +69,28 @@ describe('nextInPlan', () => {
     expect(next?.routine.id).toBe('push')
   })
 })
+
+describe('nextInPlan mit Zeitplan', () => {
+  it('X-mal pro Woche: heute dran ist das naechste Workout der Rotation, Wochentage zaehlen nicht', () => {
+    const schedules = new Map([['PPL', { mode: 'per_week' as const, perWeek: 3 }]])
+    const next = nextInPlan(ppl, [session('push', '2026-10-26T17:00:00')], tuesday, schedules)
+    expect(next?.routine.id).toBe('pull')
+    expect(next?.plannedToday).toBe(true)
+    expect(next?.status?.doneThisWeek).toBe(1)
+  })
+
+  it('X-mal pro Woche erreicht: nichts geplant, Rotation zeigt das Naechste', () => {
+    const schedules = new Map([['PPL', { mode: 'per_week' as const, perWeek: 1 }]])
+    const next = nextInPlan(ppl, [session('push', '2026-10-26T17:00:00')], tuesday, schedules)
+    expect(next?.routine.id).toBe('pull')
+    expect(next?.plannedToday).toBe(false)
+  })
+
+  it('alle X Tage: noch nicht faellig', () => {
+    const schedules = new Map([['PPL', { mode: 'interval' as const, everyDays: 2 }]])
+    const next = nextInPlan(ppl, [session('legs', '2026-10-26T17:00:00')], tuesday, schedules)
+    expect(next?.routine.id).toBe('push')
+    expect(next?.plannedToday).toBe(false)
+    expect(next?.status?.nextDate).toEqual(new Date(2026, 9, 28))
+  })
+})

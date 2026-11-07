@@ -21,9 +21,10 @@ import {
   defaultIntakeUnitFor,
   defaultMethodFor,
   getIntakePlanUnitSuggestions,
+  istWirkstoffmenge,
   strengthBasisDefault,
 } from './dosageForms'
-import { WEEKDAY_KEYS, emptyRhythm, isOnDemandRhythm } from './intakeRhythm'
+import { WEEKDAY_KEYS, emptyRhythm, fuehrendeMenge, isOnDemandRhythm } from './intakeRhythm'
 import type { Kombinationsbestandteil } from './kombination'
 import { trackingCapabilities } from './trackingDepth'
 import { validateIntakePlan, validateStackItemDraft } from './validation'
@@ -248,6 +249,20 @@ export type WizardAction =
    * stehen und mischten zwei Produkte.
    */
   | { type: 'draft_restarted'; colorHex: string }
+
+/**
+ * Wird das Produkt eine Kombination, plant man es in Stueck oder ml statt in
+ * mg (siehe `kombiPlanEinheiten`). Umgestellt wird nur eine noch leere
+ * Planung: steht schon eine Menge da, aendert ein Einheitenwechsel ihre
+ * Bedeutung — aus 250 mcg wuerden 250 ml.
+ */
+function kombiEinheitNachziehen(draft: StackItemSetupDraft): StackItemSetupDraft {
+  if (draft.ingredients.length < 2 || !draft.dosageForm) return draft
+  if (draft.plan.unit?.trim() && !istWirkstoffmenge(draft.plan.unit)) return draft
+  if (fuehrendeMenge(draft.plan.slots) != null) return draft
+  const unit = defaultIntakeUnitFor(draft.dosageForm, [], { category: draft.category })
+  return unit && unit !== draft.plan.unit ? { ...draft, plan: { ...draft.plan, unit } } : draft
+}
 
 function emptyIngredient(position: number): StackItemIngredient {
   return {
@@ -537,14 +552,14 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
 
       return {
         ...state,
-        draft: {
+        draft: kombiEinheitNachziehen({
           ...state.draft,
           catalogEntryId: action.entry.id,
           displayName: action.entry.canonical_name,
           category: action.entry.default_category,
           plan: { ...state.draft.plan, name: action.entry.canonical_name },
           ingredients,
-        },
+        }),
       }
     }
     case 'custom_started': {
@@ -634,7 +649,7 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
     case 'ingredient_added':
       return {
         ...state,
-        draft: {
+        draft: kombiEinheitNachziehen({
           ...state.draft,
           ingredients: [
             ...state.draft.ingredients,
@@ -643,7 +658,7 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
               ...basisVorbelegung(state.draft.dosageForm, state.draft.category),
             },
           ],
-        },
+        }),
       }
     case 'ingredient_changed':
       return {
@@ -672,9 +687,14 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
       if (state.draft.dosageForm === action.dosageForm) return state
 
       const basis = basisVorbelegung(action.dosageForm, state.draft.category)
+      // Mit schon eingetragener Menge bleibt die Einheit: aus 500 mg wuerden sonst 500 Tabletten.
+      const kombi = state.draft.ingredients.length > 1 && fuehrendeMenge(state.draft.plan.slots) == null
+        ? { category: state.draft.category }
+        : null
       const compatiblePlanUnits = getIntakePlanUnitSuggestions(
         action.dosageForm,
         action.catalogSuggestedUnits,
+        kombi,
       )
       const currentPlanUnit = state.draft.plan.unit
       // Route und Einheit folgen fast immer aus der Form: eine Tablette wird
@@ -698,7 +718,7 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
               : state.draft.plan.method,
             unit: currentPlanUnit && compatiblePlanUnits.includes(currentPlanUnit)
               ? currentPlanUnit
-              : defaultIntakeUnitFor(action.dosageForm, action.catalogSuggestedUnits),
+              : defaultIntakeUnitFor(action.dosageForm, action.catalogSuggestedUnits, kombi),
           },
           // Die Produktmenge gehoert zur FORM: aus „1 Kapsel" wird beim
           // Wechsel auf eine Ampulle „1 ml", beim Pulver-Vial eine leere
