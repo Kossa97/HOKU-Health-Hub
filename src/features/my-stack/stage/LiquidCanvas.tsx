@@ -226,7 +226,9 @@ export function LiquidCanvas({
       const r = canvasRef.current?.getBoundingClientRect() ?? null
       const sichtbar = !!r && r.right > 0 && r.left < window.innerWidth && r.bottom > 0 && r.top < window.innerHeight
       const hoehe = r?.height ?? 0
-      ruhewelleSichtbarRef.current = hoehe === 0 || RUHEWELLE_EINHEITEN * (hoehe * (height / viewBox[3]) / LIQUID_VB_H) >= RUHEWELLE_MIN_PX
+      // Gezeigte Höhe der Kammer: bei 'meet' zählt der kleinere Maßstab, wie beim Zeichnen
+      const massstab = r ? (fit === 'meet' ? Math.min(r.width / viewBox[2], r.height / viewBox[3]) : r.height / viewBox[3]) : 0
+      ruhewelleSichtbarRef.current = hoehe === 0 || RUHEWELLE_EINHEITEN * (height * massstab / LIQUID_VB_H) >= RUHEWELLE_MIN_PX
       visibleRef.current = sichtbar
       if (sichtbar) passeAn()
     }
@@ -236,7 +238,7 @@ export function LiquidCanvas({
     ruhendGezeichnetRef.current = ruhig
     zeichne(s)
     return fillTweenRef.current !== null
-  }, [zeichne, passeAn, height, viewBox])
+  }, [zeichne, passeAn, height, viewBox, fit])
 
   // Neuer Füllstand: das Gleiten beginnt, BEVOR unten neu gezeichnet wird (sonst
   // stünde für ein Bild schon der neue Stand da)
