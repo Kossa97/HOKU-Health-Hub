@@ -372,15 +372,15 @@
     "semantic_hash": ""
   },
   "src/components/sloshEngine.test.ts": {
-    "mtime": 1793945006.450364,
-    "seen": 1793945361.2664526,
-    "ast_hash": "20e26245c792d672c4ad96ed4d2ccc59",
+    "mtime": 1794037078.1921115,
+    "seen": 1794037145.1494067,
+    "ast_hash": "9b4e4e2eb36941612167f2d7063af584",
     "semantic_hash": ""
   },
   "src/components/sloshEngine.ts": {
-    "mtime": 1793945386.518354,
-    "seen": 1793945469.342312,
-    "ast_hash": "6ed195fd43bc0887fdd9a1c85fce45a8",
+    "mtime": 1794036992.7941191,
+    "seen": 1794037145.14941,
+    "ast_hash": "561bef13104780587df126fa20935ae1",
     "semantic_hash": ""
   },
   "src/components/ui/DesignSystem.tsx": {
@@ -3804,9 +3804,9 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/stage/LiquidGraphic.tsx": {
-    "mtime": 1792570286.0131226,
-    "seen": 1793833825.2083762,
-    "ast_hash": "2337f1be3b3ca545506d36c9df22244f",
+    "mtime": 1794036992.793825,
+    "seen": 1794037145.1610944,
+    "ast_hash": "752557ccfad98b61919ffb09d9fd7d63",
     "semantic_hash": ""
   },
   "src/features/my-stack/stage/StageLabel.test.ts": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1793963900.3203602,
-    "seen": 1793963967.42648,
+    "mtime": 1794037057.7217584,
+    "seen": 1794037145.1711874,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7716,9 +7716,9 @@
     "semantic_hash": ""
   },
   "memory/projects/erscheinungsbild.md": {
-    "mtime": 1793963944.6283581,
-    "seen": 1793963967.432515,
-    "ast_hash": "4a2902e396aad12ad334cb9577540003",
+    "mtime": 1794037106.4297562,
+    "seen": 1794037145.1768894,
+    "ast_hash": "4fe47b6c469ba4b02807be1e9e618a84",
     "semantic_hash": ""
   },
   "src/features/my-stack/components/FormUndFarbe.tsx": {
