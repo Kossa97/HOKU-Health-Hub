@@ -101,6 +101,8 @@ export function AppBackNavigation({ children }: { children: ReactNode }) {
   useEffect(() => {
     const markDirty = (event: Event) => {
       if (!(event.target instanceof Element)) return
+      // Nur Ansicht (Zeitraum, Filter): kein ungespeicherter Stand
+      if (event.target.closest('[data-app-back-clean]')) return
       const root = modalRoot(event.target)
       if (root) dirtyModals.current.add(root)
     }
