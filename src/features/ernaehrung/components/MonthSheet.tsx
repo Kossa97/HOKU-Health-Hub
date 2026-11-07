@@ -1,3 +1,4 @@
+import { goalsFor } from '../lib/activity'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { addMonths, format, parseISO } from 'date-fns'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -25,11 +26,13 @@ const ROW_GAP = 4
  * Das Blatt passt immer ganz unter die Kugel, ohne Scrollen: Die Kugeln werden
  * so groß, wie die Höhe es zulässt; wird es eng, steht das Datum auf der Kugel.
  */
-export function MonthSheet({ userId, date, today, goals, live, onPick, onClose }: {
+export function MonthSheet({ userId, date, today, goals, bonus = null, live, onPick, onClose }: {
   userId: string
   date: string
   today: string
   goals: Goals
+  /** Bewegung auf dem Tagesbedarf für den gewählten Tag (wie in der Woche). */
+  bonus?: { date: string; kcal: number } | null
   live: DayTotals
   onPick: (date: string) => void
   onClose: () => void
@@ -138,7 +141,7 @@ export function MonthSheet({ userId, date, today, goals, live, onPick, onClose }
             return (
               // Solange der Monat lädt: nicht wählbar und nur das Datum vorlesen, nie „nichts eingetragen".
               <button key={d} type="button" disabled={future || !totals} aria-pressed={selected} data-nutr-month-day={d}
-                aria-label={totals ? dayAria(d, totals[d], goals, t) : format(parseISO(d), 'PPPP', { locale })}
+                aria-label={totals ? dayAria(d, totals[d], goalsFor(goals, bonus, d), t) : format(parseISO(d), 'PPPP', { locale })}
                 onClick={() => { onPick(d); onClose() }}
                 className={`relative flex min-w-0 touch-manipulation select-none flex-col items-center rounded-[12px] disabled:cursor-default ${stacked ? 'gap-0.5 py-0.5' : 'justify-center'}`}>
                 <span className={`grid h-[18px] min-w-[18px] place-items-center rounded-full px-1 text-[12px] font-semibold tabular-nums ${
@@ -146,7 +149,7 @@ export function MonthSheet({ userId, date, today, goals, live, onPick, onClose }
                 } ${future ? 'opacity-35' : ''} ${stacked ? '' : 'absolute left-1/2 top-1/2 z-[1] -translate-x-1/2 -translate-y-1/2'}`}>
                   {format(parseISO(d), 'd')}
                 </span>
-                <DayOrb totals={totals?.[d] ?? EMPTY_TOTALS} goals={goals} size={orb} dim={future || !totals} />
+                <DayOrb totals={totals?.[d] ?? EMPTY_TOTALS} goals={goalsFor(goals, bonus, d)} size={orb} dim={future || !totals} />
               </button>
             )
           })}
