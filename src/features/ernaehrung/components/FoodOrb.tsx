@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { DotRenderer, drawSphere, orbPalette, qAxis, qMat, qMul } from '../lib/orbDraw'
 import { type FoodOrbValues, macroMix } from '../lib/foodOrb'
 import { usePrefersReducedMotion } from '../lib/orbZone'
+import { MAX_DOTS, fitRadius } from '../lib/orb'
 
 /** Lage wie die Tageskugel: leicht von oben, `yaw` dreht um die senkrechte Achse. */
 const view = (yaw: number) => qMat(qMul(qAxis(1, 0, 0, 0.22), qAxis(0, 1, 0, 0.6 + yaw)))
@@ -52,10 +53,13 @@ export const FoodOrb = forwardRef<FoodOrbHandle, { values: FoodOrbValues; goalKc
         }
         const r = renderer.current
         if (!r.mode) return
-        const full = Math.max(1, Math.min(goalKcal || 2000, 4000))
-        const R = Math.min(W * 0.46, W * fullFrac * Math.sqrt(Math.max(0, kcal) / full))
-        // Kleine Kugeln zeichnen weniger Punkte: gleiches Bild, weniger Arbeit.
-        const n = Math.max(12, Math.min(1500, Math.round(kcal), Math.round(4 * R * R / (dpr * dpr) * 1.4)))
+        // Proportional zur Tageskugel (ganzer Tag = fullFrac); mehr als in den Platz passt: begrenzt, Punkte feiner.
+        const full = Math.max(1, Math.min(goalKcal || 2000, MAX_DOTS))
+        const fit = fitRadius(W * fullFrac * Math.sqrt(Math.max(0, kcal) / full), W * 0.46)
+        const R = fit.R
+        // Kleine Kugeln zeichnen weniger Punkte: gleiches Bild, weniger Arbeit. Begrenzt (feinere
+        // Punkte) passen entsprechend mehr hinein, damit die Fläche gleich dicht bleibt.
+        const n = Math.max(12, Math.min(3000, Math.round(kcal), Math.round(4 * R * R / (dpr * dpr) * 1.4 / (fit.dotFactor * fit.dotFactor))))
         geo.current = { R: R / dpr, n }
         const left = Math.round(n * keep.current)
         const M = view(anim.current.yaw)
@@ -63,7 +67,8 @@ export const FoodOrb = forwardRef<FoodOrbHandle, { values: FoodOrbValues; goalKc
         if (kcal > 0) {
           drawSphere(r, n, { filled: left, extra: 0 }, {
             M, HM: M, cx: W / 2, cy: W / 2, R: Math.max(2 * dpr, R),
-            px: Math.max(1.6, Math.min(4.4, R / dpr / 5)) * dpr, color: 1, mix: macroMix(values),
+            // Feiner, aber nie unsichtbar: Untergrenze nach dem Faktor.
+            px: Math.max(1, Math.max(1.6, Math.min(4.4, R / dpr / 5)) * fit.dotFactor) * dpr, color: 1, mix: macroMix(values),
             now: anim.current.last, live: anim.current.turning,
           })
         }

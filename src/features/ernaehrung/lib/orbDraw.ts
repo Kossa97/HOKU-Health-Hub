@@ -7,7 +7,7 @@
  * als Sprite. Ein Punkt ist ein weicher Kreis: voll bis 55 % des Radius,
  * dann linear auslaufend.
  */
-import { spherePoints, type Fill } from './orb'
+import { spherePoints, type Fill, HULL_BASE, HULL_SPREAD, HULL_WOBBLE } from './orb'
 
 export type Mat3 = number[]
 export type Quat = [number, number, number, number]
@@ -349,13 +349,14 @@ export function drawSphere(r: DotRenderer, n: number, f: Fill, o: SphereOpts) {
   const m = f.extra
   if (m <= 0) return
   // Über dem Ziel: lockere Hülle außen, jeder Punkt mit eigenem Platz.
-  const HN = m > 1500 ? 4000 : 1500
+  // Genug Plätze für jeden Hüllenpunkt (bis zum doppelten höchsten Ziel): keiner liegt auf einem anderen.
+  const HN = m > 1500 ? Math.max(m, 4000) : 1500
   const hp = spherePoints(HN)
   const H = o.HM
   for (let j = 0; j < m; j++) {
     const k = Math.floor((j * HN) / m)
     const hx = hp[k * 4], hy = hp[k * 4 + 1], hz = hp[k * 4 + 2], hs = hp[k * 4 + 3]
-    const rad = 1.12 + 0.16 * hs + (o.live ? 0.03 * Math.sin(o.now * 0.0009 + hs * 9) : 0)
+    const rad = HULL_BASE + HULL_SPREAD * hs + (o.live ? HULL_WOBBLE * Math.sin(o.now * 0.0009 + hs * 9) : 0)
     const hvx = H[0] * hx + H[1] * hy + H[2] * hz
     const hvy = H[3] * hx + H[4] * hy + H[5] * hz
     const hd = (H[6] * hx + H[7] * hy + H[8] * hz + 1) / 2
