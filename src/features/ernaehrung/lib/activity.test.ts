@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { activityBonus, activityTotal, estimateActiveKcal, parseSources } from './activity'
+import { activityBonus, activityTotal, estimateActiveKcal, goalsFor, parseSources } from './activity'
 
 const day = {
   healthKcal: 320,
@@ -46,5 +46,15 @@ describe('parseSources', () => {
     expect(parseSources(null)).toEqual(['health', 'training', 'manual'])
     expect(parseSources(['manual', 'x', 'health'])).toEqual(['health', 'manual'])
     expect(parseSources([])).toEqual([])
+  })
+})
+
+describe('goalsFor', () => {
+  const g = { kcal: 2000, hideKcal: false }
+  it('nur am Tag mit Bonus wächst das Ziel', () => {
+    expect(goalsFor(g, { date: '2026-11-07', kcal: 160 }, '2026-11-07').kcal).toBe(2160)
+    expect(goalsFor(g, { date: '2026-11-07', kcal: 160 }, '2026-11-06').kcal).toBe(2000)
+    expect(goalsFor(g, null, '2026-11-07')).toBe(g)
+    expect(goalsFor({ ...g, hideKcal: true }, { date: '2026-11-07', kcal: 160 }, '2026-11-07').kcal).toBe(2000)
   })
 })

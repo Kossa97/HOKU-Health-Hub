@@ -83,3 +83,8 @@ export function parseSources(raw: unknown): ActivitySource[] {
   if (!Array.isArray(raw)) return [...ACTIVITY_SOURCES]
   return ACTIVITY_SOURCES.filter(s => raw.includes(s))
 }
+
+/** Ziele eines Kalendertags: am Tag mit bekanntem Bewegungs-Bonus wächst das kcal-Ziel (nicht bei ausgeblendeten Kalorien). */
+export function goalsFor<G extends { kcal: number; hideKcal: boolean }>(goals: G, bonus: { date: string; kcal: number } | null | undefined, date: string): G {
+  return bonus && bonus.kcal > 0 && bonus.date === date && !goals.hideKcal ? { ...goals, kcal: goals.kcal + bonus.kcal } : goals
+}
