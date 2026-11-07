@@ -130,7 +130,8 @@ test('Kalorientracker sonst: nur ein Umlauf, ohne Sätze; der Rundflug kommt ers
 test('nach dem Abmelden: auf der Anmeldung gilt die Leiste der App nicht mehr, Hoku kommt bis an den unteren Rand', async ({ page, mock }) => {
   // Nutzer 02.11.2026: im Login nur oben an den Rand, und das Tor seines Hauses leuchtete über der Fußzeile
   void mock
-  await page.goto('/profil')
+  // Abmelden liegt seit Profil 2a in den Einstellungen (hinter dem Zahnrad)
+  await page.goto('/profil/einstellungen')
   await bereit(page)
   await logo(page).click()
   await lassLaufen(page, 3000)
@@ -153,7 +154,8 @@ test('nach dem Abmelden: auf der Anmeldung gilt die Leiste der App nicht mehr, H
 
 test('Seite „Hoku“: er kommt aus dem Haus ins Glasgehäuse und geht beim Verlassen wieder hinein', async ({ page, mock }) => {
   void mock
-  await page.goto('/profil')
+  // Der Eintrag „Hoku“ liegt seit Profil 2a in den Einstellungen
+  await page.goto('/profil/einstellungen')
   await bereit(page)
   await expect(logo(page)).toHaveAttribute('data-dot-drinnen', 'true')
   await page.locator('[data-profil-hoku]').click()
