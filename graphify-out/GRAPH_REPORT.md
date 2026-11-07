@@ -1,7 +1,7 @@
 # Graph Report - TYD-TrackYourDose  (2026-11-07)
 
 ## Corpus Check
-- 1589 files · ~7,906,240 words
+- 1589 files · ~7,906,274 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 75 file(s) not represented in the graph (top: (none) 27, .xml 10, .css 9)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `03475f84`
+- Built from commit: `39adbf63`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
