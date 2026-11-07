@@ -86,6 +86,10 @@ const RELATIONS: Record<string, Record<string, Relation>> = {
   dose_logs: {
     stack_items: { table: 'stack_items', kind: 'one', local: 'stack_item_id', foreign: 'id' },
   },
+  injection_logs: {
+    stack_items: { table: 'stack_items', kind: 'one', local: 'stack_item_id', foreign: 'id' },
+    cycles: { table: 'cycles', kind: 'one', local: 'cycle_id', foreign: 'id' },
+  },
 }
 
 interface SelectField {

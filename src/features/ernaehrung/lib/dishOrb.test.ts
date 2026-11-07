@@ -48,9 +48,9 @@ describe('dishOrbModel', () => {
 })
 
 describe('dishDots', () => {
-  it('1 Punkt je kcal, höchstens 4000', () => {
+  it('1 Punkt je kcal, höchstens so viele wie beim höchsten Tagesziel (6000)', () => {
     expect(dishDots(431.6)).toBe(432)
     expect(dishDots(-3)).toBe(0)
-    expect(dishDots(9000)).toBe(4000)
+    expect(dishDots(9000)).toBe(6000)
   })
 })

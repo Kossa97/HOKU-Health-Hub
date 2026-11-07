@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { format, parseISO } from 'date-fns'
-import { ListChecks, Minimize2, RefreshCw } from 'lucide-react'
+import { Minimize2, RefreshCw } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
 import { useAuth } from '../context/AuthContext'
@@ -13,9 +13,12 @@ import { InjectionLogSheet } from '../components/injection3d/InjectionLogSheet'
 import { persistInjectionSave, type InjectionSaveInput } from '../lib/injectionSave'
 import { InjectionTrackerTabs } from '../components/injection3d/InjectionTrackerTabs'
 import { InjectionEditSheet } from '../components/injection3d/InjectionEditSheet'
-import { InjectionSitePickerSheet } from '../components/injection3d/InjectionSitePickerSheet'
+import { InjectionSiteList } from '../components/injection3d/InjectionSiteList'
+import { InjectionViewSwitch, type InjectionView } from '../components/injection3d/InjectionViewSwitch'
 import { InjectionTrackerHeader, InjectionTrackerUnavailable } from '../components/injection3d/InjectionTrackerChrome'
-import { pinDraftFromPreset, type InjectionSitePreset } from '../lib/injectionSitePresets'
+import type { InjectionSitePreset } from '../lib/injectionSitePresets'
+import { isListInjection, listPinDraft, readInjectionView, writeInjectionView } from '../lib/injectionListEntry'
+import { hasExactInjectionPosition } from '../lib/injectionHistory'
 import {
   deleteInjectionLog,
   loadInjectionLogs,
@@ -98,7 +101,11 @@ export function InjektionsTracker() {
   const [activeLogId, setActiveLogId] = useState<string | null>(null)
   const [inventoryRetryIds, setInventoryRetryIds] = useState<string[]>([])
   const [editingLog, setEditingLog] = useState<InjectionLog3D | null>(null)
-  const [sitePickerOpen, setSitePickerOpen] = useState(false)
+  // Schalter oben rechts: Karte (Torso) oder Stellen als Liste im Vollbild
+  // Wer die Liste gewaehlt hat, landet beim naechsten Oeffnen wieder dort.
+  const [ansicht, setAnsichtState] = useState<InjectionView>(readInjectionView)
+  const setAnsicht = (view: InjectionView) => { setAnsichtState(view); writeInjectionView(view) }
+  const listeOffen = ansicht === 'liste'
   const [showIntro, setShowIntro] = useState(
     () => Number(localStorage.getItem(INTRO_STORAGE_KEY) ?? 0) < INJECTION_INTRO_VERSION,
   )
@@ -182,7 +189,9 @@ export function InjektionsTracker() {
   }
 
   const activeLog = activeLogId ? logs.find(log => log.id === activeLogId) ?? null : null
-  const showPositionActions = draftPin && !showLogSheet
+  // Eintraege aus der Liste haben keine genaue Stelle: nie als Pin
+  const kartenLogs = useMemo(() => logs.filter(hasExactInjectionPosition), [logs])
+  const showPositionActions = draftPin && !showLogSheet && !isListInjection(draftPin)
   const warning = draftPin ? proximityWarning(draftPin, logs, new Date()) : NO_WARNING
 
   const retryCommittedStock = async (doseLogId: string) => {
@@ -194,18 +203,17 @@ export function InjektionsTracker() {
     }
   }
 
-  // Weg ohne Long-Press: gleiche Wirkung wie ein Pin auf der Karte.
-  const selectSitePreset = (preset: InjectionSitePreset) => {
-    const pin = pinDraftFromPreset(preset)
-    setDraftPin(pin)
+  // Listenansicht: Stelle antippen oeffnet das Speicher-Sheet direkt. Der
+  // Eintrag kennt nur Region und Seite und erscheint nie als Pin.
+  const selectListSite = (preset: InjectionSitePreset) => {
+    setDraftPin(listPinDraft(preset))
+    setShowLogSheet(true)
+  }
+
+  // Sheet zu ohne Speichern: ein Listen-Entwurf hat keinen Platz auf der Karte.
+  const cancelLogSheet = () => {
     setShowLogSheet(false)
-    setTrackerSheetOpen(false)
-    setSitePickerOpen(false)
-    setFocusRequest(previous => ({
-      log: { position: pin.position, normal: pin.normal },
-      requestId: (previous?.requestId ?? 0) + 1,
-      sheetOpen: false,
-    }))
+    if (draftPin && isListInjection(draftPin)) setDraftPin(null)
   }
 
   const saveLogEdit = async (edit: InjectionLogEdit) => {
@@ -287,13 +295,13 @@ export function InjektionsTracker() {
       console.error('[InjektionsTracker] saveDraftPin error:', error)
       if (isDoseLogAlreadyLinkedError(error)) {
         toast.error(t('injection_already_linked_toast', { defaultValue: 'Für diese Einnahme wurde bereits eine Injektionsstelle gespeichert' }))
-        setShowLogSheet(false)
+        cancelLogSheet()
         setSelectedTargetIntakeKey(null)
         await loadData()
         return
       }
       if (isInjectionProSchemaError(error)) {
-        setShowLogSheet(false)
+        cancelLogSheet()
         setTableError(true)
         toast.error(t('injection_unavailable_title', { defaultValue: 'Injektionstracker gerade nicht verfügbar' }))
         return
@@ -344,8 +352,8 @@ export function InjektionsTracker() {
           <InjectionMapCanvas
             height={TRACKER_FULLSCREEN_HEIGHT}
             minHeight={TRACKER_FULLSCREEN_HEIGHT}
-            draftPin={draftPin}
-            logs={logs}
+            draftPin={draftPin && !isListInjection(draftPin) ? draftPin : null}
+            logs={kartenLogs}
             visibleLogIds={visibleLogIds}
             focusRequest={focusRequest}
             resetRequestId={cameraResetRequestId}
@@ -355,29 +363,36 @@ export function InjektionsTracker() {
             ariaLabel={String(t('injection_map_aria', { defaultValue: '3D-Körpermodell mit deinen Injektionsstellen. Stelle per langem Drücken setzen oder über „Stelle aus Liste wählen“.' }))}
           />
 
-          <button
-            type="button"
-            aria-label={String(t('injection_camera_reset', { defaultValue: 'Torso zentrieren' }))}
-            onClick={() => setCameraResetRequestId(value => value + 1)}
-            className="lg-glass lg-icon-btn lg-press !absolute right-4 z-30"
-            style={{ top: 'calc(88px + env(safe-area-inset-top))' }}
-          >
-            <Minimize2 size={19} aria-hidden="true" />
-          </button>
+          {!listeOffen && (
+            <button
+              type="button"
+              aria-label={String(t('injection_camera_reset', { defaultValue: 'Torso zentrieren' }))}
+              onClick={() => setCameraResetRequestId(value => value + 1)}
+              className="lg-glass lg-icon-btn lg-press !absolute right-4 z-30"
+              style={{ top: 'calc(88px + env(safe-area-inset-top))' }}
+            >
+              <Minimize2 size={19} aria-hidden="true" />
+            </button>
+          )}
 
-          <button
-            type="button"
-            aria-label={String(t('injection_pick_site_action', { defaultValue: 'Stelle aus Liste wählen' }))}
-            title={String(t('injection_pick_site_action', { defaultValue: 'Stelle aus Liste wählen' }))}
-            aria-haspopup="dialog"
-            onClick={() => setSitePickerOpen(true)}
-            className="lg-glass lg-icon-btn lg-press !absolute right-4 z-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+          <InjectionViewSwitch
+            value={ansicht}
+            onChange={setAnsicht}
             style={{ top: 'calc(144px + env(safe-area-inset-top))' }}
-          >
-            <ListChecks size={19} aria-hidden="true" />
-          </button>
+          />
 
-          {activeLog && visibleLogIds.has(activeLog.id) && (
+          {listeOffen && (
+            <InjectionSiteList
+              logs={logs}
+              historyDays={historyDays}
+              onHistoryDaysChange={setHistoryDays}
+              onSelect={selectListSite}
+              onEditLog={setEditingLog}
+              onClose={() => setAnsicht('torso')}
+            />
+          )}
+
+          {!listeOffen && activeLog && visibleLogIds.has(activeLog.id) && (
             <div
               data-injection-cover="top"
               className="injection-active-pin-chip pointer-events-none absolute left-4 right-4 z-30 flex justify-center"
@@ -397,7 +412,7 @@ export function InjektionsTracker() {
             </div>
           )}
 
-          {activeTargetIntake && !showLogSheet && (
+          {!listeOffen && activeTargetIntake && !showLogSheet && (
             <div
               data-injection-cover="top"
               className="injection-selected-intake-chip pointer-events-none absolute left-4 right-4 z-30 flex justify-center"
@@ -412,7 +427,7 @@ export function InjektionsTracker() {
               </div>
             </div>
           )}
-          {showPositionActions && (
+          {!listeOffen && showPositionActions && (
             <div
               data-injection-cover="bottom"
               className="lg-sheet absolute left-2 right-2 z-20 p-3"
@@ -427,7 +442,7 @@ export function InjektionsTracker() {
         </div>
 
         {/* Tracker tabs */}
-        {!showPositionActions && (
+        {!showPositionActions && !listeOffen && (
           <InjectionTrackerTabs
             logs={loading ? [] : logs}
             openIntakes={loading ? [] : openIntakes}
@@ -463,13 +478,9 @@ export function InjektionsTracker() {
           cycles={[]}
           warning={warning}
           targetIntakeKey={targetIntakeKey}
-          onCancel={() => setShowLogSheet(false)}
+          onCancel={cancelLogSheet}
           onSave={saveDraftPin}
         />
-      )}
-
-      {sitePickerOpen && (
-        <InjectionSitePickerSheet onSelect={selectSitePreset} onClose={() => setSitePickerOpen(false)} />
       )}
 
       {editingLog && (
@@ -483,7 +494,7 @@ export function InjektionsTracker() {
       )}
 
       {/* ── Intro ── */}
-      {showIntro && (
+      {showIntro && !listeOffen && (
         <InjectionIntroSheet onClose={closeIntro} onDontShowAgain={dontShowIntro} />
       )}
     </div>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_GOALS } from './nutrition'
-import { ORB_TILT, dotScale, fill, fillChange, fitOrb, gramText, orbLayout, spherePoints } from './orb'
+import { ORB_TILT, dotScale, fill, fillChange, fitOrb, fitRadius, gramText, orbLayout, spherePoints } from './orb'
 import { qAxis, qMat, qMul } from './orbDraw'
 
 describe('spherePoints', () => {
@@ -32,14 +32,14 @@ describe('fill', () => {
 describe('orbLayout', () => {
   const day = { kcal: 1000, protein: 55, carbs: 230, fat: 97.5 }
 
-  it('1 Punkt = 1 kcal bis 4000, darüber mehrere; Monde 1 Punkt = 1 g', () => {
+  it('1 Punkt = 1 kcal bis zum höchsten Ziel (6000); Monde 1 Punkt = 1 g', () => {
     const l = orbLayout(day, DEFAULT_GOALS)
     expect(l.main).toMatchObject({ key: 'kcal', n: 2000, unit: 1, fill: { filled: 1000, extra: 0 } })
     expect(l.moons.map(m => [m.key, m.n, m.fill.filled, m.fill.extra])).toEqual([
       ['protein', 110, 55, 0], ['carbs', 230, 230, 0], ['fat', 65, 65, 33],
     ])
     const big = orbLayout(day, { ...DEFAULT_GOALS, kcal: 6000 })
-    expect(big.main).toMatchObject({ n: 4000, unit: 1.5 })
+    expect(big.main).toMatchObject({ n: 6000, unit: 1 })
   })
 
   it('Monde gleich dicht wie die große Kugel: Radius = √(Punkte / Kugelpunkte), begrenzt', () => {
@@ -47,6 +47,14 @@ describe('orbLayout', () => {
     expect(l.moons[1].r).toBeCloseTo(Math.sqrt(230 / 2000), 5)
     expect(l.moons[0].r).toBeCloseTo(Math.sqrt(110 / 2000), 5)
     expect(orbLayout(day, { ...DEFAULT_GOALS, fatG: 1 }).moons[2]).toMatchObject({ n: 1, unit: 1, r: 0.12 })
+    // Begrenzter Radius: die Punkte gleichen das aus (gleiche Dichte wie die große Kugel).
+    expect(l.moons[1].dens).toBe(1)
+    const tiny = orbLayout(day, { ...DEFAULT_GOALS, kcal: 4000, fatG: 20 }).moons[2]
+    expect(tiny.r).toBe(0.12)
+    expect(tiny.dens).toBeCloseTo(0.12 / Math.sqrt(20 / 4000), 5)
+    const huge = orbLayout(day, { ...DEFAULT_GOALS, kcal: 1000, proteinG: 500 }).moons[0]
+    expect(huge.r).toBe(0.6)
+    expect(huge.dens).toBeCloseTo(0.6 / Math.sqrt(0.5), 5)
   })
 
   it('Kalorien ausgeblendet: Eiweiß ist die große Kugel, Monde nur Kohlenhydrate und Fett', () => {
@@ -65,7 +73,16 @@ describe('dotScale', () => {
     expect(dotScale(3000)).toBe(1)
     expect(dotScale(4000)).toBeCloseTo(0.866, 3)
     expect(dotScale(100)).toBe(1.15)
-    expect(dotScale(100000)).toBe(0.8)
+    expect(dotScale(6000)).toBeCloseTo(0.707, 3)
+    expect(dotScale(100000)).toBe(0.55)
+  })
+})
+
+describe('fitRadius', () => {
+  it('passt es nicht, wird die Kugel begrenzt und die Punkte im selben Verhältnis feiner', () => {
+    expect(fitRadius(50, 100)).toEqual({ R: 50, dotFactor: 1 })
+    expect(fitRadius(150, 100)).toEqual({ R: 100, dotFactor: 100 / 150 })
+    expect(fitRadius(150, 0)).toEqual({ R: 0, dotFactor: 0 })
   })
 })
 
