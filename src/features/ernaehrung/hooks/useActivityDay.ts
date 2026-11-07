@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { addDays, parseISO } from 'date-fns'
-import { getActiveEnergy } from '../../../lib/health'
+import { getActiveEnergyTotal } from '../../../lib/health'
 import { type ActivityDay, type ActivityLog, activityBonus, activityDayFrom, activityTotal } from '../lib/activity'
 import type { Goals } from '../lib/nutrition'
 import { addActivityLog, deleteActivityLog, loadActivityLogs, loadBodyData, loadDayTrainings } from '../services/nutritionStore'
@@ -43,7 +43,7 @@ export function useActivityDay(userId: string, date: string, goals: Goals) {
     void Promise.allSettled([
       loadActivityLogs(userId, date),
       loadDayTrainings(userId, date),
-      getActiveEnergy({ startDate: from, endDate: to < new Date() ? to : new Date() }),
+      getActiveEnergyTotal({ startDate: from, endDate: to < new Date() ? to : new Date() }),
     ]).then(([logs, trainings, health]) => {
       if (off) return
       setLoaded({

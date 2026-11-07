@@ -1,3 +1,5 @@
+import type { MeasurementSite } from './lib/measurements'
+
 export type SubstanceMode = 'cycle' | 'ongoing'
 
 export interface DateRange {
@@ -43,6 +45,12 @@ export interface DailyLogEntry {
   wohlbefinden: number | null
   libido: number | null
   body_fat_pct: number | null
+}
+
+export interface BodyMeasurementEntry {
+  measured_on: string
+  site: MeasurementSite
+  value_cm: number
 }
 
 export interface WeightLogEntry {
@@ -113,6 +121,7 @@ export interface FortschrittOverviewState {
   dailyLogs: DailyLogEntry[]
   weightLogs: WeightLogEntry[]
   bloodwork: BloodworkEntry[]
+  measurements: BodyMeasurementEntry[]
   photos: ProgressPhotoEntry[]
   doseLogs: DoseLogEntry[]
   stackItemNames: Map<string, string>

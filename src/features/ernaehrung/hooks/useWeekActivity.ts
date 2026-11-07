@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { addDays, parseISO } from 'date-fns'
 import { dayKey } from '../../../lib/sharedDay'
-import { getActiveEnergy, isIOS, isNative } from '../../../lib/health'
+import { getActiveEnergyTotal, isIOS, isNative } from '../../../lib/health'
 import { type ActivityLog, activityBonus, activityDayFrom, activityTotal } from '../lib/activity'
 import { weekRange } from '../lib/dayRings'
 import type { Goals } from '../lib/nutrition'
@@ -48,7 +48,7 @@ export function useWeekActivity(userId: string, date: string, today: string, goa
         if (!withHealth) return [d, null] as const
         const start = parseISO(d)
         const end = addDays(start, 1)
-        return [d, await getActiveEnergy({ startDate: start, endDate: end < new Date() ? end : new Date() })] as const
+        return [d, await getActiveEnergyTotal({ startDate: start, endDate: end < new Date() ? end : new Date() })] as const
       })),
     ]).then(([logs, trainings, health]) => {
       if (off) return

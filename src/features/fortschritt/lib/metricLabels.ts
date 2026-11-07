@@ -1,4 +1,5 @@
 import type { TFunction } from 'i18next'
+import { siteFromMetricKey } from './measurements'
 import { markerName } from '../../blutwerte/lib/markerCatalog.en'
 
 /** Übersetzungsschlüssel der festen Metriken; Laborwerte laufen über den Marker-Katalog. */
@@ -13,6 +14,8 @@ const METRIC_LABEL_KEYS: Record<string, string> = {
 }
 
 export function metricLabel(t: TFunction, key: string, fallback: string): string {
+  const site = siteFromMetricKey(key)
+  if (site) return t(`umfang_${site}`)
   const labelKey = METRIC_LABEL_KEYS[key]
   return labelKey ? t(labelKey) : markerName(fallback)
 }

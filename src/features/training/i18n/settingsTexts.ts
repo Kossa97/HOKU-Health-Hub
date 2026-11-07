@@ -31,6 +31,8 @@ const de = {
   settings_health_syncing: 'Synchronisiert …',
   settings_health_sync_result: '{{created}} neu, {{enriched}} ergänzt',
   settings_health_sync_error: 'Synchronisieren fehlgeschlagen.',
+  health_import_paused: 'Der Import ist pausiert: Für Daten aus Apple Health bzw. Health Connect fehlt deine Einwilligung.',
+  settings_health_consent_give: 'Einwilligung erteilen',
 
   // GLP-1
   settings_section_glp1: 'GLP-1-Ansicht',
@@ -108,6 +110,8 @@ const en: Record<keyof typeof de, string> = {
   settings_health_syncing: 'Syncing …',
   settings_health_sync_result: '{{created}} new, {{enriched}} updated',
   settings_health_sync_error: 'Sync failed.',
+  health_import_paused: 'Import is paused: your consent for data from Apple Health or Health Connect is missing.',
+  settings_health_consent_give: 'Give consent',
 
   // GLP-1
   settings_section_glp1: 'GLP-1 view',

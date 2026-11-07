@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { loescheKonto, loescheNutzerDateien, type AccountClient } from './account'
+import { loescheKonto, loescheNutzerDateien, nutzerOrdner, type AccountClient } from './account'
 
 function nachbild(dateien: Record<string, string[]>, rpcFehler: string | null = null) {
   const aufrufe: string[] = []
@@ -33,14 +33,21 @@ function nachbild(dateien: Record<string, string[]>, rpcFehler: string | null = 
 }
 
 describe('Konto loeschen', () => {
+  it('raeumt auch Profil- und Titelbild auf', () => {
+    expect(nutzerOrdner('u1')).toContainEqual(['profile-media', 'u1'])
+  })
+
   it('loescht erst die Dateien, dann das Konto, dann meldet es ab', async () => {
     const { client, aufrufe, dateien } = nachbild({
       'progress-photos': ['u1/a.jpg', 'u1/b.jpg', 'u2/fremd.jpg'],
       'batch-files': ['u1/c.pdf', 'progress/u1/alt.jpg', 'progress/u2/fremd.jpg'],
+      'profile-media': ['u1/avatar-1.jpg', 'u1/cover-2.jpg', 'u2/avatar-3.jpg'],
     })
     await loescheKonto(client, 'u1')
     expect(dateien['progress-photos']).toEqual(['u2/fremd.jpg'])
     expect(dateien['batch-files']).toEqual(['progress/u2/fremd.jpg'])
+    expect(dateien['profile-media']).toEqual(['u2/avatar-3.jpg'])
+    expect(aufrufe.indexOf('rpc delete_my_account')).toBeGreaterThan(aufrufe.lastIndexOf('remove profile-media 2'))
     expect(aufrufe[0]).toBe('rpc delete_my_account pruefen')
     expect(aufrufe.indexOf('rpc delete_my_account')).toBeGreaterThan(aufrufe.lastIndexOf('remove batch-files 1'))
     expect(aufrufe.at(-1)).toBe('signOut')

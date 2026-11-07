@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
+  buildMetricSeries,
   computeDelta,
   computeTopChanges,
   passesThreshold,
   wellnessAverage,
 } from './metrics'
-import type { BloodworkEntry, DailyLogEntry, WeightLogEntry } from '../types'
+import type { BloodworkEntry, BodyMeasurementEntry, DailyLogEntry, WeightLogEntry } from '../types'
 
 const range = { from: '2026-05-01', to: '2026-07-03' }
 
@@ -100,5 +101,30 @@ describe('wellnessAverage', () => {
       { log_date: '2026-06-02', energie: 8, schlaf: 6, wohlbefinden: 7, libido: 7, body_fat_pct: null },
     ]
     expect(wellnessAverage(logs, { from: '2026-06-01', to: '2026-06-02' })).toBe(6.8)
+  })
+})
+
+describe('buildMetricSeries mit Umfängen', () => {
+  const measurements: BodyMeasurementEntry[] = [
+    { measured_on: '2026-06-01', site: 'waist', value_cm: 90 },
+    { measured_on: '2026-06-15', site: 'waist', value_cm: 88.5 },
+    { measured_on: '2026-06-10', site: 'chest', value_cm: 104 },
+    { measured_on: '2026-04-01', site: 'waist', value_cm: 95 },
+  ]
+  const weights: WeightLogEntry[] = [{ logged_at: '2026-06-01T08:00:00', weight_kg: 80 }]
+
+  it('liefert für umfang:waist die Taille-Punkte im Zeitraum', () => {
+    expect(buildMetricSeries('umfang:waist', range, weights, [], [], measurements)).toEqual([
+      { date: '2026-06-01', value: 90 },
+      { date: '2026-06-15', value: 88.5 },
+    ])
+  })
+
+  it('lässt weight ohne 6. Argument unverändert', () => {
+    expect(buildMetricSeries('weight', range, weights, [], [])).toHaveLength(1)
+  })
+
+  it('liefert für eine unbekannte Stelle eine leere Reihe', () => {
+    expect(buildMetricSeries('umfang:nose', range, weights, [], [], measurements)).toEqual([])
   })
 })

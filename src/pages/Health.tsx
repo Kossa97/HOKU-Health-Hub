@@ -12,6 +12,7 @@ import { alterAm } from '../features/blutwerte/lib/referenzbereiche'
 import { altfelderAus, geburtsdatumGueltig, geschlechtAusAltangabe, type BioSex } from '../features/blutwerte/lib/bioProfile'
 import { getHeartRate, getSleep, getSteps, isNative, requestPermissions } from '../lib/health'
 import { SheetGriff } from '../components/ui/SheetGriff'
+import { HealthDailyTiles } from '../features/wearables/components/HealthDailyTiles'
 
 // ─── Typen ───────────────────────────────────────────────────────────────────
 
@@ -425,6 +426,7 @@ export function Health() {
         <div className="grid grid-cols-2 gap-3">
           {deviceMetrics.map(m => <DeviceCard key={m.key} metric={m} />)}
         </div>
+        {user && <HealthDailyTiles userId={user.id} />}
       </section>
 
       {/* ── Schnellzugriff ───────────────────────────────────────────────── */}
