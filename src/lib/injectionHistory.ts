@@ -1,5 +1,5 @@
 import { differenceInCalendarDays, parseISO } from 'date-fns'
-import type { InjectionLog3D } from './injectionLogTypes'
+import { INJECTION_LIST_MODEL_VERSION, type InjectionLog3D } from './injectionLogTypes'
 import { BODY_LANDMARKS as L } from './injectionGeometry'
 
 // Karte und Verlauf. 30 Tage reichen auch fuer woechentliche Spritzen (die
@@ -22,6 +22,8 @@ export function filterInjectionHistory(
 
 export function hasExactInjectionPosition(log: InjectionLog3D): boolean {
   if (log.model_version === 'legacy-2d') return false
+  // aus der Listenansicht: nur Region und Seite, kein Pin
+  if (log.model_version === INJECTION_LIST_MODEL_VERSION) return false
   const { x, y, z } = log.position
   return Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)
     && Math.abs(x) + Math.abs(y) + Math.abs(z) > 0.001
@@ -78,6 +80,7 @@ function surfaceLabel(log: InjectionLog3D): string {
 }
 
 export function formatInjectionSite(log: InjectionLog3D): string {
+  if (log.model_version === INJECTION_LIST_MODEL_VERSION) return `${regionLabel(log)} ${sideLabel(log)} · aus der Liste`
   if (!hasExactInjectionPosition(log)) return 'Alter Eintrag · keine genaue Position'
 
   // Hoehe und Seite koennen beide „mittig“ sein: dann nur einmal.

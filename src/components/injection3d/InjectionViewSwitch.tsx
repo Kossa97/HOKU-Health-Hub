@@ -5,8 +5,9 @@
 import type { CSSProperties, KeyboardEvent } from 'react'
 import { List } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import type { InjectionView } from '../../lib/injectionListEntry'
 
-export type InjectionView = 'torso' | 'liste'
+export type { InjectionView }
 
 const VIEWS: readonly InjectionView[] = ['torso', 'liste']
 

@@ -4,13 +4,13 @@ import { useTranslation } from 'react-i18next'
 import { methodLabel } from '../../lib/intakeMethods'
 import {
   filterInjectionHistory,
-  formatInjectionSite,
   hasExactInjectionPosition,
   isDoseConfirmationOpen,
   INJECTION_HISTORY_DAY_OPTIONS,
   type InjectionHistoryDays,
 } from '../../lib/injectionHistory'
 import type { InjectionLog3D } from '../../lib/injectionLogTypes'
+import { useInjectionSiteLabel } from './useInjectionSiteLabel'
 import { istSystemNotiz } from '../../lib/intakeSchedule'
 import { denyProps } from '../../lib/denyFeedback'
 
@@ -23,6 +23,7 @@ export function InjectionHistorySheet({
   onFocusLog,
   onEditLog,
   embedded = false,
+  ohneKarte = false,
 }: {
   logs: InjectionLog3D[]
   historyDays: InjectionHistoryDays
@@ -32,6 +33,8 @@ export function InjectionHistorySheet({
   onFocusLog: (log: InjectionLog3D) => void
   onEditLog?: (log: InjectionLog3D) => void
   embedded?: boolean
+  /** Listenansicht: kein Torso, also auch keine Knoepfe fuer Pin und Kamera. */
+  ohneKarte?: boolean
 }) {
   const { t } = useTranslation()
   const groupLabel = (date: Date) => {
@@ -39,6 +42,8 @@ export function InjectionHistorySheet({
     if (isYesterday(date)) return String(t('injection_history_yesterday', { defaultValue: 'Gestern' }))
     return format(date, 'dd.MM.yyyy')
   }
+
+  const siteLabel = useInjectionSiteLabel()
 
   const filteredLogs = filterInjectionHistory(logs, new Date(), historyDays)
   const groups = filteredLogs.reduce<Array<{ label: string; logs: InjectionLog3D[] }>>((acc, log) => {
@@ -84,13 +89,14 @@ export function InjectionHistorySheet({
                 return (
                   <article key={log.id} className={`rounded-[20px] p-3 ${confirmationOpen ? 'bg-[color-mix(in_srgb,var(--lg-warn)_12%,transparent)]' : 'bg-[var(--lg-surface-2)]'}`}>
                     <div className="flex items-start gap-2.5">
-                      <div className="flex shrink-0 gap-1.5">
+                      {!ohneKarte && <div className="flex shrink-0 gap-1.5">
                         <button
                           type="button"
                           aria-label={String(pinLabel)}
-                          title={String(pinLabel)}
-                          onClick={() => onToggleLog(log.id)}
-                          className={`lg-icon-btn transition-colors ${visible ? 'bg-[rgba(0,204,245,0.18)] !text-[var(--lg-accent-text)]' : 'bg-[var(--lg-fill)] !text-[var(--lg-text-3)]'}`}
+                          title={String(exactPosition ? pinLabel : t('injection_focus_site_unavailable', { defaultValue: 'Keine genaue Position gespeichert' }))}
+                          {...denyProps(!exactPosition, String(t('injection_focus_site_unavailable', { defaultValue: 'Keine genaue Position gespeichert' })))}
+                          onClick={() => { if (exactPosition) onToggleLog(log.id) }}
+                          className={`lg-icon-btn transition-colors aria-disabled:opacity-30 ${visible ? 'bg-[rgba(0,204,245,0.18)] !text-[var(--lg-accent-text)]' : 'bg-[var(--lg-fill)] !text-[var(--lg-text-3)]'}`}
                         >
                           {visible ? <Eye size={16} aria-hidden="true" /> : <EyeOff size={16} aria-hidden="true" />}
                         </button>
@@ -106,11 +112,11 @@ export function InjectionHistorySheet({
                         >
                           <LocateFixed size={16} aria-hidden="true" />
                         </button>
-                      </div>
+                      </div>}
 
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[17px] font-semibold text-[var(--lg-text)]">{substance}</p>
-                        <p className="mt-0.5 text-[13px] leading-5 text-[var(--lg-text-2)]">{formatInjectionSite(log)}</p>
+                        <p className="mt-0.5 text-[13px] leading-5 text-[var(--lg-text-2)]">{siteLabel(log)}</p>
                         <p className="mt-0.5 text-[12px] text-[var(--lg-text-3)]">{metadata}</p>
                         {confirmationOpen && (
                           <p className="lg-tag mt-2" data-tone="warn">
@@ -157,7 +163,7 @@ export function HistoryDaysSelect({
   const { t } = useTranslation()
 
   return (
-    <label className={className}>
+    <label className={className} data-app-back-clean>
       <span className="sr-only">{t('injection_history_period', { defaultValue: 'Historienzeitraum' })}</span>
       <select
         className="h-9 rounded-full bg-[var(--lg-fill)] px-3 text-[13px] font-semibold text-[var(--lg-text)] outline-none"

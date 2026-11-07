@@ -108,3 +108,12 @@ Besprochen, nicht gebaut:
 - Vorsicht: abgewandte Punkte ausblenden (sonst vorn/hinten unklar); Setzen
   weiter auf das unsichtbare Modell (genau wie heute); Hautmodell als „Studio“
   wählbar lassen.
+
+**Listenansicht = eigener schlichter Tracker (Nutzer 07.11.2026).** Für alle,
+die keinen Torso wollen. Schalter oben rechts (Torso / Liste), gewählte Ansicht
+gemerkt (`tyd.injektion.ansicht.v1`). Stelle antippen → Speicher-Sheet direkt,
+Eintrag mit `model_version = 'liste-v1'` (Standardposition der Stelle, aber nie
+ein Pin). **Ein gemeinsamer Verlauf** für beide Ansichten: Farben (wie Pins),
+Abstandswarnung und später Hoku zählen alle Einträge. Keine Migration nötig
+(keine Check-Constraints/Trigger auf `injection_logs`, geprüft 07.11.).
+Offen: Speicher-Sheet reagiert nicht auf Escape (auch auf dem Torso, älter).
