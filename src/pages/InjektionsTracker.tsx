@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { format, parseISO } from 'date-fns'
-import { ListChecks, Minimize2, RefreshCw } from 'lucide-react'
+import { Minimize2, RefreshCw } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
 import { useAuth } from '../context/AuthContext'
@@ -13,7 +13,8 @@ import { InjectionLogSheet } from '../components/injection3d/InjectionLogSheet'
 import { persistInjectionSave, type InjectionSaveInput } from '../lib/injectionSave'
 import { InjectionTrackerTabs } from '../components/injection3d/InjectionTrackerTabs'
 import { InjectionEditSheet } from '../components/injection3d/InjectionEditSheet'
-import { InjectionSitePickerSheet } from '../components/injection3d/InjectionSitePickerSheet'
+import { InjectionSiteList } from '../components/injection3d/InjectionSiteList'
+import { InjectionViewSwitch, type InjectionView } from '../components/injection3d/InjectionViewSwitch'
 import { InjectionTrackerHeader, InjectionTrackerUnavailable } from '../components/injection3d/InjectionTrackerChrome'
 import { pinDraftFromPreset, type InjectionSitePreset } from '../lib/injectionSitePresets'
 import {
@@ -98,7 +99,9 @@ export function InjektionsTracker() {
   const [activeLogId, setActiveLogId] = useState<string | null>(null)
   const [inventoryRetryIds, setInventoryRetryIds] = useState<string[]>([])
   const [editingLog, setEditingLog] = useState<InjectionLog3D | null>(null)
-  const [sitePickerOpen, setSitePickerOpen] = useState(false)
+  // Schalter oben rechts: Karte (Torso) oder Stellen als Liste im Vollbild
+  const [ansicht, setAnsicht] = useState<InjectionView>('torso')
+  const listeOffen = ansicht === 'liste'
   const [showIntro, setShowIntro] = useState(
     () => Number(localStorage.getItem(INTRO_STORAGE_KEY) ?? 0) < INJECTION_INTRO_VERSION,
   )
@@ -200,7 +203,7 @@ export function InjektionsTracker() {
     setDraftPin(pin)
     setShowLogSheet(false)
     setTrackerSheetOpen(false)
-    setSitePickerOpen(false)
+    setAnsicht('torso')
     setFocusRequest(previous => ({
       log: { position: pin.position, normal: pin.normal },
       requestId: (previous?.requestId ?? 0) + 1,
@@ -355,29 +358,27 @@ export function InjektionsTracker() {
             ariaLabel={String(t('injection_map_aria', { defaultValue: '3D-Körpermodell mit deinen Injektionsstellen. Stelle per langem Drücken setzen oder über „Stelle aus Liste wählen“.' }))}
           />
 
-          <button
-            type="button"
-            aria-label={String(t('injection_camera_reset', { defaultValue: 'Torso zentrieren' }))}
-            onClick={() => setCameraResetRequestId(value => value + 1)}
-            className="lg-glass lg-icon-btn lg-press !absolute right-4 z-30"
-            style={{ top: 'calc(88px + env(safe-area-inset-top))' }}
-          >
-            <Minimize2 size={19} aria-hidden="true" />
-          </button>
+          {!listeOffen && (
+            <button
+              type="button"
+              aria-label={String(t('injection_camera_reset', { defaultValue: 'Torso zentrieren' }))}
+              onClick={() => setCameraResetRequestId(value => value + 1)}
+              className="lg-glass lg-icon-btn lg-press !absolute right-4 z-30"
+              style={{ top: 'calc(88px + env(safe-area-inset-top))' }}
+            >
+              <Minimize2 size={19} aria-hidden="true" />
+            </button>
+          )}
 
-          <button
-            type="button"
-            aria-label={String(t('injection_pick_site_action', { defaultValue: 'Stelle aus Liste wählen' }))}
-            title={String(t('injection_pick_site_action', { defaultValue: 'Stelle aus Liste wählen' }))}
-            aria-haspopup="dialog"
-            onClick={() => setSitePickerOpen(true)}
-            className="lg-glass lg-icon-btn lg-press !absolute right-4 z-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+          <InjectionViewSwitch
+            value={ansicht}
+            onChange={setAnsicht}
             style={{ top: 'calc(144px + env(safe-area-inset-top))' }}
-          >
-            <ListChecks size={19} aria-hidden="true" />
-          </button>
+          />
 
-          {activeLog && visibleLogIds.has(activeLog.id) && (
+          {listeOffen && <InjectionSiteList onSelect={selectSitePreset} onClose={() => setAnsicht('torso')} />}
+
+          {!listeOffen && activeLog && visibleLogIds.has(activeLog.id) && (
             <div
               data-injection-cover="top"
               className="injection-active-pin-chip pointer-events-none absolute left-4 right-4 z-30 flex justify-center"
@@ -397,7 +398,7 @@ export function InjektionsTracker() {
             </div>
           )}
 
-          {activeTargetIntake && !showLogSheet && (
+          {!listeOffen && activeTargetIntake && !showLogSheet && (
             <div
               data-injection-cover="top"
               className="injection-selected-intake-chip pointer-events-none absolute left-4 right-4 z-30 flex justify-center"
@@ -412,7 +413,7 @@ export function InjektionsTracker() {
               </div>
             </div>
           )}
-          {showPositionActions && (
+          {!listeOffen && showPositionActions && (
             <div
               data-injection-cover="bottom"
               className="lg-sheet absolute left-2 right-2 z-20 p-3"
@@ -427,7 +428,7 @@ export function InjektionsTracker() {
         </div>
 
         {/* Tracker tabs */}
-        {!showPositionActions && (
+        {!showPositionActions && !listeOffen && (
           <InjectionTrackerTabs
             logs={loading ? [] : logs}
             openIntakes={loading ? [] : openIntakes}
@@ -466,10 +467,6 @@ export function InjektionsTracker() {
           onCancel={() => setShowLogSheet(false)}
           onSave={saveDraftPin}
         />
-      )}
-
-      {sitePickerOpen && (
-        <InjectionSitePickerSheet onSelect={selectSitePreset} onClose={() => setSitePickerOpen(false)} />
       )}
 
       {editingLog && (
