@@ -216,7 +216,7 @@ export function DishStage({ draft, goals, focus }: { draft: DishDraft; goals: Go
         className="fixed inset-x-0 z-[30] mx-auto max-w-lg bg-[var(--c-bg)] px-3 shadow-[0_6px_12px_4px_var(--c-bg)]"
         style={{ top: 'env(safe-area-inset-top, 0px)', height: ZONE_MAX }}>
         <canvas ref={canvasRef} role="img" aria-label={t('nutr_dish_orb_aria', { kcal: Math.round(p.kcal) })}
-          className="pointer-events-none absolute inset-x-0 top-0 z-0 block w-full select-none"
+          className="tyd-orb pointer-events-none absolute inset-x-0 top-0 z-0 block w-full select-none"
           style={{ height: ZONE_MAX + ZONE_BELOW }} />
         <p className={`absolute left-3 top-3 z-[2] flex items-center gap-1.5 text-[12px] ${MUTED}`}>
           <svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeDasharray="1.2 2" /></svg>
@@ -243,7 +243,7 @@ export function DishStage({ draft, goals, focus }: { draft: DishDraft; goals: Go
         </div>
       </section>
       {typeof document !== 'undefined' && createPortal(
-        <canvas ref={setFx} aria-hidden="true" className="pointer-events-none fixed inset-0 z-[60] h-full w-full" />,
+        <canvas ref={setFx} aria-hidden="true" className="tyd-orb pointer-events-none fixed inset-0 z-[60] h-full w-full" />,
         document.body,
       )}
     </>

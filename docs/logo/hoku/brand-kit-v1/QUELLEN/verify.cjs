@@ -5,7 +5,8 @@ const root=path.resolve(__dirname,'..');
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'EXPORT-CHECKS.json'),'utf8'));
 const failures=[];
 const originalChecks=fs.existsSync(path.join(root,'ORIGINAL-CHECKS.json'))?JSON.parse(fs.readFileSync(path.join(root,'ORIGINAL-CHECKS.json'),'utf8')):[];
-for(const p of [...manifest.pngs,...originalChecks]){
+const kiChecks=fs.existsSync(path.join(root,'KI-SYMBOL-CHECKS.json'))?JSON.parse(fs.readFileSync(path.join(root,'KI-SYMBOL-CHECKS.json'),'utf8')):[];
+for(const p of [...manifest.pngs,...originalChecks,...kiChecks]){
  const bytes=fs.readFileSync(path.join(root,p.file));
  if(bytes.subarray(0,8).toString('hex')!=='89504e470d0a1a0a')failures.push(p.file+': invalid PNG');
  if(bytes.readUInt32BE(16)!==p.width||bytes.readUInt32BE(20)!==p.height)failures.push(p.file+': wrong dimensions');
@@ -22,4 +23,4 @@ const view=manifest.compactEqualHeights;
 if(Math.abs(view.HOKU-view.Hoku)>.00001)failures.push('compact unequal heights');
 if(Math.abs(manifest.equalWidths.HOKU-manifest.equalWidths.HEALTH_HUB)>.00001)failures.push('unequal caption widths');
 if(failures.length)throw new Error(failures.join('\n'));
-console.log(JSON.stringify({pngsVerified:manifest.pngs.length+originalChecks.length,originalsVerified:originalChecks.length,icoEntriesVerified:4,fontFilesVerified:4,compactEqualHeights:view.HOKU,failures:0}));
+console.log(JSON.stringify({pngsVerified:manifest.pngs.length+originalChecks.length+kiChecks.length,originalsVerified:originalChecks.length,kiSymbolsVerified:kiChecks.length,icoEntriesVerified:4,fontFilesVerified:4,compactEqualHeights:view.HOKU,failures:0}));

@@ -182,6 +182,35 @@ Kopie in `docs/login/mockup.html`, Umsetzung nach `docs/login/UEBERGABE.md`.
   Passwortfeld hört er wieder nur zu. Später am 29.10. zurück, aber nur beim Tipp auf „Passwort
   anzeigen“, solange Hoku zu sehen ist: Arme und Blase genau wie Mockup G1 v13, ohne Wegdrehen.
 
+- **Winken ohne Verkleinern (Nutzer 30.10.2026):** Beim Winken (D1 ein Arm, D4 beide Arme) wurde Hoku
+  auf 0,74 bzw. 0,64 verkleinert und (D1) nach rechts gerückt, damit der Arm Platz hat. Jetzt bleibt er
+  mittig und in voller Größe, nur der Arm kommt dazu; Neigung und Hüpfer (D4, relativ 0,22) bleiben.
+
+- **Hokus Schrift (Nutzer 30./31.10.2026):** Mockup „Hokus Schrift“ (https://claude.ai/artifact/AcgZFNJpNiPasN2YGuu97c,
+  Runde 2). Nutzer: alle Animationen nehmen, **jeder Satz eine andere**, egal welcher Text und wo in der App;
+  der Übergang von „Heute“ (Wirbel) gefällt am besten. Eingebaut in der Engine (`engine/schrift.ts`): wirbel
+  (bisher), klar (Feder ohne Wirbel, Leserichtung), feder, pop, klappen, rasten; gemischter Stapel, nie zweimal
+  dieselbe hintereinander, letzte Art in `tyd.dot.schrift` (auch über Besuche). Bahn-Arten laufen auf festen
+  Bahnen, danach Federn. Schrift war blass: Punkte jetzt **so groß wie Hokus im Schnitt** (nach Helligkeit
+  gewichtet, Größe 0,8), Gitter 9 statt 5,5, Sichtbarkeit nie unter 0,8, Licht 50 %/15 %.
+  **Farbe (Nutzer 3.11.):** Schrift im Neon-Cyan der App (`TEXT_FARBE` = --accent #00ccf5), je Punkt
+  überblendet, sobald er aufbricht; die Kugel behält ihre Farben. Sci-Fi-Schriften und danach „gut lesbare“
+  (Atkinson, Lexend, Nunito …) vom Nutzer verworfen: er will **schlichte, ästhetische** Schriften —
+  Runde 4 zeigt Jost, Urbanist, Sora, Quicksand, Comfortaa, Raleway, Josefin Sans, Plus Jakarta Sans,
+  Albert Sans, Red Hat Display.
+  **Final (Nutzer 3.11.):** Schrift **Raleway 700**, Gitter 5,5, Punktgröße 0,6, Tempo 1; H + S1–S5 im
+  Zufall. Fertig geschriebener Satz steht **starr** bei allen Arten gleich: kein Atmen/Puls/Schwabbeln/
+  Quetschen/Taumeln des Körpers (je Punkt über `NEON`), nur Punkte zittern 0,4 px, funkeln, Lichtlauf.
+  Das Wackeln bei „Neu? Registriere dich!“ kam vom Körper (breitester Satz = stärkstes Schwabbeln).
+
+- **Übergang in die App flüssiger (Nutzer 3.11.2026):** Messung (Bild für Bild, CPU 1×/4×) zeigte mitten
+  im Öffnen des Kreises 0,5–0,75 s ohne Bild: Startseite baute ihr 3D-Modell (GLB, three.js) und sich selbst
+  auf. Jetzt: 3D-Modell von der Startseite entfernt (Karte mit Knopf, Nutzer: kommt sowieso raus, Ersatz
+  folgt), Ring öffnet erst, wenn die App da ist und 0,3 s kein Bild > 45 ms kam (höchstens 1,2 s länger),
+  Startseiten-Code lädt schon beim Öffnen des Formulars (Leerlauf), Zeichenflächen nur bei neuer Größe neu.
+  Danach keine Pause mehr; Rest: 1–2 Bilder 55–90 ms beim Aufgehen = erstes Rastern der Startseite (GPU,
+  im Test-Browser vermutlich Software). Kreis billiger machen (WAAPI/Blende, Lage einmal messen): Nutzer nein.
+
 ## Offen
 - **Passwort vergessen** (Nutzer 29.10.: später). Offen dafür: Code zum Abtippen statt/zusätzlich zum
   Link (Mail-Links öffnen auf iPhone-Home-Bildschirm und Android im Browser), eigener Mailversand

@@ -11,6 +11,7 @@ import {
   type InjectionHistoryDays,
 } from '../../lib/injectionHistory'
 import type { InjectionLog3D } from '../../lib/injectionLogTypes'
+import { istSystemNotiz } from '../../lib/intakeSchedule'
 import { denyProps } from '../../lib/denyFeedback'
 
 export function InjectionHistorySheet({
@@ -128,7 +129,7 @@ export function InjectionHistorySheet({
                         </button>
                       )}
                     </div>
-                    {log.notes?.trim() && (
+                    {log.notes?.trim() && !istSystemNotiz(log.notes) && (
                       <p className="mt-2 border-t border-[var(--lg-separator)] pt-2 text-[13px] leading-5 text-[var(--lg-text-2)]">
                         {t('injection_note_prefix', { defaultValue: 'Notiz' })}: {log.notes.trim()}
                       </p>

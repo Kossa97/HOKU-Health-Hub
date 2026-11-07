@@ -26,6 +26,7 @@ import {
   resolveTimelineIntakesForDay,
   scheduleForDay,
   AUTO_MISSED_NOTE,
+  MANUAL_SKIP_NOTE,
   type EscalationRow,
   type IntakeLog,
   type ResolvedRoutineGroup,
@@ -34,10 +35,11 @@ import {
 } from '../lib/intakeSchedule'
 import { loadCycleTimelines } from '../features/my-stack/services/planLifecycle'
 import { AUTO_EREIGNIS, dotTraegtEin, ladeAutoKarte, type AutoKarte } from '../features/dot/autoTracking/autoTracking'
+import { WochenUpdateHomeKarte } from '../features/dot/erkenntnisse/WochenUpdateHomeKarte'
 import { localDateBoundaryInstant, localDateTimeKey, resolveCycleAt, type CycleTimeline } from '../lib/planTimeline'
 import { ExpiryWarningBanners } from '../components/ExpiryWarningBanners'
 import { WorkflowBanner } from '../components/WorkflowBanner'
-import { InjectionTrackerHero, type InjectionHeroPin } from '../components/injection3d/InjectionTrackerHero'
+import { InjectionTrackerHero } from '../components/injection3d/InjectionTrackerHero'
 import { buildInjectionTrackerUrl, isInjectableMethod } from '../lib/injectionDeepLink'
 import { confirmIntakeDoseLog } from '../lib/injectionPersistence'
 import { debitPeptideStockForDoseById } from '../features/my-stack/extensions/peptide/vialStock'
@@ -53,8 +55,10 @@ import {
 import {
   confirmIntakeGroup,
   quantifiedVialEntries,
+  markiereNichtGenommen,
   skipIntakeGroup,
   skipIntakeGroupsInBatches,
+  type NotizClient,
   type IntakeConfirmationClient,
 } from '../features/routines/services/intakeConfirmation'
 import { RoutineConfirmationSheet } from '../features/routines/components/RoutineConfirmationSheet'
@@ -408,20 +412,6 @@ export function buildHomeRoutineIntake(intake: TodayIntake): RoutineIntake {
   }
 }
 
-interface InjectionHeroState {
-  pins: InjectionHeroPin[]
-}
-
-const EMPTY_INJECTION_HERO: InjectionHeroState = {
-  pins: [],
-}
-
-function isHeroVector(value: unknown): value is InjectionHeroPin['position'] {
-  if (!value || typeof value !== 'object') return false
-  const vector = value as Record<string, unknown>
-  return typeof vector.x === 'number' && typeof vector.y === 'number' && typeof vector.z === 'number'
-}
-
 const sectionHeaderStyle: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
@@ -444,7 +434,6 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
   const [todayDone,   setTodayDone]   = useState(false)
   const [overview, setOverview] = useState<OverviewStats>(EMPTY_OVERVIEW)
   const [expiryAlerts, setExpiryAlerts] = useState<PeptideExpiryAlert[]>([])
-  const [injectionHero, setInjectionHero] = useState<InjectionHeroState>(EMPTY_INJECTION_HERO)
   const [selectedHomeIntake, setSelectedHomeIntake] = useState<TodayIntake | null>(null)
   const [selectedHomeRoutine, setSelectedHomeRoutine] = useState<RoutineGroupModel | null>(null)
   const [homeConfirmStep, setHomeConfirmStep] = useState<'choice' | 'time'>('choice')
@@ -486,11 +475,10 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
         let stackItemData: Record<string, unknown>[] = []
         let inventoryData: Record<string, unknown>[] = []
         let escalationData: unknown[] = []
-        let injectionData: Record<string, unknown>[] = []
         let autoKarteHome: AutoKarte | null = new Map()
 
         if (FEATURES.planTimelineV2) {
-          const [loadedTimelines, logsResult, stackItemsResult, inventoryResult, injectionsResult, loadedAutoKarte] = await Promise.all([
+          const [loadedTimelines, logsResult, stackItemsResult, inventoryResult, loadedAutoKarte] = await Promise.all([
             loadCycleTimelines(homeDataClient as never, user!.id),
             homeDataClient.from('dose_logs')
               .select('id, logged_at, stack_item_id, taken, cycle_id, plan_version_id, routine_slot_key')
@@ -503,11 +491,6 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
             homeDataClient.from('inventory_items')
               .select('id, vials_count')
               .eq('user_id', user!.id),
-            homeDataClient.from('injection_logs')
-              .select('id, logged_at, body_region, body_side, position, normal')
-              .eq('user_id', user!.id)
-              .order('logged_at', { ascending: false })
-              .limit(30),
             // Was Dot automatisch einträgt, markiert die Rückschau nicht als verpasst.
             // Unbekannt (Fehler): dann lieber gar nicht markieren.
             ladeAutoKarte(homeDataClient as never, user!.id).catch(() => null),
@@ -520,9 +503,8 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
           logData = (logsResult.data ?? []) as IntakeLog[]
           stackItemData = (stackItemsResult.data ?? []) as Record<string, unknown>[]
           inventoryData = (inventoryResult.data ?? []) as Record<string, unknown>[]
-          injectionData = (injectionsResult.data ?? []) as Record<string, unknown>[]
         } else {
-          const [cyclesResult, logsResult, stackItemsResult, inventoryResult, escalationsResult, injectionsResult] = await Promise.all([
+          const [cyclesResult, logsResult, stackItemsResult, inventoryResult, escalationsResult] = await Promise.all([
             homeDataClient.from('cycles')
               .select('id, intake_time, intake_time_custom, stack_item_id, dose, unit, method, start_date, end_date, frequency, x_days_interval, interval_unit, cycle_on_days, cycle_off_days, slot_doses, slot_days, schedule_days, schedule_history, stack_items(display_name, tracking_level, dosage_form)')
               .eq('user_id', user!.id).eq('active', true),
@@ -541,18 +523,12 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
             homeDataClient.from('dose_escalations')
               .select('cycle_id, increase_amount, unit, start_type, start_date, start_after_days')
               .eq('user_id', user!.id),
-            homeDataClient.from('injection_logs')
-              .select('id, logged_at, body_region, body_side, position, normal')
-              .eq('user_id', user!.id)
-              .order('logged_at', { ascending: false })
-              .limit(30),
           ])
           cycleData = cyclesResult.data ?? []
           logData = (logsResult.data ?? []) as IntakeLog[]
           stackItemData = (stackItemsResult.data ?? []) as Record<string, unknown>[]
           inventoryData = (inventoryResult.data ?? []) as Record<string, unknown>[]
           escalationData = escalationsResult.data ?? []
-          injectionData = (injectionsResult.data ?? []) as Record<string, unknown>[]
         }
         const cycles = (cycleData ?? []) as unknown as HomeCycle[]
         const escalations = (escalationData ?? []) as EscalationRow[]
@@ -657,27 +633,12 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
           }
         }
 
-        const injectionRows = injectionData ?? []
-        const recentInjectionRows = injectionRows.filter(row => {
-          const ageMs = Date.now() - parseISO(row.logged_at as string).getTime()
-          return ageMs >= 0 && ageMs <= 7 * 24 * 60 * 60 * 1000
-        })
-        const pins = recentInjectionRows
-          .filter(row => isHeroVector(row.position) && isHeroVector(row.normal))
-          .slice(0, 4)
-          .map(row => ({
-            id: row.id as string,
-            position: row.position as InjectionHeroPin['position'],
-            normal: row.normal as InjectionHeroPin['normal'],
-          }))
-
         if (cancelled) return
         setHomeTimelines(timelines)
         setTimelineLoadState('ready')
         setPlannedToday(todaySlots.length)
         setTodayIntakes(openSlots)
         setTodayDone(todaySlots.length > 0 && openSlots.length === 0)
-        setInjectionHero({ pins })
 
         const stockItems = stackItemData as unknown as StockOverviewItem[]
         setExpiryAlerts(getPeptideExpiryAlerts(expirySources(stockItems)))
@@ -739,7 +700,10 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
               // ueberfaelligen Slot gleichzeitig abschliessen, ohne 409. Kleine
               // Pakete verhindern ein Statement-Timeout bei laengerem Rueckstand.
               if (entries.length > 0) {
+                // Verpasst, nicht übersprungen: der Marker unterscheidet sie
+                // von selbst übersprungenen Einnahmen (grau).
                 void skipIntakeGroupsInBatches(homeDataClient as unknown as IntakeConfirmationClient, entries)
+                  .then(zeilen => markiereNichtGenommen(homeDataClient as unknown as NotizClient, zeilen, AUTO_MISSED_NOTE))
                   .catch(error => console.error('[Home] auto-miss error:', error))
               }
             }
@@ -781,7 +745,6 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
         }
         setOverview(EMPTY_OVERVIEW)
         setExpiryAlerts([])
-        setInjectionHero(EMPTY_INJECTION_HERO)
       }
     }
     void load()
@@ -905,7 +868,7 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
           routineSlotKey: FEATURES.planTimelineV2 ? intake.key : null,
         })
         if (FEATURES.planTimelineV2) {
-          await skipIntakeGroup(
+          const zeilen = await skipIntakeGroup(
             homeDataClient as unknown as IntakeConfirmationClient,
             [{
               ...buildConfirmationEntry(buildHomeRoutineIntake(intake)),
@@ -913,6 +876,8 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
               actualLoggedAt: skippedAt,
             }],
           )
+          // Bewusst übersprungen: grau, nicht rot (verpasst).
+          await markiereNichtGenommen(homeDataClient as unknown as NotizClient, zeilen, MANUAL_SKIP_NOTE)
         } else {
           const { error } = await homeDataClient.from('dose_logs').insert(payload)
           if (error) throw error
@@ -1014,6 +979,8 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
           <User size={20} />
         </button>
       </header>
+
+      <WochenUpdateHomeKarte client={homeDataClient} />
 
       {/* ── Heute: ein Ring wie bei den Aktivitätsringen ── */}
       <section className="lg-surface" style={{ ...panelStyle, padding: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -1177,7 +1144,6 @@ export function Home({ homeDataClient = supabase }: HomeProps = {}) {
       </section>
 
       <InjectionTrackerHero
-        pins={injectionHero.pins}
         onOpen={() => navigate('/injektionen')}
       />
 

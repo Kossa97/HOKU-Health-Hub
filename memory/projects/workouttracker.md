@@ -143,6 +143,53 @@ Mockup: https://claude.ai/artifact/A1i3nr5H3aqc9ruQcXpg8J (Variante 1).
 - Die Karte „Heute geplant/Als Nächstes“ (`NextInPlanCard`) und die leere
   Bereitschaftskarte sind entfallen.
 
+## Pläne, Workouts, Favoriten (Entscheidung Nutzer, 31.10.2026)
+
+- **Begriffe, verbindlich:** **Plan** enthält **Workouts**, ein Workout enthält **Übungen**,
+  eine Übung enthält Sätze, Wiederholungen, Pausen usw. Das Wort **„Routine" entfällt**
+  überall in der Oberfläche (de/en: Plan/Workout). Im Code heißt das bisherige
+  `TrainingRoutine` = Workout, `folder` = Plan.
+- **Zeitplan am Plan:** feste Wochentage · X-mal pro Woche · alle X Tage. Bei X-mal/alle X
+  Tage laufen die Workouts der Reihe nach; „alle X Tage" zählt ab der letzten Einheit.
+- **Kopieren, Einfügen, Duplizieren, Verschieben** für Pläne, Workouts und Übungen;
+  Übungen per Mehrfachauswahl (lange drücken → antippen → Leiste unten). Zwischenablage in
+  der App. Ein Workout gehört zu genau einem Plan (Kopie statt Verknüpfung).
+- **Werte:** kopierte/verschobene Übungen behalten Sätze, Gewichte, Wdh., Pausen, Notiz;
+  neu hinzugefügte sind leer („Wie letztes Mal" bleibt als Vorschlag im Training).
+- **Favoriten-Stern** an Übungen: oben in der Übungsauswahl + Filter; in
+  `training_settings.settings` (jsonb), keine Migration.
+- Pläne mit Zeitplan brauchen eine eigene Tabelle; vorhandene Ordnernamen werden
+  übernommen, `folder` bleibt stehen. Migration nach Datenbankregel (Trockenlauf, Zustimmung).
+- Reihenfolge: Favoriten → Mehrfachauswahl/Kopieren → Pläne mit Zeitplan.
+- **Gebaut (Branch `claude/training-plaene`, 31.10.–2.11.2026), alles zusammen nach main (Wunsch):**
+  Wochenleiste/„Heute" in Kalender-Optik (App-Akzent statt Orange auf „Heute"); Favoriten
+  (`lib/favorites.ts`, max. 50, Einstellungen jetzt seriell gespeichert); Mehrfachauswahl im
+  Workout-Editor (`lib/exerciseSelection.ts`, Ablage `lib/clipboard.ts` + `exerciseClipboard.ts`);
+  Plan-Bildschirm `components/plan/PlanEditor.tsx` (Zeitplan, Workouts duplizieren/kopieren/
+  verschieben, Plan duplizieren/löschen); Zeitplan-Logik `lib/planSchedule.ts`, in
+  `nextInPlan`/`weekDays` eingebaut. Texte de/en: Routine → Workout (Schlüssel heißen weiter `routine_*`).
+- **DB:** `supabase-training-v3.sql` = neue Tabelle `training_plans` (user_id, name, schedule jsonb,
+  sort_order; unique(user_id,name); RLS). Nur additiv, Trockenlauf 2× ok. Ohne Tabelle: alles
+  „Wochentage" wie bisher. **Vor dem Deploy in Prod einspielen** (Zustimmung nötig).
+- Offen: Plan löschen nicht atomar; verwaiste Zeitplan-Zeile vererbt sich an gleichnamigen neuen Plan;
+  „Neuer Plan" nur über den Plan-Chip im Workout-Editor; „Plan kopieren" (nur duplizieren).
+
+## KI-Plan mit Hoku (Entscheidung Nutzer, 2.11.2026, noch nicht gebaut)
+
+- Workout/Plan per Hoku erstellen, **tippen und sprechen gleichwertig** (Textfeld mit Senden, Mikrofon wenn leer). **Einstieg beides:** im Hoku-Chat und
+  per Knopf „Mit Hoku erstellen" im Blatt „Neuer Plan".
+- **Nur mit Pro** (es gibt eine Free-Version), wie der übrige Coach (Einwilligung, Tageslimit).
+- Muster wie `dotAnlage` (Substanz): Werkzeug in Edge Function `coach` liefert Plan-Entwurf →
+  Vorschau → Nutzer übernimmt. Nur Katalog-Übungen, Gewichte leer, keine medizinischen Aussagen.
+- **Spracheingabe im laufenden Training: auch ohne Pro** (keine KI, Gerät erkennt; feste Befehle
+  wie „80 Kilo, 8 Wiederholungen", „gleich wie eben", „Pause 2 Minuten"). Halten-und-sprechen,
+  kein Dauer-Zuhören, Rückgängig. In der iOS-App braucht es ein natives Spracherkennungs-Plugin
+  (WKWebView hat keine Web Speech API) + Info.plist-Texte (Mikrofon, Spracherkennung).
+- **Im Training mit Hoku schreiben** (Textfeld neben dem Mikrofon): einfache Einträge („80 kg 8",
+  „gleich wie eben", „Pause") erkennt die App selbst (alle); Fragen/Änderungen („welches Gewicht?",
+  „tausch Bankdrücken gegen was mit Kurzhanteln") beantwortet Hoku (Pro), Änderungen nur nach Tipp.
+- Mockup: https://claude.ai/artifact/NbZvdksLa9Hoas3W261e8s (Boards 4 „Plan mit Hoku", 5 „Im Training sprechen").
+
 ## Offen
 
 | Punkt | Stand |
@@ -153,6 +200,27 @@ Mockup: https://claude.ai/artifact/A1i3nr5H3aqc9ruQcXpg8J (Variante 1).
 | HRV | liefert keins der Plugins; Bereitschaft nutzt Schlaf, Ruhepuls, Tagesform, Last |
 | Hevy/Strong-CSV | Formate aus Sekundärquellen; mit echten Exportdateien gegenprüfen |
 | Hyrox | Mixed Doubles fehlt (Quellen widersprüchlich); Women-Open-Wall-Balls 100 angenommen |
-| Schnellzugriff-Label | „Training starten" hart deutsch wie die übrigen Einträge in `Layout.tsx` |
+| Schnellzugriff-Label | „Training" (öffnet den Bereich, 30.10.2026) hart deutsch wie die übrigen Einträge in `Layout.tsx` |
 | Live Activity / Apple Watch | braucht nativen Swift-Code, v2 |
 | Auto-Progression / Deload-Vorschlag | v2 |
+
+## Plan mit Hoku (Teil 1, auf main seit 2026-11-02)
+- Edge Function `coach`: Werkzeug `plan_entwerfen` (strict), `pruefePlaene`; Seite `training` → effort medium.
+  Ungültige Anzahl → `pro_woche` mit Anzahl = Workouts.
+- App: `lib/hokuPlan.ts` (Katalog-Kontext, Lesen, Entwurf→Workouts), `HokuPlanChat` (Neuer-Plan-Blatt,
+  Pro-Gate über PRO_PFLICHT), `HokuPlanPreview` (Name, tauschen/entfernen, Übernehmen). Globaler Hoku-Chat auf
+  /training zeigt Karte „Plan ansehen" → Vorschau via `location.state.hokuPlan`.
+- Edge Function `coach` v8 deployt (4.11.2026). Globaler Chat schickt den Katalog
+  ohne eigene Übungen/Plannamen (bewusst, Vorschau fängt doppelte Namen ab).
+- Nächste Teile: 2 = Schreiben/Sprechen im Live-Workout ohne KI, 3 = Hoku-Fragen im Training (Pro).
+
+## Sprechen/Schreiben im Training (Teil 2, auf main seit 2026-11-04)
+- `lib/voiceCommand.ts` (Parser de/en, Zahlwörter, `planSet` je TrackingMode, Grenzen 700 kg/300 Wdh.),
+  `components/live/voiceRun.ts` (Befehl → Bedienungen + Hinweis, `findExercise`), `CommandBar.tsx` (Leiste unten:
+  Textfeld, Hilfe „Was kann ich sagen?", Mikrofon halten-und-sprechen über `useSpracheingabe`).
+- Reducer: `batch` (ein Eintrag = ein Rückgängig, `UndoSnapshot.label 'entry'` samt Pause), `rest_start`.
+- Fokus nach „nächste Übung" wird als Übungs-ID gemerkt (nicht Position); Ring und Pausen-Leiste zeigen dasselbe Ziel.
+- Nicht beim Bearbeiten gespeicherter Trainings. Info.plist-Texte (de/en) nennen das Training.
+- Offen: ob WKWebView in der iOS-App Spracherkennung anbietet (sonst fehlt nur das Mikrofon, Tippen geht);
+  ggf. eigenes Swift-Plugin (SFSpeechRecognizer), da das Community-Plugin kein SPM kann.
+- Nächster Teil 3: Hoku-Fragen im Training (Pro) über dieselbe Leiste (Text, der kein Befehl ist → Hoku).

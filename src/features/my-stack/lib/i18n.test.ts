@@ -1318,6 +1318,12 @@ const EXPECTED_MY_STACK_KEYS = [
   'day_confirmed_label',
   'bundle_period_locked',
   'bundle_merged_hint',
+  'confirm_sheet_datetime_label',
+  'confirm_sheet_date_label',
+  'confirm_time_other_day',
+  'confirm_outside_cycle',
+  'confirm_outside_cycle_items',
+  'confirm_cycle_ended_prefill',
   'syringe_draw_units',
   'dose_once',
   'my_stack_scan',
@@ -1445,68 +1451,41 @@ const EXPECTED_MY_STACK_KEYS = [
 // nennt den fuenften Look (nur de/en); look_instrument ist neu.
 // Bewusst geaendert (Oktober 2026): Erscheinungsbild „Soft Dark" — look_hint
 // nennt den sechsten Look (nur de/en); look_softdark ist neu (englischer Platzhalter).
+// Bewusst ergaenzt (November 2026): Look „Papier" (Vorschau) — look_paper neu
+// (de „Papier", sonst englischer Platzhalter).
+// Bewusst geaendert (November 2026): Look „Frost" — look_frost neu (englischer
+// Platzhalter), look_hint nennt Frost (nur de/en).
+// Bewusst geaendert (November 2026): Looks Labor, Neon, Tiefsee, Obsidian — look_lab,
+// look_neon, look_deepsea, look_obsidian neu (englischer Platzhalter), look_hint (nur de/en).
 // Bewusst ergaenzt (Oktober 2026): Hinweis, wenn der Name beim Registrieren
 // gerade vergeben wurde (`login_name_spaeter`; de/en, sonst englischer Platzhalter).
-// Bewusst ergaenzt (Oktober 2026): Umfaenge im Verlauf — umfang_<stelle> und
-// umfaenge_title (de/en echt, sonst englischer Platzhalter).
-// Bewusst ergaenzt (Oktober 2026): Umfaenge im Tageseintrag — umfaenge_choose_sites,
-// umfaenge_invalid, umfaenge_save_failed, umfaenge_sites_save_failed (de/en echt,
-// sonst englischer Platzhalter).
-// Bewusst ergaenzt (Oktober 2026): Profil-Geschlecht, Land und Ziele — ziel_<tag>,
-// geschlecht_<wert>, profil_ueber_dich, profil_ziele, profil_land(_suchen),
-// profil_geschlecht, register_geschlecht_frage (de/en echt, sonst englischer Platzhalter).
-// Bewusst ergaenzt (Oktober 2026): Profilbild und Titelbild — profil_bilder_privat,
-// profil_profilbild, profil_titelbild, profil_bild_aendern, profil_bild_fehler,
-// profil_bild_zu_gross
-// (de/en echt, sonst englischer Platzhalter).
-// Bewusst ergaenzt (Oktober 2026): Einwilligung fuer Daten aus Apple Health /
-// Health Connect — health_consent_*, health_profile_*, health_error
-// (de/en echt, sonst englischer Platzhalter).
-// Bewusst ergaenzt (Oktober 2026): Werte aus health_daily auf /health —
-// health_daily_kcal/_spo2/_resp/_bp, health_daily_hint(_action),
-// health_daily_load_error (de/en echt, sonst englischer Platzhalter).
-// Bewusst ergaenzt (Oktober 2026): Muskelmasse im Tageseintrag —
-// fortschritt_metric_muscle_mass, fortschritt_muscle_mass_invalid
-// (de/en echt, sonst englischer Platzhalter).
-// Bewusst ergaenzt (Oktober 2026): neues Profil und Einstellungen (Profil 2a) —
-// profil_feld_*, profil_bereich_*, profil_stufe_*, Werte-, Bearbeiten-,
-// Einstellungen- und Wer-sieht-was-Texte (de/en echt, sonst englischer Platzhalter).
-// Bewusst ergaenzt (Oktober 2026): fremdes Profil und Web-Link (Profil 2a) —
-// public_profile_more/_not_found(_desc)/_private_text, web_page_not_found,
-// web_open_in_hoku, web_profile_app_only, profil_als_band, profil_als_wer_*
-// (de/en echt, sonst englischer Platzhalter).
-// Bewusst ergaenzt (Oktober 2026): Bild-Check (Profil 2a) — profil_bild_wird_geprueft,
-// profil_bild_abgelehnt, profil_bild_anderes, profil_bild_ok, profil_bilder_pruefung
-// (ersetzt in der Oberflaeche profil_bilder_privat; de/en echt, sonst englischer Platzhalter).
-// Bewusst geaendert (Oktober 2026): Durchsicht der Profil-2a-Texte, nur de/en
-// (Geschlechtszeichen, Menstruationszyklus, Profilbild, Ansehen als, Freunde-Funktion).
-// Bewusst ergaenzt (November 2026): Profil 2b — profil_feld_progress, profil_feld_badges,
-// profil_bereich_fortschritt (de/en echt, sonst englischer Platzhalter).
-// Bewusst ergaenzt (November 2026): Profil 2b, Gesamtfortschritt und Abzeichen —
-// pf_* (Karte, Zeitreise, Aufschluesselung, Start, Abzeichen; de/en echt, sonst
-// englischer Platzhalter). Namen der Abzeichen stehen de/en in badges.ts.
-// Bewusst geaendert (November 2026): Durchsicht der Profil-2b-Texte, nur de/en
-// (pf_erklaer_2, pf_erklaer_3, pf_neuer_start_text).
+// Bewusst ergaenzt (November 2026): Geburtsdatum bei Registrierung und Zustimmung
+// (`login_birth`, `login_err_birth_*`, `consent_birth_hint`; de/en, sonst englischer Platzhalter).
+// Bewusst ergaenzt (November 2026): Code aus der Mail und Passwort vergessen (`login_code_*`,
+// `login_vergessen*`, `login_neues_pw_*`, `login_pw_gleich`, `login_unbestaetigt`, `login_email_aendern`;
+// de/en, sonst englischer Platzhalter); `account_created` nennt den Code (nur de/en).
+// Danach: `login_code_info` nennt die Gültigkeit (nur de/en).
+// Danach: `login_link_*` für den Knopf „In Hoku öffnen“ aus der Mail (de/en, sonst englischer Platzhalter).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: 'edfdd7c2431f76a68c9efbb71400ac1744f31d1faa5e6449626471feaa48d21e',
-  en: '0064626f347a456b74706b57e51f1eca74acce1a95645b0ca983f2a0b75f74ac',
+  de: '8b5143b00f36f8d4a5eb058d78bb663960dc314525adf8147975d8a45331f178',
+  en: 'd46abd243a4480e1ce1dbed033d031e32c33ec9c7d3b77eb0c66d53a14c76186',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung
 // nutr_*/tile_ernaehrung*) englische Platzhalter (Regel in CLAUDE.md).
 const TRANSLATED_OUTSIDE_OVERLAY_HASHES = {
-  ar: '02a58cbb9c27ec09a70d79f387ea74d63f25dda6aa79c7b76d6fcf3ff7678967',
-  es: '7b1c4748f1d9ff33e8cd1a251a4caf6782e3b02e3aff5c5ba81c378731ea2feb',
-  fr: 'cfb09adc18194e211c7aee3e12d07c6cc8f0aacc1e444358617728e437e7b952',
-  hi: 'e397e93b13f1e404674a2322c9c73f660ceca7d0bd0b35a2c898947673a22943',
-  id: '5edeac517d2eb5d75440067431d2f329e10f8f49e8d3cbabb8f6f0f1da341268',
-  it: 'aa5685bb902df5d04d3cdcd2d88786b3698fec36f3efb8f4e686beaf7d41243f',
-  ja: '12485dbf94e3c3aad02412accab9dc9c4af070cfcf217383c06983db9a003f25',
-  ko: '713c573fa7240da4a9ab1e09cdd90292d4de15af038864f070b5b4af304a0002',
-  pt: 'eb66194b625f0b355e4105033982683d403aa8a67b4b86369f4cb0b97b7a8dc3',
-  ru: '00d289680cc9fe2e5279d0548d9ab8edea089d47aaaa1ce7b0c50589ce3aad89',
-  tr: 'add9f84476a4122dbcbe30ec042299ff0fd9d7209a0e857c4eed428ccf3c01fb',
-  zh: 'd9030454f98421bd247fd9c4beed2b80111fbc4a3df83ffb40149b01c520677c',
+  ar: '15c2a28b4ea442bd1ddd6804461afd9e8b2f4eb18428bc2672ff912d851e3032',
+  es: '45119fb3c377097f2f462d85b8f940b8fb1d2c906205f147cfd87909971afad6',
+  fr: '0fcba50844070241765b92d01bf05dddd200d1051b7b226ba595cad2ed3b4577',
+  hi: '86cd9a455f05f6c0b4f80fce834cf201c7701114d6882047c937a17809a23eaf',
+  id: '019b5d39dc3334a2a9562ed09c2f1dc015aac9f293dd12dd97814d46b8b47985',
+  it: '712ec122fe425c1e0c24ef16e307f1651dd1dc450589779ea2d72c4d101fbd62',
+  ja: 'bd97d023806a84c92fcf14f6ad6430b086e88599cb2706fb00323a5af3d513f2',
+  ko: 'c4b5331b370fc4492351659de5fbbe78261de9a9a23807de6b46930bb25db862',
+  pt: 'f09083f1e6a21d5424a7c580e6cd8b4d2f78bd98bbefd9fd654103cd5be1d2c6',
+  ru: '12e4381cc261c94c09934a8a706c1e9f382446a081581a4b23b1b90571bbb70c',
+  tr: '8d9a666c0d395ee030e7c95636ef0ea2f02185843a88291eb70f9e12e749d1af',
+  zh: 'b1708077c6d997e5396ecff46942e71a7e08eb9ff6dc3414e04c5a4f40c7766a',
 } as const
 const expectedKeySet = new Set<string>(EXPECTED_MY_STACK_KEYS)
 

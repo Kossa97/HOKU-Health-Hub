@@ -3,6 +3,9 @@
  * Ein Lebensmittel trägt seine Werte je 100 g bzw. 100 ml; ein Eintrag im
  * Protokoll trägt die ausgerechneten Werte seiner Menge als Schnappschuss.
  */
+import { type ActivitySettings, DEFAULT_ACTIVITY } from './activity'
+import { type Micros, scaleMicros } from './micros'
+import type { OwnGoals } from './nutrientTargets'
 import type { Recipe } from './recipe'
 import { byEntryOrder } from './entryOrder'
 
@@ -23,6 +26,8 @@ export interface Per100 {
   /** Gesättigte Fettsäuren — für die Nährwert-Punkte; ältere Daten haben keinen Wert. */
   satFat: number | null
   salt: number | null
+  /** Vitamine, Mineralstoffe und Co. je 100 g — nur Bekanntes (siehe micros.ts). */
+  micros?: Micros | null
 }
 
 export interface Food {
@@ -38,7 +43,10 @@ export interface Food {
   per100: Per100
   /** Portion in g/ml, etwa „1 Scheibe = 40 g". */
   serving: { amount: number; label: string | null } | null
+  /** Mit dem Stern gemerkt — nur zum Wiederfinden (Reiter „Favoriten“), ändert nichts an der Herkunft. */
   favorite: boolean
+  /** Werte eines Produkts aus Open Food Facts oder dem BLS vom Nutzer korrigiert (bei eigenen nicht gesetzt). */
+  edited?: boolean
   /** Nur bei Gerichten: Zutaten und Portionen (siehe recipe.ts). */
   recipe?: Recipe | null
   /** Nur bei Gerichten: passt zu dieser Mahlzeit (steht dort beim Hinzufügen oben). */
@@ -54,6 +62,8 @@ export interface Nutrients {
   sugar: number | null
   satFat: number | null
   salt: number | null
+  /** Vitamine, Mineralstoffe und Co. für diese Menge — nur Bekanntes (siehe micros.ts). */
+  micros?: Micros | null
 }
 
 export interface LogEntry {
@@ -114,6 +124,7 @@ export function nutrientsFor(per100: Per100, amount: number): Nutrients {
     sugar: opt(per100.sugar),
     satFat: opt(per100.satFat),
     salt: opt(per100.salt, r2),
+    micros: scaleMicros(per100.micros, f),
   }
 }
 
@@ -125,6 +136,7 @@ export function scaleNutrients(n: Nutrients, factor: number): Nutrients {
     fiber: n.fiber == null ? null : r(n.fiber), sugar: n.sugar == null ? null : r(n.sugar),
     satFat: n.satFat == null ? null : r(n.satFat),
     salt: n.salt == null ? null : r(n.salt, 100),
+    micros: scaleMicros(n.micros, factor),
   }
 }
 
@@ -137,6 +149,7 @@ export function per100FromEntry(e: Pick<LogEntry, 'amount' | 'nutrients'>): Per1
     kcal: r1(e.nutrients.kcal * f), protein: r1(e.nutrients.protein * f),
     carbs: r1(e.nutrients.carbs * f), fat: r1(e.nutrients.fat * f),
     fiber: opt(e.nutrients.fiber), sugar: opt(e.nutrients.sugar), satFat: opt(e.nutrients.satFat), salt: opt(e.nutrients.salt, r2),
+    micros: scaleMicros(e.nutrients.micros, f),
   }
 }
 
@@ -198,7 +211,9 @@ export type GoalKind = 'lose' | 'maintain' | 'gain'
 
 export const ACTIVITY_FACTOR: Record<Activity, number> = { sedentary: 1.2, light: 1.375, moderate: 1.55, high: 1.725 }
 
-export interface Goals {
+export interface Goals extends ActivitySettings {
+  /** Eigene Ziele je Nährstoff; fehlt einer, gilt der Richtwert (nutrientTargets.ts). */
+  nutrientGoals: OwnGoals
   kcal: number
   proteinG: number
   carbsG: number
@@ -207,7 +222,7 @@ export interface Goals {
   hideKcal: boolean
 }
 
-export const DEFAULT_GOALS: Goals = { kcal: 2000, proteinG: 110, carbsG: 230, fatG: 65, waterMl: 2000, hideKcal: false }
+export const DEFAULT_GOALS: Goals = { kcal: 2000, proteinG: 110, carbsG: 230, fatG: 65, waterMl: 2000, hideKcal: false, ...DEFAULT_ACTIVITY, nutrientGoals: {} }
 
 /** Grenzen wie in der Datenbank (`nutrition_goals`). */
 export const GOAL_LIMITS = {
@@ -247,7 +262,7 @@ export function proteinReferenceKg(weightKg: number, heightCm: number): number {
  * Muskulatur erhalten bleibt (unter GLP-1 besonders wichtig); Fett 27 % der
  * Energie, Rest Kohlenhydrate.
  */
-export function suggestGoals(p: GoalInput): Omit<Goals, 'hideKcal'> {
+export function suggestGoals(p: GoalInput): Omit<Goals, 'hideKcal' | 'nutrientGoals' | keyof ActivitySettings> {
   const tdee = bmr(p) * ACTIVITY_FACTOR[p.activity]
   const factor = p.goal === 'lose' ? 0.85 : p.goal === 'gain' ? 1.1 : 1
   const kcal = Math.max(MIN_SUGGESTED_KCAL[p.sex], Math.round((tdee * factor) / 10) * 10)

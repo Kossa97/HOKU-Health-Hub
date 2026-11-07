@@ -3,7 +3,7 @@ import { hapticTick } from '../../../../lib/haptics'
 import { showPageNotification } from '../../../../lib/pushLocal'
 import { useTrainingText } from '../../i18n'
 import { formatClock } from '../../lib/format'
-import { Button, TRAINING_ACCENT } from '../ui'
+import { accentMix, Button, TRAINING_ACCENT } from '../ui'
 import type { NextSetInfo } from './nextSet'
 
 /**
@@ -82,7 +82,7 @@ export function RestTimer({ endsAt, totalS, next, sound, notify, onAdjust, onSki
       aria-label={`${tt('rest_timer')} ${formatClock(remainingS)}`}
       style={{
         position: 'relative', overflow: 'hidden', borderRadius: 22,
-        background: 'var(--lg-surface-2)', border: `1px solid ${TRAINING_ACCENT}55`,
+        background: 'var(--lg-surface-2)', border: `1px solid ${accentMix(33)}`,
         padding: '10px 12px 10px 16px', display: 'flex', alignItems: 'center',
       }}
     >
@@ -90,7 +90,7 @@ export function RestTimer({ endsAt, totalS, next, sound, notify, onAdjust, onSki
         aria-hidden="true"
         style={{
           position: 'absolute', inset: 0, transformOrigin: 'left',
-          transform: `scaleX(${progress})`, background: `${TRAINING_ACCENT}2e`,
+          transform: `scaleX(${progress})`, background: accentMix(18),
           transition: 'transform 250ms linear',
         }}
       />

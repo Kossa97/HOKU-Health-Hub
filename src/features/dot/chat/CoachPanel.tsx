@@ -10,6 +10,7 @@ import {
   frageCoach, ladeVerlauf, loescheVerlauf, setzeCoachEinwilligung, speichereVerlauf,
   type CoachFehler, type CoachNachricht,
 } from './coachService'
+import { trainingKontext, type HokuPlan } from '../../training/lib/hokuPlan'
 import { Veraendert, fuehreMeldungAus, type Meldung, type MeldungErgebnis } from './meldungen'
 import type { DotAnlage } from '../../my-stack/lib/dotAnlage'
 import { useSpracheingabe, type SpracheFehler } from './useSpracheingabe'
@@ -22,17 +23,18 @@ import { useSpracheingabe, type SpracheFehler } from './useSpracheingabe'
  * jede als Karte mit „Rückgängig" (nur bis zum Schließen der App).
  */
 
-export type DotSeite = 'home' | 'my-stack' | 'kalender' | 'ernaehrung' | 'sonst'
+export type DotSeite = 'home' | 'my-stack' | 'kalender' | 'ernaehrung' | 'training' | 'sonst'
 
 const CHIPS: Record<DotSeite, DotTextKey[]> = {
   home: ['chip_heute', 'chip_naechste', 'chip_blutwerte'],
   'my-stack': ['chip_heute', 'chip_bestand', 'chip_naechste'],
   kalender: ['chip_verpasst', 'chip_heute'],
   ernaehrung: ['chip_ernaehrung', 'chip_heute'],
+  training: ['chip_plan', 'chip_workout'],
   sonst: ['chip_heute', 'chip_naechste', 'chip_blutwerte'],
 }
 const INTRO: Partial<Record<DotSeite, DotTextKey>> = {
-  'my-stack': 'chat_intro_stack', kalender: 'chat_intro_kalender', ernaehrung: 'chat_intro_ernaehrung',
+  'my-stack': 'chat_intro_stack', kalender: 'chat_intro_kalender', ernaehrung: 'chat_intro_ernaehrung', training: 'chat_intro_training',
 }
 const FEHLER: Record<CoachFehler, DotTextKey> = {
   consent_required: 'chat_fehler', no_access: 'chat_kein_zugang', limit_reached: 'chat_grenze', offline: 'chat_offline', server_error: 'chat_fehler',
@@ -98,6 +100,8 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
     if (!dot || arbeitet.current) return
     dot.setStimmung(sprache.hoert ? 'listen' : 'idle')
   }, [dot, sprache.hoert])
+  // Jedes gehörte Wort treibt seinen Irisring an (Zuhören 4)
+  useEffect(() => { if (dot && sprache.hoert && sprache.zwischen) dot.stimme(0.6) }, [dot, sprache.hoert, sprache.zwischen])
   // Chat zu: nicht weiter zuhören, nichts schicken
   const { abbrechen: zuhoerenAbbrechen } = sprache
   useEffect(() => { if (!offen) zuhoerenAbbrechen() }, [offen, zuhoerenAbbrechen])
@@ -140,10 +144,13 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
     setVerlauf(neu)
     setDenkt(true); dot?.setStimmung('think')
     const k = await kontext().catch(() => null)
-    const antwort = await frageCoach(neu, k, seite, lang)
+    // Auf der Trainingsseite kennt Hoku den Übungskatalog (zuerst, falls der Server kürzt)
+    const daten = seite === 'training' ? { training: trainingKontext(lang, [], [], 'kg'), ...(k ?? {}) } : k
+    const antwort = await frageCoach(neu, daten, seite, lang)
     if (!antwort.ok && antwort.fehler === 'consent_required') setEinwilligung(null)
     const karten = antwort.ok && antwort.meldungen.length ? await fuehreAus(antwort.meldungen, k) : []
     if (antwort.ok) for (const anlage of antwort.anlagen) karten.push({ rolle: 'dot', text: anlageText(anlage), anlage })
+    if (antwort.ok) for (const plan of antwort.plaene) karten.push({ rolle: 'dot', text: dt('plan_vorbereitet', { name: plan.name, anzahl: plan.workouts.length }), plan })
     setDenkt(false)
     const text = antwort.ok ? antwort.text : dt(FEHLER[antwort.fehler])
     const lokal = !antwort.ok
@@ -191,6 +198,12 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
     const zeiten = a.zeiten.map(z => (z.uhrzeit ?? dt(z.tageszeit === 'morning' ? 'anlage_morgens' : z.tageszeit === 'midday' ? 'anlage_mittags' : 'anlage_abends')))
     const teile = [a.name, a.menge !== null ? `${a.menge.toLocaleString(lang)} ${a.einheit ?? ''}`.trim() : null, zeiten.join(', ') || null].filter(Boolean)
     return dt('anlage_vorbereitet', { was: teile.join(' · ') })
+  }
+
+  /** Zur Vorschau im Training. Gespeichert wird erst dort. */
+  function oeffnePlan(plan: HokuPlan) {
+    onSchliessen()
+    navigate('/training', { state: { hokuPlan: plan } })
   }
 
   /** Zum Assistenten in My Stack, vorbefüllt. Gespeichert wird erst dort. */
@@ -264,10 +277,13 @@ export function CoachPanel({ offen, inhalt, ursprung, seite, einwilligung, setEi
             <div ref={faden} className="tyd-dot-faden">
               {verlauf.length === 0 && !laufend && <p className="tyd-dot-intro">{intro}</p>}
               {verlauf.map((n, i) => (
-                <div key={i} className="tyd-dot-msg" data-rolle={n.rolle} data-karte={n.karte || n.anlage ? 'true' : undefined}>
+                <div key={i} className="tyd-dot-msg" data-rolle={n.rolle} data-karte={n.karte || n.anlage || n.plan ? 'true' : undefined}>
                   {n.text}
                   {n.anlage && (
                     <button type="button" className="tyd-dot-zurueck" onClick={() => oeffneAnlage(n.anlage!)}>{dt('anlage_oeffnen')}</button>
+                  )}
+                  {n.plan && (
+                    <button type="button" className="tyd-dot-zurueck" onClick={() => oeffnePlan(n.plan!)}>{dt('plan_oeffnen')}</button>
                   )}
                   {n.karte && (
                     <button type="button" className="tyd-dot-zurueck" disabled={karteLaeuft === n.karte} onClick={() => void machRueckgaengig(n.karte!)}>{dt('melde_zurueck')}</button>

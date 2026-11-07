@@ -163,3 +163,58 @@ test('Kurve steigt erst ab der Einnahme; das Ablesen nennt die Einnahme', async 
   await page.mouse.move(x, box.y + box.height * 0.6, { steps: 4 })
   await expect(page.locator('[data-bs-scrub-live]')).toContainText('Einnahme 250 mcg')
 })
+
+test('Kombi-Vial: ein Produkt, ein Graph, eine Linie je Wirkstoff; die Legende holt einen nach vorn', async ({ page, mock }) => {
+  for (const [name, halbwertszeit] of [['CJC-1295 ohne DAC', 0.5], ['Ipamorelin', 2]] as const) {
+    const profil = mock.insert('pk_profiles', {
+      name, half_life_hours: halbwertszeit, tmax_hours: 0.3, bioavailability_sc: 1, iu_per_mg: null, vd_l_kg: null, category: 'peptide',
+    })
+    mock.table('substance_catalog').find(row => row.canonical_name === name)!.pk_profile_id = profil.id
+  }
+  const item = {
+    id: null, display_name: 'CJC-1295 ohne DAC + Ipamorelin', category: 'peptide', tracking_level: 'complete', dosage_form: 'vial',
+    brand: null, color_hex: '#10b981', notes: null, pk_profile_method: 'Subkutan',
+    inventory: { enabled: false, package_quantity: null, package_unit: null, remaining_quantity: null, batch_number: null, expires_at: null },
+  }
+  // 5 mg CJC und 5 mg Ipamorelin in 2 ml: aus 0,1 ml folgt je Wirkstoff 0,25 mg.
+  const ingredients = ['CJC-1295 ohne DAC', 'Ipamorelin'].map((name, position) => ({
+    catalog_substance_id: mock.catalogId(name), custom_name: null,
+    amount_value: 5, amount_unit: 'mg', basis_value: 2, basis_unit: 'ml', position,
+  }))
+  mock.callRpc('save_stack_item_with_plan', {
+    p_item: item,
+    p_ingredients: ingredients,
+    p_plan: {
+      id: null, name: item.display_name, dose: 0.1, unit: 'ml', method: 'Subkutan', frequency: 'Täglich',
+      x_days_interval: null, interval_unit: null, cycle_on_days: null, cycle_off_days: null, schedule_days: [],
+      start_date: '2026-09-20', end_date: null, intake_time: 'morgens', intake_time_custom: null,
+      slot_doses: null, slot_days: null, reminder: [], timezone: 'Europe/Berlin',
+    },
+    p_idempotency_key: 'seed-kombi',
+  })
+  const zyklus = mock.table('cycles')[0]
+  for (const ts of ['2026-09-27T06:00:00Z', '2026-09-28T05:00:00Z']) {
+    mock.insert('dose_logs', {
+      logged_at: ts, dose: 0.1, unit: 'ml', method: 'Subkutan', taken: true,
+      cycle_id: zyklus.id, plan_version_id: zyklus.plan_version_id ?? null, stack_item_id: zyklus.stack_item_id,
+    })
+  }
+
+  await page.goto('/simulation')
+  const zeile = page.locator('[data-bs-row]')
+  await expect(zeile).toHaveCount(1)
+  await expect(zeile).toHaveAttribute('data-bs-lines', '2')
+  await expect(zeile.locator('[data-bs-value]')).toHaveCount(2)
+
+  await zeile.click()
+  await expect(page.getByRole('heading', { name: 'CJC-1295 ohne DAC + Ipamorelin' })).toBeVisible()
+  await expect(page.getByRole('img')).toHaveCount(1)
+  const legende = page.getByRole('radiogroup', { name: 'Wirkstoff wählen' })
+  await expect(legende.getByRole('radio')).toHaveCount(2)
+  await expect(legende.getByRole('radio', { name: /CJC-1295/ })).toHaveAttribute('aria-checked', 'true')
+  await expect(page.locator('[data-bs-stats-for]')).toContainText('CJC-1295 ohne DAC')
+  await legende.getByRole('radio', { name: /Ipamorelin/ }).click()
+  await expect(legende.getByRole('radio', { name: /Ipamorelin/ })).toHaveAttribute('aria-checked', 'true')
+  await expect(page.locator('[data-bs-stats-for]')).toContainText('Ipamorelin')
+  await expect(page.getByRole('img', { name: /Ipamorelin/ })).toBeVisible()
+})

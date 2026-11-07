@@ -400,6 +400,32 @@ describe('wizard state', () => {
     ])
   })
 
+  it('plant ein Kombipräparat in Stück statt in mg', () => {
+    // „400 mg" einer Kombi-Tablette wäre mehrdeutig; „1 Tablette" nicht.
+    const kombi = wizardReducer(initialWizardState(), {
+      type: 'catalog_selected',
+      entry: d3k2,
+      components: bestandteileAufloesen(d3k2, [vitaminD3, vitaminK2, d3k2]),
+    })
+    const tablette = wizardReducer(kombi, { type: 'dosage_form_selected', dosageForm: 'capsule', catalogSuggestedUnits: ['IU', 'mcg'] })
+    expect(tablette.draft.plan.unit).toBe('capsule')
+
+    // Nachträglich: aus der Einzelsubstanz wird mit „Weiterer Wirkstoff" eine Kombi.
+    const einzeln = wizardReducer(
+      wizardReducer(initialWizardState(), { type: 'catalog_selected', entry: vitaminD3 }),
+      { type: 'dosage_form_selected', dosageForm: 'capsule', catalogSuggestedUnits: ['IU'] },
+    )
+    expect(einzeln.draft.plan.unit).toBe('IU')
+    expect(wizardReducer(einzeln, { type: 'ingredient_added' }).draft.plan.unit).toBe('capsule')
+
+    // Steht schon eine Menge da, bleibt die Einheit: aus 1000 IU würden sonst 1000 Kapseln.
+    const mitMenge = wizardReducer(einzeln, {
+      type: 'plan_changed',
+      changes: { slots: einzeln.draft.plan.slots.map(slot => ({ ...slot, dose: 1000 })) },
+    })
+    expect(wizardReducer(mitMenge, { type: 'ingredient_added' }).draft.plan.unit).toBe('IU')
+  })
+
   it('merkt sich beim Kombipräparat, welcher Eintrag gewählt wurde', () => {
     // Ohne dieses Feld ließe sich das Produkt nicht mehr von seinem ersten
     // Bestandteil unterscheiden: an den Zutaten steht seine id nirgends.

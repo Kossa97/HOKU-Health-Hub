@@ -10,16 +10,32 @@
  * Jede Geste schreibt je Punkt Lage (Einheit: Dots Radius, y nach unten, z zum
  * Betrachter), Licht und Rosa-Anteil für den Zeitpunkt t seit ihrem Beginn.
  */
-import { TAU, clamp01, easeIO } from './geometry'
+import { TAU, clamp01 } from './geometry'
 import { herzSchlag } from './formen'
 
 export type DotForm = 'hand' | 'heart' | 'cross' | 'wifi' | 'haken'
   // Hoku führt durch die Anmeldung (Nutzer 29.10.2026, Mockup „Dots Auftritte" F, W, G)
-  | 'freude' | 'augen' | 'warten' | 'sanduhr' | 'brief' | 'nicken' | 'schuetteln'
+  | 'freude' | 'warten' | 'sanduhr' | 'brief' | 'nicken' | 'schuetteln'
 export const GESTE_N = 460
 /** Perspektive der Gesten: so weit (in Hokus Radius) steht das Auge vor seiner Mitte. */
 export const GESTE_FERN = 3.4
-export interface GestenBild { P: Float32Array; L: Float32Array; H: Float32Array }
+/**
+ * Kugelkörper einer Geste, auf den die Engine Hokus Auge setzt (Nutzer 02.11.2026: die Pupille in allen
+ * Animationen): Mitte und Maße im Gestenraum, dazu ein Blick, den die Geste vorgibt (`blick`).
+ * `an` false: die Geste hat gerade keinen Kugelkörper (Herz, Haken, X, WLAN, Sanduhr, Brief).
+ */
+export interface GestenKugel { an: boolean; x: number; y: number; sx: number; sy: number; s: number; blick: boolean; gx: number; gy: number }
+export interface GestenBild { P: Float32Array; L: Float32Array; H: Float32Array; K?: GestenKugel }
+export const neueGestenKugel = (): GestenKugel => ({ an: false, x: 0, y: 0, sx: 1, sy: 1, s: 1, blick: false, gx: 0, gy: 0 })
+/** Gesten, die Hoku als Kugel zeigen und deshalb das Auge offen lassen. */
+export function formMitAuge(f: DotForm | null, v: GestenWahl): boolean {
+  return f === 'hand' || f === 'freude' || f === 'warten' || f === 'nicken' || f === 'schuetteln' || (f === 'cross' && v.fehler === 'kugel')
+}
+const kugelAn = (out: GestenBild, x: number, y: number, sx: number, sy: number, s: number) => {
+  const K = out.K
+  if (K) { K.an = true; K.x = x; K.y = y; K.sx = sx; K.sy = sy; K.s = s }
+}
+const blickAuf = (out: GestenBild, gx: number, gy: number) => { const K = out.K; if (K) { K.blick = true; K.gx = gx; K.gy = gy } }
 /** Begrüßung: D1 ein Arm, D4 beide Arme. */
 export type Gruss = 'einArm' | 'beideArme'
 /**
@@ -42,7 +58,7 @@ export type Warten = 'welle' | 'wolken'
 /** Welche Variante einer Geste läuft; `fehler` null = noch keiner gezeigt. */
 export interface GestenWahl { gruss: Gruss; fehler: Fehler | null; netz: Netz; freude?: Freude; warten?: Warten }
 /** So lange dauern die Gesten, die von selbst enden (s); danach ist Hoku wieder eine geschlossene Kugel. */
-export const FORM_DAUER: Partial<Record<DotForm, number>> = { freude: 2.1, augen: 4.2, sanduhr: 2.7, brief: 2.4, nicken: 1.4, schuetteln: 1.4 }
+export const FORM_DAUER: Partial<Record<DotForm, number>> = { freude: 2.1, sanduhr: 2.7, brief: 2.4, nicken: 1.4, schuetteln: 1.4 }
 /** So lange dauert die Begrüßung, bis die Arme wieder in Dot stecken (s). */
 export const GRUSS_DAUER = 3.9
 /** Ab hier ist der Haken gezeichnet und färbt sich grün (s), so lange dauert das. */
@@ -55,7 +71,7 @@ const weich = (x: number) => { x = clamp01(x); return x * x * (3 - 2 * x) }
 const hinaus = (x: number) => { x = clamp01(x) - 1; return 1 + 2.70158 * x * x * x + 1.70158 * x * x }
 const misch = (a: number, b: number, r: number) => a + (b - a) * r
 const wachsen = (t: number, ein: number, aus: number) => t > aus ? 1 - weich((t - aus) / 0.55) : hinaus(t / ein)
-// Bildausschnitt: aus der Kugel-Lage in den der Geste und zurück
+// Übergang aus der Kugel-Lage in die der Geste und zurück (Neigung, Hüpfen)
 const rein = (t: number) => weich(t / 0.45) * (1 - weich((t - 3.45) / 0.45))
 
 function fib(n: number, r: number) {
@@ -211,6 +227,7 @@ function armeBild(kp: Kappe, arme: Arm[], k: Rahmen, out: GestenBild) {
     }
   }
   const cl = Math.cos(k.neig), sl = Math.sin(k.neig), sx = k.sx ?? 1, sy = k.sy ?? 1, { P, L, H } = out
+  kugelAn(out, k.ox ?? 0, k.oy, k.sc * sx, k.sc * sy, k.sc)
   for (let i = 0; i < N; i++) {
     const q = i * 3, w = kp.wer[i]
     let x = KUGEL_FEST[q], y = KUGEL_FEST[q + 1], z = KUGEL_FEST[q + 2]
@@ -228,7 +245,8 @@ function armeBild(kp: Kappe, arme: Arm[], k: Rahmen, out: GestenBild) {
   }
 }
 
-// D1: ein Arm wächst aus der Seite, geht schräg nach oben und winkt; sein Ende schwingt nach
+// D1: ein Arm wächst aus der Seite, geht schräg nach oben und winkt; sein Ende schwingt nach.
+// Hoku bleibt dabei mittig und so groß wie vorher (Nutzer 30.10.2026), nur der Arm kommt dazu
 const EIN = { kp: null as Kappe | null, arm: neuerArm(-1) }
 function einArm(t: number, out: GestenBild) {
   const r = hinaus((t - 0.25) / 0.55) * (1 - weich((t - 2.85) / 0.45)), ak = clamp01((t - 0.7) / 0.3) * clamp01((2.95 - t) / 0.3)
@@ -236,7 +254,7 @@ function einArm(t: number, out: GestenBild) {
   a.a1 = misch(0.55, -0.2, r) - 0.06 * w; a.a2 = misch(1.25, -1.0, r) + 0.38 * w
   a.b = a.a2 - 0.1 * r + 0.3 * Math.sin(ph - 0.9) * ak
   EIN.kp ??= kappe(a.s, false)
-  armeBild(EIN.kp, [a], { g: wachsen(t, 0.45, 3.3), neig: (-0.05 * r - 0.02 * w) * e, sc: misch(1, 0.74, e), ox: 0.4 * e, oy: 0.36 * e }, out)
+  armeBild(EIN.kp, [a], { g: wachsen(t, 0.45, 3.3), neig: (-0.05 * r - 0.02 * w) * e, sc: 1, oy: 0 }, out)
 }
 // D4: beide Arme gehen schräg nach oben und winken im Gleichtakt in dieselbe Richtung; Dot hüpft dazu
 const BEIDE = { kp: null as Kappe | null, arme: [neuerArm(-1), neuerArm(1)] }
@@ -250,7 +268,7 @@ function beideArme(t: number, out: GestenBild) {
   }
   const hop = Math.pow(Math.abs(Math.sin(ph / 2)), 0.8) * ak, sq = (1 - hop) * 0.06 * ak
   BEIDE.kp ??= kappe(-1, true)
-  armeBild(BEIDE.kp, BEIDE.arme, { g: wachsen(t, 0.45, 3.3), neig: 0.03 * w * e, sx: 1 + sq, sy: 1 - sq, sc: misch(1, 0.64, e), oy: (0.42 - 0.14 * hop + 0.06 * sq) * e }, out)
+  armeBild(BEIDE.kp, BEIDE.arme, { g: wachsen(t, 0.45, 3.3), neig: 0.03 * w * e, sx: 1 + sq, sy: 1 - sq, sc: 1, oy: (-0.22 * hop + 0.09 * sq) * e }, out)
 }
 
 /* ── Herz C: ein Herz aus eigenen Punkten wölbt sich aus Dot ───────────────── */
@@ -325,7 +343,7 @@ let balken: Float32Array | null = null
 const baueBalken = () => flaechenPunkte([{ a: [-0.92, -0.92, 0], b: [0.92, 0.92, 0], r: 0.26 }, { a: [0.92, -0.92, 0], b: [-0.92, 0.92, 0], r: 0.26 }], N).p
 function fehler(t: number, art: Fehler | null, out: GestenBild) {
   if (art === 'balken') drehe((balken ??= baueBalken()), out.P, { yaw: 0.38 * Math.sin(TAU * 0.3 * t), pitch: 0.16, s: 0.95 })
-  else drehe(KUGEL, out.P, { yaw: 0.2 * t + 0.38 * Math.sin(TAU * 0.3 * t), pitch: 0.16, s: 0.92 })
+  else { drehe(KUGEL, out.P, { yaw: 0.2 * t + 0.38 * Math.sin(TAU * 0.3 * t), pitch: 0.16, s: 0.92 }); kugelAn(out, 0, 0, 0.92, 0.92, 0.92); blickAuf(out, 0, 0.32) }
   out.L.fill(1); out.H.fill(0)
 }
 
@@ -412,12 +430,13 @@ function kreuzBild(t: number, out: GestenBild) {
   zeichenAusDot((kreuz ??= baueKreuz()), raus, 1, glanz, 0.12 * Math.sin(TAU * 0.3 * t), out)
 }
 
-/* ── Hoku führt: Freude, Augen zuhalten, Warten, Sanduhr, Brief, Nicken, Kopfschütteln ──
-   Aus dem Mockup „Dots Auftritte" (Version 12, Augen zuhalten Version 13; Wahl des Nutzers 29.10.2026); Längen dort in Pixeln bei
+/* ── Hoku führt: Freude, Warten, Sanduhr, Brief, Nicken, Kopfschütteln ──
+   Aus dem Mockup „Dots Auftritte" (Version 12; Wahl des Nutzers 29.10.2026); Längen dort in Pixeln bei
    Radius 70, hier in Hokus Radius. Lage y nach unten, z zum Betrachter. */
 // Kugel um (tx, ty), gestaucht um ihren Boden: sx quer, sy hoch; Licht und Farbe für alle gleich
 function kugelBild(tx: number, ty: number, sx: number, sy: number, yaw: number, licht: number, farbe: number, out: GestenBild) {
   drehe(KUGEL_FEST, TMP, { yaw })
+  kugelAn(out, tx, ty + 1 - sy, sx, sy, 1)
   for (let i = 0; i < N; i++) {
     const j = i * 3
     out.P[j] = tx + TMP[j] * sx; out.P[j + 1] = ty + 1 + (TMP[j + 1] - 1) * sy; out.P[j + 2] = TMP[j + 2]
@@ -432,6 +451,7 @@ function huepfen(t: number, out: GestenBild) {
   const h1 = Math.sin(Math.PI * clamp01((t - 0.1) / 0.42)), h2 = Math.sin(Math.PI * clamp01((t - 0.62) / 0.5)), hy = -0.49 * h1 - 0.69 * h2
   const land = Math.max(Math.sin(Math.PI * clamp01((t - 0.52) / 0.12)), Math.sin(Math.PI * clamp01((t - 1.12) / 0.16)))
   kugelBild(0, hy, 1 + 0.14 * land, 1 - 0.16 * land, TAU * weich((t - 0.62) / 0.5), 1, 0, out)
+  blickAuf(out, 0, -0.3)
   const fk = clamp01((t - 0.78) / 0.75)
   if (fk <= 0 || fk >= 1) return
   for (let i = 0; i < N; i++) {
@@ -447,11 +467,14 @@ function strecken(t: number, out: GestenBild) {
   const wo = t > 0.93 ? Math.exp(-(t - 0.93) * 5) * Math.sin((t - 0.93) * 22) : 0
   const sy = 1 - 0.2 * an + 0.22 * Math.max(0, st) - 0.18 * la + 0.08 * wo
   kugelBild(0, hy, 2 - sy, sy, 0, 1 + 0.3 * Math.sin(Math.PI * fl), 0, out)
+  blickAuf(out, 0, -0.4 * Math.sin(Math.PI * fl))
 }
 // F3: federt leicht, aus der Oberseite sprudeln Funken wie ein Springbrunnen und fallen zurück
 function funken(t: number, out: GestenBild) {
   const hy = t < 1.5 ? -0.14 * Math.abs(Math.sin(t * 6)) : 0
   kugelBild(0, hy, 1, 1, 0, 1, 0, out)
+  // er schaut seinen Funken nach
+  blickAuf(out, 0, -0.42)
   for (let i = 0; i < N; i++) {
     const j = i * 3
     if (ZA[j] >= 0.3) continue
@@ -463,54 +486,12 @@ function funken(t: number, out: GestenBild) {
   }
 }
 
-// G1 Augen zuhalten (Mockup Version 13, Nutzer 29.10.2026: Körper bleibt normal, Arme deutlicher): Hoku
-// bleibt die ruhige Kugel. Unten links und rechts wachsen aus seinem Rand zwei Arme aus eigenen Punkten
-// (in der Engine die Kinderpunkte) und legen die Hände vor sein „Gesicht". Bahn wie im Mockup, die Arme
-// etwas dicker, heller und mit dem Ellbogen weiter außen, damit sie sich von der Kugel abheben.
-// Am Ende fließt jeder Armpunkt gestaffelt zurück zur Wurzel und geht in ihm auf.
-const AUGEN = { wx: 0.86, wy: 0.51, ellbogen: 1.6, dick: 0.12, hand: 1.0, ringe: 30, je: 8, vor: 1.3, licht: 1.5 }
-/** So viele Punkte mehr als die Kugel braucht eine Geste höchstens (die Arme beim Augen zuhalten). */
-export const GESTE_ARME = 2 * AUGEN.ringe * AUGEN.je
-/** Länge der Gestenbilder: Kugel und Armpunkte. */
-export const GESTE_PLATZ = GESTE_N + GESTE_ARME
-// Feder: 0 → 1 mit Überschwingen und Ausklingen, u in Sekunden seit Beginn
-const feder = (u: number, k: number, w: number) => (u <= 0 ? 0 : 1 - Math.exp(-k * u) * Math.cos(w * u))
-// fester Zufall je Armpunkt: wann er beim Einfahren losfließt
-const ZARM = (() => { const z = zufall(31); return Float32Array.from({ length: GESTE_ARME }, z) })()
-function augen(t: number, out: GestenBild) {
-  // der Körper bleibt, wie er ist
-  for (let i = 0; i < N * 3; i++) out.P[i] = KUGEL_FEST[i]
-  for (let i = 0; i < N; i++) { out.L[i] = 1; out.H[i] = 0 }
-  const wachs = feder(t - 0.1, 4.2, 8)
-  const wack = t > 0.1 ? 0.1 * Math.exp(-3.5 * (t - 0.1)) * Math.sin(12 * (t - 0.1)) : 0
-  for (let a = 0; a < GESTE_ARME; a++) {
-    const o = N + a, j = o * 3, arm = a < GESTE_ARME / 2 ? 0 : 1, k = a % (GESTE_ARME / 2)
-    const seite = arm === 0 ? 1 : -1, wx = -AUGEN.wx * seite, wy = AUGEN.wy
-    // Einfahren: jeder Punkt fließt gestaffelt zur Wurzel zurück, kein Zusammenziehen zum Strich
-    const h = easeIO(clamp01((t - 3.1 - 0.35 * ZARM[a]) / 0.55)), g = Math.max(0, wachs) * (1 - h)
-    // Lage entlang des Arms (zur Hand hin dichter) und rund um seinen Querschnitt
-    const ring = Math.floor(k / AUGEN.je), u = Math.pow((ring + 0.5) / AUGEN.ringe, 0.8)
-    const ang = ((k % AUGEN.je) / AUGEN.je + (ring % 2) / (2 * AUGEN.je)) * TAU
-    // Bogen von der Wurzel über den Ellbogen außen zur Hand vor dem Gesicht (Mockup armPunkt)
-    const b1x = seite * -AUGEN.ellbogen, b1y = -0.1, b2x = seite * (-0.2 + wack), b2y = -0.34
-    const ss = u * g, m = 1 - ss, p0x = wx * 0.92, p0y = wy * 0.92
-    let x = m * m * p0x + 2 * m * ss * b1x + ss * ss * b2x, y = m * m * p0y + 2 * m * ss * b1y + ss * ss * b2y
-    const tx = 2 * m * (b1x - p0x) + 2 * ss * (b2x - b1x), ty = 2 * m * (b1y - p0y) + 2 * ss * (b2y - b1y), tl = Math.hypot(tx, ty) || 1
-    const rad = AUGEN.dick * (1 - 0.35 * u + AUGEN.hand * weich((u - 0.68) / 0.32)) * (0.75 + 0.25 * Math.min(1, g))
-    x += (-ty / tl) * Math.cos(ang) * rad; y += (tx / tl) * Math.cos(ang) * rad
-    // vor die Kugel: an der Wurzel an ihrem Rand, die Hand ganz vorn; die Perspektive der Engine ist
-    // herausgerechnet, damit die Hand dort liegt, wo das Mockup sie zeichnet
-    const da = clamp01(g * 4), z = (AUGEN.vor * weich(ss) + Math.sin(ang) * rad) * da, s = GESTE_FERN / (GESTE_FERN - z)
-    out.P[j] = x / s; out.P[j + 1] = y / s; out.P[j + 2] = z
-    // hell und deutlich; ungewachsen und ganz zurückgeflossen unsichtbar (auch ohne Tiefe, damit nichts nachglimmt)
-    out.L[o] = AUGEN.licht * (0.85 + 0.25 * Math.sin(ang)) * da; out.H[o] = 0
-  }
-}
-
 // W2: ein heller Streifen läuft um die Oberfläche wie ein Ladering
 function welle(t: number, out: GestenBild) {
   const an = clamp01(t / 0.3)
   drehe(KUGEL_FEST, TMP, { yaw: 0.3 * t, s: 0.94 })
+  // er folgt dem Licht mit dem Blick
+  kugelAn(out, 0, 0, 0.94, 0.94, 0.94); blickAuf(out, 0.38 * Math.cos(t * 4.2) * an, 0.3 * Math.sin(t * 4.2) * an)
   for (let i = 0; i < N; i++) {
     const j = i * 3, x = TMP[j], y = TMP[j + 1], z = TMP[j + 2]
     const band = Math.exp(-Math.pow(wickelWinkel(Math.atan2(y, x) - t * 4.2) / 0.45, 2)) * (z > -0.2 ? 1 : 0.35) * an
@@ -526,6 +507,8 @@ function wolken(t: number, out: GestenBild) {
   const nei = 0.08 * Math.sin(t * 2.2), tau = (t - 0.15) % 2.0, schwebe = 0.06 * Math.sin(t * 2.4)
   kugelBild(0, 0, 1, 1, 0.3 * t, 1, 0, out)
   drehe(out.P, out.P, { roll: nei, ty: 0 })
+  // nachdenklich nach oben zu den Wolken
+  blickAuf(out, 0.25, -0.45)
   if (t < 0.15) return
   for (let i = 0; i < N; i++) {
     const j = i * 3, q = ZA[j]
@@ -594,10 +577,14 @@ function brief(t: number, out: GestenBild) {
 function nicken(t: number, out: GestenBild) {
   const n = Math.sin(Math.PI * clamp01((t - 0.1) / 0.32)) + 0.75 * Math.sin(Math.PI * clamp01((t - 0.5) / 0.32)), gl = Math.sin(Math.PI * clamp01((t - 0.1) / 1.05))
   kugelBild(0, 0.13 * n, 1 + 0.04 * n, 1 - 0.05 * n, 0, 1 + 0.55 * gl, clamp01(gl * 1.25), out)
+  // der Blick nickt mit
+  blickAuf(out, 0, 0.42 * n)
 }
 function schuetteln(t: number, out: GestenBild) {
   const dx = 0.13 * Math.sin(t * 14) * Math.sin(Math.PI * clamp01((t - 0.1) / 0.9)), gl = Math.sin(Math.PI * clamp01((t - 0.1) / 1.05))
   kugelBild(dx, 0, 1, 1, 0, 1 + 0.55 * gl, clamp01(gl * 1.25), out)
+  // der Blick schüttelt mit
+  blickAuf(out, dx * 3.5, 0)
 }
 
 /** Herz und Haken vorab bauen (Kandidaten und Auswahl dauern einige Millisekunden), damit ihr erstes Bild nicht ruckelt. */
@@ -615,12 +602,12 @@ export function gestenVorbereiten() {
 
 /** Ein Bild der Geste zum Zeitpunkt t (s seit ihrem Beginn). */
 export function gestenBild(form: DotForm, t: number, v: GestenWahl, out: GestenBild) {
+  if (out.K) { out.K.an = false; out.K.blick = false }
   if (form === 'hand') (v.gruss === 'beideArme' ? beideArme : einArm)(t, out)
   else if (form === 'heart') herz(t, out)
   else if (form === 'cross') { if (v.fehler === 'heute') kreuzBild(t, out); else fehler(t, v.fehler, out) }
   else if (form === 'wifi') (v.netz === 'boegen' ? boegen : sucht)(t, out)
   else if (form === 'freude') ({ huepfen, strecken, funken })[v.freude ?? 'huepfen'](t, out)
-  else if (form === 'augen') augen(t, out)
   else if (form === 'warten') (v.warten === 'wolken' ? wolken : welle)(t, out)
   else if (form === 'sanduhr') sanduhr(t, out)
   else if (form === 'brief') brief(t, out)
@@ -632,5 +619,5 @@ export function gestenBild(form: DotForm, t: number, v: GestenWahl, out: GestenB
 /** Bei weniger Bewegung steht jede Geste still in diesem Moment. */
 export const STILL: Record<DotForm, number> = {
   hand: 1.3, heart: 0.3, cross: 0.7, wifi: 0.8, haken: 1.0,
-  freude: 0, augen: 1.2, warten: 1.0, sanduhr: 1.4, brief: 0.8, nicken: 0.4, schuetteln: 0.5,
+  freude: 0, warten: 1.0, sanduhr: 1.4, brief: 0.8, nicken: 0.4, schuetteln: 0.5,
 }

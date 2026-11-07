@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { RoutineConfirmationEntry } from '../intakeGroups'
 import {
+  markiereNichtGenommen,
   confirmIntakeGroup,
   quantifiedVialEntries,
   skipIntakeGroup,
@@ -260,5 +261,27 @@ describe('confirmIntakeGroup', () => {
       [entry(), vial, deselectedVial, quantifiedTablet],
       new Set(['stack-vial']),
     ).map(item => item.key)).toEqual(['vial'])
+  })
+})
+
+describe('markiereNichtGenommen', () => {
+  it('markiert nur nicht genommene Zeilen ohne eigene Notiz', async () => {
+    const inIds = vi.fn(async (_column: 'id', _ids: string[]) => ({ error: null }))
+    const update = vi.fn((_row: { notes: string }) => ({ in: inIds }))
+    const client = { from: vi.fn(() => ({ update })) }
+    const ids = await markiereNichtGenommen(client, [
+      { id: 'a', taken: false, notes: null },
+      { id: 'b', taken: true, notes: null },
+      { id: 'c', taken: false, notes: 'eigene Notiz' },
+    ], 'skipped')
+    expect(ids).toEqual(['a'])
+    expect(update).toHaveBeenCalledWith({ notes: 'skipped' })
+    expect(inIds).toHaveBeenCalledWith('id', ['a'])
+  })
+
+  it('lässt die Entscheidung stehen, wenn der Marker nicht gesetzt werden kann', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const client = { from: () => ({ update: () => ({ in: async () => ({ error: { message: 'offline' } }) }) }) }
+    await expect(markiereNichtGenommen(client, [{ id: 'a', taken: false }], 'skipped')).resolves.toEqual([])
   })
 })

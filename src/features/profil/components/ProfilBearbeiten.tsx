@@ -17,7 +17,9 @@ import { Sheet } from '../../compliance/components/Sheet'
 import { filterFehlerSchluessel } from '../../compliance/lib/moderation'
 import { ExercisePicker } from '../../training/components/ExercisePicker'
 import { exerciseName } from '../../training/lib/exerciseLookup'
-import { insertCustomExercise, isMissingTable, loadCustomExercises, loadRoutines, loadSessions } from '../../training/services/trainingRepo'
+import { insertCustomExercise, isMissingTable, loadCustomExercises, loadRoutines, loadSessions, loadSettings, saveSettings } from '../../training/services/trainingRepo'
+import { toggleFavorite } from '../../training/lib/favorites'
+import { DEFAULT_TRAINING_SETTINGS, type TrainingSettings } from '../../training/types'
 import type { CustomExercise, TrainingRoutine, TrainingSession } from '../../training/types'
 import { requestProfileSnapshot } from '../hooks/useProfileSnapshotSync'
 import type { MediaKind } from '../services/profileMedia'
@@ -48,6 +50,7 @@ interface Training {
   sessions: TrainingSession[]
   routines: TrainingRoutine[]
   custom: CustomExercise[]
+  settings: TrainingSettings
 }
 
 export function ProfilBearbeiten({ userId, werte, onChange, onClose }: {
@@ -68,9 +71,13 @@ export function ProfilBearbeiten({ userId, werte, onChange, onClose }: {
   useEffect(() => {
     let aktiv = true
     const orEmpty = <T,>(p: Promise<T[]>) => p.catch(error => (isMissingTable(error) ? [] as T[] : Promise.reject(error)))
-    Promise.all([orEmpty(loadSessions(userId)), orEmpty(loadRoutines(userId)), orEmpty(loadCustomExercises(userId))])
-      .then(([sessions, routines, custom]) => { if (aktiv) setTraining({ sessions, routines, custom }) })
-      .catch(() => { if (aktiv) setTraining({ sessions: [], routines: [], custom: [] }) })
+    Promise.all([
+      orEmpty(loadSessions(userId)), orEmpty(loadRoutines(userId)), orEmpty(loadCustomExercises(userId)),
+      // Favoriten der Übungsauswahl (Training); ohne Einstellungen die Standardwerte
+      loadSettings(userId).catch(() => DEFAULT_TRAINING_SETTINGS),
+    ])
+      .then(([sessions, routines, custom, settings]) => { if (aktiv) setTraining({ sessions, routines, custom, settings }) })
+      .catch(() => { if (aktiv) setTraining({ sessions: [], routines: [], custom: [], settings: DEFAULT_TRAINING_SETTINGS }) })
     return () => { aktiv = false }
   }, [userId])
 
@@ -231,6 +238,14 @@ export function ProfilBearbeiten({ userId, werte, onChange, onClose }: {
         <ExercisePicker
           sessions={training.sessions}
           customExercises={training.custom}
+          favorites={training.settings.favoriteExercises}
+          onToggleFavorite={async exerciseId => {
+            const settings: TrainingSettings = {
+              ...training.settings, favoriteExercises: toggleFavorite(training.settings.favoriteExercises, exerciseId),
+            }
+            setTraining(tr => tr && { ...tr, settings })
+            await saveSettings(userId, settings).catch(() => undefined)
+          }}
           multiple={false}
           onAddCustom={async exercise => {
             const saved = await insertCustomExercise(userId, exercise)

@@ -7,7 +7,7 @@ import { countSets, finishWorkout } from '../../lib/activeWorkout'
 import { formatClock, formatDistance, formatNumber, formatVolume, formatWeight } from '../../lib/format'
 import { routineDiff, type RoutineDiff } from '../../lib/routineDiff'
 import { detectRecords, sessionVolumeKg, workingSetCount, type PersonalRecord } from '../../lib/stats'
-import { Button, Chip, Stat, TrainingSheet, TRAINING_ACCENT } from '../ui'
+import { accentMix, Button, Chip, Stat, TrainingSheet, TRAINING_ACCENT } from '../ui'
 
 /**
  * Abschluss: was war das Training, welche Rekorde, wie hart — dann speichern.
@@ -133,7 +133,7 @@ export function FinishSheet({ workout, history, routine, settings, nameOf, track
             style={{
               display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer',
               padding: '12px 14px', borderRadius: 16, background: 'var(--lg-surface-2)',
-              border: `1px solid ${TRAINING_ACCENT}55`,
+              border: `1px solid ${accentMix(33)}`,
             }}
           >
             <input
