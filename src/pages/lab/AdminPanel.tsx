@@ -97,13 +97,32 @@ function saveSuccessHint(omitted: string[]): string {
 
 // ─── API Call ─────────────────────────────────────────────────────────────────
 
+// Fehlercodes aus api/peptide-ai.js (der Server gibt keine Interna mehr heraus)
+const KI_FEHLER: Record<string, string> = {
+  unauthorized: 'Sitzung abgelaufen. Bitte neu anmelden.',
+  forbidden: 'Nur für Admins.',
+  invalid_name: 'Name fehlt oder ist länger als 100 Zeichen.',
+  invalid_existing: 'Eintrag ist zu groß für die Überarbeitung.',
+  invalid_action: 'Unbekannte Aktion.',
+  too_large: 'Anfrage zu groß.',
+  ai_failed: 'Die KI hat nicht geantwortet. Später erneut versuchen.',
+  ai_no_json: 'Die KI-Antwort war unbrauchbar. Erneut versuchen.',
+  server_config: 'Server-Konfiguration unvollständig (Vercel-Env prüfen).',
+}
+
 async function callAI(
   action: 'create' | 'update',
   payload: { name?: string; existing?: Record<string, unknown> }
 ): Promise<Record<string, unknown>> {
+  // Der Endpunkt prüft Token und is_admin (api/peptide-ai.js)
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) throw new Error('Nicht angemeldet')
   const res = await fetch('/api/peptide-ai', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+    },
     body: JSON.stringify({ action, ...payload }),
   })
   const text = await res.text()
@@ -111,7 +130,10 @@ async function callAI(
   try { data = JSON.parse(text) } catch {
     throw new Error(`Server-Fehler (${res.status}): ${text.slice(0, 120)}`)
   }
-  if (!res.ok || data.error) throw new Error(String(data.error ?? 'Unbekannter Fehler'))
+  if (!res.ok || data.error) {
+    const code = String(data.error ?? '')
+    throw new Error(KI_FEHLER[code] ?? `Unbekannter Fehler (${res.status}${code ? `: ${code}` : ''})`)
+  }
   return data.result as Record<string, unknown>
 }
 

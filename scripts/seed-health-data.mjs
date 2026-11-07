@@ -1,15 +1,20 @@
 // TYD — Gesundheitsdaten (Blutwerte + Gewicht, 6 Monate)
-// Ausführen: node scripts/seed-health-data.mjs
+// Ausführen: SEED_EMAIL=… SEED_PASSWORD=… node scripts/seed-health-data.mjs
 import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = 'https://xcskcojakolphtbuqfbw.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_yeAVlq8miTc20FLsPqKCwQ_xAGKHLV1'
 
+// Zugangsdaten nie ins Repo: SEED_EMAIL=… SEED_PASSWORD=… node scripts/seed-health-data.mjs
+const EMAIL = process.env.SEED_EMAIL
+const PASSWORD = process.env.SEED_PASSWORD
+if (!EMAIL || !PASSWORD) { console.error('❌ SEED_EMAIL und SEED_PASSWORD setzen'); process.exit(1) }
+
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY)
 
 const { data: { user }, error: loginErr } = await sb.auth.signInWithPassword({
-  email: 'devin.bewerbungen@web.de',
-  password: 'testtest',
+  email: EMAIL,
+  password: PASSWORD,
 })
 if (loginErr) { console.error('❌ Login:', loginErr.message); process.exit(1) }
 const uid = user.id

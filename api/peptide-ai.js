@@ -1,4 +1,16 @@
 // api/peptide-ai.js — Vercel Serverless Function
+//
+// Nur für Admins: erstellt oder überarbeitet Einträge der Peptid-Bibliothek mit
+// Claude. Ohne Prüfung wäre das ein offener Zugang zum Anthropic-Schlüssel des
+// Betreibers (Security-Audit 2026-11). Deshalb: Supabase-Token verifizieren,
+// is_admin aus der Datenbank lesen, Eingaben begrenzen, kein CORS (die Seite
+// ruft same-origin auf), und nach außen nur feste Fehlercodes.
+
+// Grenzen für die Eingabe: ein Name ist kurz, ein bestehendes Profil ein paar KB.
+export const MAX_NAME = 100
+export const MAX_EXISTING = 20_000
+// Vor dem Parsen: mehr als das ist nie ein legitimer Aufruf.
+const MAX_BODY = 64_000
 
 // Immer JSON zurückgeben, niemals HTML-Fehlerseite
 function sendJSON(res, status, obj) {
@@ -9,19 +21,73 @@ function sendJSON(res, status, obj) {
   }
 }
 
-// Body lesen — Fallback falls req.body nicht automatisch geparst wird
+class BodyTooLarge extends Error {}
+
+// Body lesen — Fallback falls req.body nicht automatisch geparst wird.
+// Die Grenze zählt Bytes, und nach dem Abbruch wird nichts mehr gesammelt.
 async function readBody(req) {
   if (req.body !== undefined && req.body !== null) {
-    return typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+    if (typeof req.body !== 'string') return req.body
+    if (Buffer.byteLength(req.body) > MAX_BODY) throw new BodyTooLarge()
+    return JSON.parse(req.body)
   }
-  return new Promise((resolve) => {
-    let raw = ''
-    req.on('data', (chunk) => { raw += chunk.toString() })
-    req.on('end', () => {
-      try { resolve(JSON.parse(raw)) } catch { resolve({}) }
+  return new Promise((resolve, reject) => {
+    const chunks = []
+    let bytes = 0
+    let fertig = false
+    req.on('data', (chunk) => {
+      if (fertig) return
+      const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+      bytes += buf.length
+      if (bytes > MAX_BODY) {
+        fertig = true
+        reject(new BodyTooLarge())
+        req.destroy?.()
+        return
+      }
+      chunks.push(buf)
     })
-    req.on('error', () => resolve({}))
+    req.on('end', () => {
+      if (fertig) return
+      fertig = true
+      try { resolve(JSON.parse(Buffer.concat(chunks).toString('utf8'))) } catch { resolve({}) }
+    })
+    req.on('error', () => { if (!fertig) { fertig = true; resolve({}) } })
   })
+}
+
+function bearer(req) {
+  const h = req.headers?.authorization ?? req.headers?.Authorization
+  if (typeof h !== 'string' || !h.startsWith('Bearer ')) return null
+  const t = h.slice(7).trim()
+  return t || null
+}
+
+// Token bei Supabase prüfen und is_admin mit dem Service-Key lesen.
+// Rückgabe: 'ok' | 'unauthorized' | 'forbidden' | 'error'
+async function adminCheck(token, url, serviceKey) {
+  const userRes = await fetch(`${url}/auth/v1/user`, {
+    headers: { Authorization: `Bearer ${token}`, apikey: serviceKey },
+  })
+  // Nur 401/403 heißt „Token ungültig“; 429 und 5xx sind ein Ausfall bei Supabase
+  if (userRes.status === 401 || userRes.status === 403) return 'unauthorized'
+  if (!userRes.ok) {
+    console.error('peptide-ai: auth/v1/user', userRes.status)
+    return 'error'
+  }
+  const user = await userRes.json()
+  if (typeof user?.id !== 'string' || !/^[0-9a-f-]{36}$/i.test(user.id)) return 'unauthorized'
+
+  const profRes = await fetch(
+    `${url}/rest/v1/profiles?id=eq.${user.id}&select=is_admin`,
+    { headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey } },
+  )
+  if (!profRes.ok) {
+    console.error('peptide-ai: profiles', profRes.status)
+    return 'error'
+  }
+  const rows = await profRes.json()
+  return Array.isArray(rows) && rows[0]?.is_admin === true ? 'ok' : 'forbidden'
 }
 
 function buildCreatePrompt(name) {
@@ -108,21 +174,16 @@ tags: 3-6 kurze Schlagwörter auf Deutsch`
 }
 
 export default async function handler(req, res) {
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-
-  if (req.method === 'OPTIONS') {
-    res.statusCode = 200
-    res.end()
-    return
-  }
-
   // Alles in einem großen try-catch — garantiert JSON zurück
   try {
     if (req.method !== 'POST') {
-      sendJSON(res, 405, { error: 'Method not allowed' })
+      sendJSON(res, 405, { error: 'method_not_allowed' })
+      return
+    }
+
+    const token = bearer(req)
+    if (!token) {
+      sendJSON(res, 401, { error: 'unauthorized' })
       return
     }
 
@@ -130,30 +191,51 @@ export default async function handler(req, res) {
     // sobald sie irgendwo per import.meta.env referenziert werden. Fallback auf den
     // alten Namen, bis die Vercel-Env-Variable umbenannt ist.
     const apiKey = process.env.ANTHROPIC_API_KEY ?? process.env.VITE_ANTHROPIC_KEY
-    if (!apiKey) {
-      sendJSON(res, 500, { error: 'ANTHROPIC_API_KEY fehlt in Vercel Environment Variables' })
+    const { SUPABASE_URL, SUPABASE_SERVICE_KEY } = process.env
+    if (!apiKey || !SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+      console.error('peptide-ai: Env fehlt', {
+        anthropic: !!apiKey, url: !!SUPABASE_URL, service: !!SUPABASE_SERVICE_KEY,
+      })
+      sendJSON(res, 500, { error: 'server_config' })
       return
     }
 
-    const body = await readBody(req)
-    const action   = body.action
-    const name     = body.name
-    const existing = body.existing
-
-    if (!action) {
-      sendJSON(res, 400, { error: 'action fehlt (create | update)' })
+    const check = await adminCheck(token, SUPABASE_URL, SUPABASE_SERVICE_KEY)
+    if (check !== 'ok') {
+      const status = check === 'unauthorized' ? 401 : check === 'forbidden' ? 403 : 503
+      sendJSON(res, status, { error: check })
       return
     }
+
+    let body
+    try {
+      body = await readBody(req)
+    } catch (err) {
+      sendJSON(res, err instanceof BodyTooLarge ? 413 : 400, {
+        error: err instanceof BodyTooLarge ? 'too_large' : 'bad_request',
+      })
+      return
+    }
+    const action   = body?.action
+    const name     = body?.name
+    const existing = body?.existing
 
     let prompt
     if (action === 'create') {
-      if (!name) { sendJSON(res, 400, { error: 'name fehlt' }); return }
-      prompt = buildCreatePrompt(name)
+      if (typeof name !== 'string' || !name.trim() || name.length > MAX_NAME) {
+        sendJSON(res, 400, { error: 'invalid_name' })
+        return
+      }
+      prompt = buildCreatePrompt(name.trim())
     } else if (action === 'update') {
-      if (!existing) { sendJSON(res, 400, { error: 'existing fehlt' }); return }
+      if (!existing || typeof existing !== 'object' || Array.isArray(existing)
+        || JSON.stringify(existing).length > MAX_EXISTING) {
+        sendJSON(res, 400, { error: 'invalid_existing' })
+        return
+      }
       prompt = buildUpdatePrompt(existing)
     } else {
-      sendJSON(res, 400, { error: `Unbekannte action: ${action}` })
+      sendJSON(res, 400, { error: 'invalid_action' })
       return
     }
 
@@ -173,7 +255,8 @@ export default async function handler(req, res) {
 
     if (!aiRes.ok) {
       const detail = await aiRes.text()
-      sendJSON(res, 500, { error: `Anthropic ${aiRes.status}: ${detail.slice(0, 300)}` })
+      console.error('peptide-ai: Anthropic', aiRes.status, detail.slice(0, 300))
+      sendJSON(res, 502, { error: 'ai_failed' })
       return
     }
 
@@ -182,14 +265,23 @@ export default async function handler(req, res) {
     const match = text.match(/\{[\s\S]*\}/)
 
     if (!match) {
-      sendJSON(res, 500, { error: 'Kein JSON in KI-Antwort', raw: text.slice(0, 300) })
+      console.error('peptide-ai: kein JSON in der Antwort', text.slice(0, 300))
+      sendJSON(res, 502, { error: 'ai_no_json' })
       return
     }
 
-    const result = JSON.parse(match[0])
+    let result
+    try {
+      result = JSON.parse(match[0])
+    } catch {
+      console.error('peptide-ai: JSON in der Antwort kaputt', match[0].slice(0, 300))
+      sendJSON(res, 502, { error: 'ai_no_json' })
+      return
+    }
     sendJSON(res, 200, { result })
 
   } catch (err) {
-    sendJSON(res, 500, { error: String(err && err.message ? err.message : err) })
+    console.error('peptide-ai:', err)
+    sendJSON(res, 500, { error: 'internal' })
   }
 }

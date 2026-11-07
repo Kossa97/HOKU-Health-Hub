@@ -1,12 +1,17 @@
 /**
  * TYD — 6-Jahres-Testdatensatz (rückwirkend bis heute)
- * Ausführen: npm run seed:test
+ * Ausführen: SEED_EMAIL=… SEED_PASSWORD=… npm run seed:test
  */
 import { addDays, addMonths, format, parseISO } from 'date-fns'
 import { supabase } from '../src/lib/supabase'
 
-const EMAIL = 'devin.bewerbungen@web.de'
-const PASSWORD = 'testtest'
+// Zugangsdaten nie ins Repo: SEED_EMAIL=… SEED_PASSWORD=… npm run seed:test
+const EMAIL = process.env.SEED_EMAIL ?? ''
+const PASSWORD = process.env.SEED_PASSWORD ?? ''
+if (!EMAIL || !PASSWORD) {
+  console.error('❌ SEED_EMAIL und SEED_PASSWORD setzen')
+  process.exit(1)
+}
 const BATCH_SIZE = 500
 
 const TODAY = new Date()
