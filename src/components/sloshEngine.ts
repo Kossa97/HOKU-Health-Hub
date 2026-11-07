@@ -81,6 +81,8 @@ export function createSloshEngine(): SloshEngine {
   let lastNotify = 0
   let busy = false // a subscriber asked for every frame
   const subs = new Set<Subscriber>()
+  // Prüfschalter „Flüssigkeit wie vorher" (lib/pruef.ts): beim Schwappen jedes Bild
+  const aktivMs = typeof document !== 'undefined' && 'fluessigAlt' in document.documentElement.dataset ? 0 : ACTIVE_FRAME_MS
   // Ruhe: Zeitpunkt der letzten Regung (rAF-Zeit); `regungOffen` setzt ihn im nächsten Bild
   let letzteRegung = 0
   let regungOffen = true
@@ -117,7 +119,7 @@ export function createSloshEngine(): SloshEngine {
     const resting = !busy && Math.abs(angle) + Math.abs(vel) * 0.12 < REST_ENERGY
     // Schwappen oder eine eigene Animation zählen als Regung
     if (regungOffen || !resting) { letzteRegung = ts; regungOffen = false }
-    if ((!resting && ts - lastNotify >= ACTIVE_FRAME_MS) || ts - lastNotify >= REST_FRAME_MS) {
+    if ((!resting && ts - lastNotify >= aktivMs) || ts - lastNotify >= REST_FRAME_MS) {
       lastNotify = ts
       notify()
     }

@@ -6,11 +6,12 @@
  * bleibt auf dem Gerät gespeichert, weil eine Homescreen-App ohne die Zusätze
  * der Adresse startet und ihren eigenen Speicher hat.
  */
-export type Pruef = 'messen' | 'licht' | 'effekte' | 'hintergrund' | 'schwappen' | 'blasen' | 'buehne'
+export type Pruef = 'messen' | 'licht' | 'effekte' | 'hintergrund' | 'schwappen' | 'blasen' | 'buehne' | 'fluessigalt'
 
 export const PRUEF_SCHALTER: readonly { id: Pruef; text: string; wert: string }[] = [
   { id: 'messen', text: 'Messanzeige oben links', wert: 'an' },
   { id: 'blasen', text: 'Bläschen im Fläschchen aus', wert: 'aus' },
+  { id: 'fluessigalt', text: 'Flüssigkeit wie vorher (jedes Bild, ohne Stufen)', wert: 'an' },
   { id: 'buehne', text: 'Alle Dauer-Animationen der Seite angehalten', wert: 'still' },
   { id: 'schwappen', text: 'Flüssigkeit steht still', wert: 'aus' },
   { id: 'licht', text: 'Hokus Licht aus', wert: 'aus' },

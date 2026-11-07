@@ -1829,6 +1829,14 @@ html:not([data-navbar='eigen']) .tyd-tabdock :is(.tyd-tabbar[data-gedrueckt='tru
   100% { opacity: 0; }
 }
 .tyd-liquid-bubble { opacity: 0; }
+/* Prüfschalter „Flüssigkeit wie vorher": Bläschen wieder in jedem Bild (Vergleich am iPhone) */
+@keyframes tyd-liquid-bubble-alt {
+  0% { transform: translateY(192px); opacity: 0; }
+  18% { opacity: 0.5; }
+  72% { opacity: 0.5; }
+  100% { transform: translateY(30px); opacity: 0; }
+}
+html[data-fluessig-alt] .tyd-liquid-bubble { animation-name: tyd-liquid-bubble-alt !important; animation-timing-function: linear !important; }
 @media (prefers-reduced-motion: no-preference) {
   .tyd-liquid-bubble {
     animation-name: tyd-liquid-bubble, tyd-liquid-bubble-fade;
