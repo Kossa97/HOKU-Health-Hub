@@ -18,6 +18,7 @@ import { DayPanel, type DayTab } from './components/DayPanel'
 import { ActivitySheet } from './components/ActivitySheet'
 import { useActivityDay } from './hooks/useActivityDay'
 import { useDayNutrients } from './hooks/useDayNutrients'
+import { useWeekActivity } from './hooks/useWeekActivity'
 import { useGapTip } from './hooks/useGapTip'
 import { NutrientSheet } from './components/NutrientSheet'
 import type { NutrientId } from './lib/nutrientTargets'
@@ -110,7 +111,9 @@ export function ErnaehrungPage() {
   const [sheet, setSheet] = useState<SheetState>(null)
   const move = useActivityDay(userId, date, n.goals)
   const activity = { active: move.total.kcal, bonus: move.bonus }
-  const dayBonus = move.bonus > 0 ? { date, kcal: move.bonus } : null
+  const weekBonus = useWeekActivity(userId, date, todayKey, n.goals, move.changes)
+  // Der gewählte Tag rechnet genau, sobald er geladen ist; bis dahin der Wert aus der Wochenabfrage.
+  const dayBonus = useMemo(() => ({ ...weekBonus, [date]: move.day ? move.bonus : weekBonus[date] ?? 0 }), [weekBonus, date, move.day, move.bonus])
   const nut = useDayNutrients({ userId, date, today: todayKey, entries: n.day?.entries ?? NO_ENTRIES, goals: n.goals, kcal: n.total.kcal, bonus: move.bonus })
   const gapTip = useGapTip(nut.gaps)
   useDotRundflug({ heute: isToday, bereit: !!n.day, total: n.total, goals: n.goals, nachsatz: gapTip })
