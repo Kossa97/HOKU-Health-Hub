@@ -81,8 +81,12 @@ export function createSloshEngine(): SloshEngine {
   let lastNotify = 0
   let busy = false // a subscriber asked for every frame
   const subs = new Set<Subscriber>()
-  // Prüfschalter „Flüssigkeit wie vorher" (lib/pruef.ts): beim Schwappen jedes Bild
-  const aktivMs = typeof document !== 'undefined' && 'fluessigAlt' in document.documentElement.dataset ? 0 : ACTIVE_FRAME_MS
+  // Beim Schwappen jedes Bild: mit der Zeichenfläche (Prüfschalter „Flüssigkeit neu
+  // gezeichnet") ist das günstig genug, und jedes zweite Bild wirkte am iPhone
+  // holperig, sobald die Bildabstände schwankten (Nutzer 07.11.2026). Ebenso mit
+  // „Flüssigkeit wie vorher". Nur die SVG-Fassung bleibt bei höchstens 60 je Sekunde.
+  const html = typeof document !== 'undefined' ? document.documentElement.dataset : null
+  const aktivMs = html && ('fluessigAlt' in html || 'fluessigNeu' in html) ? 0 : ACTIVE_FRAME_MS
   // Ruhe: Zeitpunkt der letzten Regung (rAF-Zeit); `regungOffen` setzt ihn im nächsten Bild
   let letzteRegung = 0
   let regungOffen = true
