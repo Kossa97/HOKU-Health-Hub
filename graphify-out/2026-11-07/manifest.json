@@ -276,9 +276,9 @@
     "semantic_hash": ""
   },
   "src/components/PeptideVialVisual.tsx": {
-    "mtime": 1793963991.7958114,
-    "seen": 1793964043.4749215,
-    "ast_hash": "ef9dbe14e96c893461741a504387957d",
+    "mtime": 1794043943.7699249,
+    "seen": 1794044110.0088387,
+    "ast_hash": "030ab19f0bb7811e823b91ef179fd237",
     "semantic_hash": ""
   },
   "src/components/ProtectedRoute.tsx": {
@@ -918,9 +918,9 @@
     "semantic_hash": ""
   },
   "src/main.tsx": {
-    "mtime": 1794038442.9895556,
-    "seen": 1794038522.5792406,
-    "ast_hash": "1cf18b7f459e220faf6582d906585f36",
+    "mtime": 1794043943.770579,
+    "seen": 1794044110.028915,
+    "ast_hash": "8b2e94871960d7cefffda4884aea3871",
     "semantic_hash": ""
   },
   "src/pages/Auth.tsx": {
@@ -3804,9 +3804,9 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/stage/LiquidGraphic.tsx": {
-    "mtime": 1794036992.793825,
-    "seen": 1794037145.1610944,
-    "ast_hash": "752557ccfad98b61919ffb09d9fd7d63",
+    "mtime": 1794043905.5099444,
+    "seen": 1794044110.0213523,
+    "ast_hash": "fa366e31316c05757ef1c6cd8ed4570c",
     "semantic_hash": ""
   },
   "src/features/my-stack/stage/StageLabel.test.ts": {
@@ -3834,9 +3834,9 @@
     "semantic_hash": ""
   },
   "src/features/my-stack/stage/liquidGeometry.ts": {
-    "mtime": 1792570286.0131226,
-    "seen": 1793833825.2083845,
-    "ast_hash": "c91b4d8cc20462f8cb7bd1dcd55ff10e",
+    "mtime": 1794043802.367673,
+    "seen": 1794044110.0214593,
+    "ast_hash": "788545b6962093a886912c455bd3b721",
     "semantic_hash": ""
   },
   "src/features/my-stack/stage/marquee.test.ts": {
@@ -4398,8 +4398,8 @@
     "semantic_hash": ""
   },
   "supabase-pk-profiles-expansion.sql": {
-    "mtime": 1794037057.7217584,
-    "seen": 1794037145.1711874,
+    "mtime": 1794044067.3631146,
+    "seen": 1794044110.0313196,
     "ast_hash": "aaeeb56080dc463ef4befc66f9696cfc",
     "semantic_hash": ""
   },
@@ -7716,9 +7716,9 @@
     "semantic_hash": ""
   },
   "memory/projects/erscheinungsbild.md": {
-    "mtime": 1794038501.41292,
-    "seen": 1794038522.5875072,
-    "ast_hash": "48910c72531835a3f30d2460e80d8c29",
+    "mtime": 1794044088.2736673,
+    "seen": 1794044110.0370464,
+    "ast_hash": "7904cc3db1ca25c6172ba59a0341140d",
     "semantic_hash": ""
   },
   "src/features/my-stack/components/FormUndFarbe.tsx": {
@@ -21918,9 +21918,9 @@
     "semantic_hash": ""
   },
   "src/lib/pruef.ts": {
-    "mtime": 1794038442.9892917,
-    "seen": 1794038522.5787086,
-    "ast_hash": "fe6e79fdff43ceabd49a63a25075d1ec",
+    "mtime": 1794043943.7703657,
+    "seen": 1794044110.0284905,
+    "ast_hash": "0a62b831ccab71e93030a2f15d5236e2",
     "semantic_hash": ""
   },
   "src/features/dot/engine/qualitaet.test.ts": {
@@ -21933,6 +21933,24 @@
     "mtime": 1793945181.2338848,
     "seen": 1793945361.2716599,
     "ast_hash": "bb1414b01a9c79f5abb2f73d5bb519b0",
+    "semantic_hash": ""
+  },
+  "src/features/my-stack/stage/LiquidCanvas.tsx": {
+    "mtime": 1794043872.3965256,
+    "seen": 1794044110.021328,
+    "ast_hash": "ac992c610c5ec06e79e3812a8fbe4fb6",
+    "semantic_hash": ""
+  },
+  "src/features/my-stack/stage/liquidBubbles.test.ts": {
+    "mtime": 1794044047.3992057,
+    "seen": 1794044110.021435,
+    "ast_hash": "f76db47a7d24d2eb7e9dd37d0c61568e",
+    "semantic_hash": ""
+  },
+  "src/features/my-stack/stage/liquidBubbles.ts": {
+    "mtime": 1794043872.3671234,
+    "seen": 1794044110.0214362,
+    "ast_hash": "1b4fd2140248ec5201226dbfeb83d09b",
     "semantic_hash": ""
   }
 }
