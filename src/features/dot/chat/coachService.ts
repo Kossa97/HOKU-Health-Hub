@@ -2,6 +2,7 @@ import { FUNKTIONS_REGION, supabase } from '../../../lib/supabase'
 import type { DotKontext } from '../lib/dotKontext'
 import type { Meldung } from './meldungen'
 import { liesAnlagen, type DotAnlage } from '../../my-stack/lib/dotAnlage'
+import { liesGesichertenPlan, liesPlaene, type HokuPlan } from '../../training/lib/hokuPlan'
 
 /**
  * Der Draht zur Edge Function `coach`. Sie prüft Anmeldung, Zugang (Pro oder
@@ -17,19 +18,22 @@ export interface CoachNachricht {
   karte?: string
   /** Von Dot vorbereitete Substanz mit „Ansehen und speichern" (reine Daten, wird mitgesichert). */
   anlage?: DotAnlage
+  /** Von Hoku entworfener Trainingsplan mit „Plan ansehen" (reine Daten, wird mitgesichert). */
+  plan?: HokuPlan
 }
 
 export type CoachFehler = 'consent_required' | 'no_access' | 'limit_reached' | 'offline' | 'server_error'
 
 /** `meldungen`: was der Nutzer über Einnahmen gesagt hat, zum Ausführen in der App (`meldungen.ts`). */
-export type CoachAntwort = { ok: true; text: string; meldungen: Meldung[]; anlagen: DotAnlage[] } | { ok: false; fehler: CoachFehler }
+export type CoachAntwort = { ok: true; text: string; meldungen: Meldung[]; anlagen: DotAnlage[]; plaene: HokuPlan[] } | { ok: false; fehler: CoachFehler }
 
 /** Höchstens so viele Nachrichten gehen als Verlauf mit (die letzten). */
 export const VERLAUF_MAX = 12
 
 export async function frageCoach(
   verlauf: CoachNachricht[],
-  kontext: DotKontext | null,
+  /** Nutzerdaten für Hoku: der Kontext des Tages, auf der Trainingsseite zusätzlich `training`. */
+  kontext: DotKontext | Record<string, unknown> | null,
   seite: string,
   sprache: 'de' | 'en',
 ): Promise<CoachAntwort> {
@@ -51,7 +55,8 @@ export async function frageCoach(
   const text = typeof data?.antwort === 'string' ? data.antwort.trim() : ''
   const meldungen = liesMeldungen(data?.meldungen)
   const anlagen = liesAnlagen(data?.anlagen)
-  return text || meldungen.length || anlagen.length ? { ok: true, text, meldungen, anlagen } : { ok: false, fehler: 'server_error' }
+  const plaene = liesPlaene(data?.plaene)
+  return text || meldungen.length || anlagen.length || plaene.length ? { ok: true, text, meldungen, anlagen, plaene } : { ok: false, fehler: 'server_error' }
 }
 
 /** Nimmt vom Server nur, was die Form hat; geprüft hat er schon, hier zählt nur der Typ. */
@@ -86,13 +91,14 @@ export function ladeVerlauf(userId: string): CoachNachricht[] {
       ? roh.filter(n => n && (n.rolle === 'ich' || n.rolle === 'dot') && typeof n.text === 'string')
         .map(n => {
           const anlage = n.rolle === 'dot' ? liesAnlagen([n.anlage])[0] : undefined
-          return { rolle: n.rolle, text: n.text, ...(n.lokal ? { lokal: true } : {}), ...(anlage ? { anlage } : {}) }
+          const plan = n.rolle === 'dot' && n.plan ? liesGesichertenPlan(n.plan) : undefined
+          return { rolle: n.rolle, text: n.text, ...(n.lokal ? { lokal: true } : {}), ...(anlage ? { anlage } : {}), ...(plan ? { plan } : {}) }
         }).slice(-40)
       : []
   } catch { return [] }
 }
 export function speichereVerlauf(userId: string, verlauf: CoachNachricht[]) {
-  try { localStorage.setItem(verlaufSchluessel(userId), JSON.stringify(verlauf.slice(-40).map(n => ({ rolle: n.rolle, text: n.text, ...(n.lokal ? { lokal: true } : {}), ...(n.anlage ? { anlage: n.anlage } : {}) })))) } catch { /* kein Speicher */ }
+  try { localStorage.setItem(verlaufSchluessel(userId), JSON.stringify(verlauf.slice(-40).map(n => ({ rolle: n.rolle, text: n.text, ...(n.lokal ? { lokal: true } : {}), ...(n.anlage ? { anlage: n.anlage } : {}), ...(n.plan ? { plan: n.plan } : {}) })))) } catch { /* kein Speicher */ }
 }
 export function loescheVerlauf(userId: string) {
   try { localStorage.removeItem(verlaufSchluessel(userId)) } catch { /* kein Speicher */ }

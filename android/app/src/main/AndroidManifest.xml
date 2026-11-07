@@ -28,6 +28,14 @@
                 <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
             </intent-filter>
 
+            <!-- App Links: der Knopf „In Hoku öffnen“ in den Mails öffnet die App (docs/registrierung/APP-LINKS.md) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="hokuhealth.app" android:path="/auth" />
+            </intent-filter>
+
         </activity>
 
         <!-- Health Connect ab Android 14: derselbe Einstieg ueber die Systemeinstellungen. -->

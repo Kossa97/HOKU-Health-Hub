@@ -8,7 +8,38 @@
  * hochgezaehlt — dann fragt die App beim naechsten Start erneut.
  */
 
+import { geburtsdatumGueltig, heuteIso } from '../../blutwerte/lib/bioProfile'
+import { alterAm } from '../../blutwerte/lib/referenzbereiche'
+
 export const TERMS_VERSION = '2026-10'
+
+/** Hoku ist erst ab 18 (Altersfreigabe der App). */
+export const MINDESTALTER = 18
+
+/**
+ * Geburtsdatum bei Registrierung und Zustimmung: Pflicht, echtes Datum, mindestens 18.
+ * Liefert den Text-Schlüssel des Fehlers oder null. `heute` als YYYY-MM-DD (lokal).
+ */
+export function pruefeGeburtsdatum(wert: string, heute: string): string | null {
+  if (!wert) return 'login_err_birth_empty'
+  if (!geburtsdatumGueltig(wert, heute)) return 'login_err_birth_bad'
+  const alter = alterAm(wert, heute)
+  return alter !== null && alter >= MINDESTALTER ? null : 'login_err_birth_young'
+}
+
+/** Heutiges Datum in der Zeitzone des Geräts, YYYY-MM-DD (dieselbe Regel wie im Körperprofil). */
+export const heuteLokal = heuteIso
+
+/** Spalten für `profiles` aus dem Geburtsdatum (das alte Feld `age` wird mitgeführt, s. bioProfile). */
+export function geburtsdatumZeile(wert: string, heute: string): { birth_date: string; age: number | null } {
+  return { birth_date: wert, age: alterAm(wert, heute) }
+}
+
+/** Gültiges Geburtsdatum (ab 18) aus den Konto-Metadaten der Registrierung, sonst null. */
+export function geburtsdatumAusMetadaten(meta: Record<string, unknown> | null | undefined, heute: string): string | null {
+  const wert = meta?.birth_date
+  return typeof wert === 'string' && !pruefeGeburtsdatum(wert, heute) ? wert : null
+}
 
 export interface ConsentRow {
   age_confirmed_at: string | null
@@ -44,15 +75,18 @@ export function zustimmungAusMetadaten(meta: Record<string, unknown> | null | un
   return zustimmungFehlt(row) ? null : row
 }
 
-/** Die drei Haekchen der Registrierung bzw. der Zustimmungsseite. */
+/**
+ * Die zwei Haekchen der Registrierung bzw. der Zustimmungsseite. Das Alter
+ * bestaetigt das Geburtsdatum (ab 18, `pruefeGeburtsdatum`); ein eigenes
+ * Haekchen dafuer gibt es seit November 2026 nicht mehr (Nutzer).
+ */
 export interface ConsentState {
-  alter: boolean
   bedingungen: boolean
   gesundheit: boolean
 }
 
-export const KEINE_ZUSTIMMUNG: ConsentState = { alter: false, bedingungen: false, gesundheit: false }
+export const KEINE_ZUSTIMMUNG: ConsentState = { bedingungen: false, gesundheit: false }
 
 export function vollstaendig(state: ConsentState): boolean {
-  return state.alter && state.bedingungen && state.gesundheit
+  return state.bedingungen && state.gesundheit
 }

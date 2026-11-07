@@ -10,18 +10,22 @@ export default {
         // Neutrales Graphit auf reinem Schwarz (Liquid Glass). Textstufen mit
         // Kontrast auf Schwarz: 300 ≈ 9:1, 400 ≈ 7:1, 500 ≈ 5:1, 600 ≈ 2,8:1
         // (nur noch für Deaktiviertes). Flächenstufen 700–950 ohne Blaustich.
+        // Aus den Farbkanälen in index.css: ein Look kann die Stufen umstellen.
+        // `white` ist die Schrift-/Linienfarbe, `black` der Grund.
+        white: 'rgb(var(--ink-rgb) / <alpha-value>)',
+        black: 'rgb(var(--ground-rgb) / <alpha-value>)',
         slate: {
-          50:  '#f5f5f7',
-          100: '#ebebf0',
-          200: '#d1d1d6',
-          300: '#aeaeb2',
-          400: '#98989d',
-          500: '#7c7c82',
-          600: '#545458',
-          700: '#2c2c2e',
-          800: '#1c1c1e',
-          900: '#121214',
-          950: '#050506',
+          50:  'rgb(var(--slate-50) / <alpha-value>)',
+          100: 'rgb(var(--slate-100) / <alpha-value>)',
+          200: 'rgb(var(--slate-200) / <alpha-value>)',
+          300: 'rgb(var(--slate-300) / <alpha-value>)',
+          400: 'rgb(var(--slate-400) / <alpha-value>)',
+          500: 'rgb(var(--slate-500) / <alpha-value>)',
+          600: 'rgb(var(--slate-600) / <alpha-value>)',
+          700: 'rgb(var(--slate-700) / <alpha-value>)',
+          800: 'rgb(var(--slate-800) / <alpha-value>)',
+          900: 'rgb(var(--slate-900) / <alpha-value>)',
+          950: 'rgb(var(--slate-950) / <alpha-value>)',
         },
         // Neon cyan — replaces sky
         sky: {

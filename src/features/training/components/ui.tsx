@@ -1,7 +1,7 @@
 import { useEffect, useId, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  Activity, Bike, Dumbbell, Flame, Footprints, Mountain, PersonStanding, Sparkles,
+  Activity, Bike, Check, Dumbbell, Flame, Footprints, Mountain, PersonStanding, Sparkles,
   Timer, Trophy, Waves, type LucideIcon,
 } from 'lucide-react'
 import type { SessionKind } from '../types'
@@ -13,10 +13,16 @@ import { SheetGriff } from '../../../components/ui/SheetGriff'
 /**
  * Bausteine des Workout-Trackers im Liquid-Glass-Schwarz der App: Flächen
  * `lg-surface`, Knöpfe `lg-btn`/`lg-gray-btn`, Farben aus den `--lg-*`-Tokens.
- * Orange ist der Akzent des Trainings — sparsam: Kacheln, Ringe, Linien.
+ * Akzent des Trainings ist der Akzent des Erscheinungsbilds (`--accent`,
+ * in „Licht" Blau) — sparsam: Ringe, Linien, Hervorhebungen. Kategorie- und
+ * Warnfarben (Art, Supersatz, niedrige Bereitschaft) bleiben eigene Farben.
  */
 
-export const TRAINING_ACCENT = '#ff9f0a'
+export const TRAINING_ACCENT = 'var(--accent)'
+
+/** Akzent mit Deckkraft in Prozent (statt Hex-Alpha, das mit `var()` nicht geht). */
+export const accentMix = (percent: number, color: string = TRAINING_ACCENT) =>
+  `color-mix(in srgb, ${color} ${percent}%, transparent)`
 
 /** iOS-Systemfarben je Art; `ink` ist die Symbolfarbe auf der Kachel. */
 export const KIND_STYLE: Record<SessionKind, { icon: LucideIcon; color: string; ink?: string }> = {
@@ -113,6 +119,24 @@ export function Button({ tone = 'primary', block, style, className, children, ..
 }
 
 /** An/aus-Kapsel. Mit `color` ein Farbpunkt davor (z. B. die Art). */
+/** Auswahlkreis wie in iOS-Listen (Mehrfachauswahl); rein optisch. */
+export function SelectCircle({ checked }: { checked: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        background: checked ? 'var(--lg-accent)' : 'transparent',
+        boxShadow: checked ? undefined : 'inset 0 0 0 1.5px var(--lg-text-3)',
+        color: 'var(--accent-contrast)',
+      }}
+    >
+      {checked && <Check size={16} strokeWidth={3} />}
+    </span>
+  )
+}
+
 export function Chip({ active, children, onClick, color, ariaLabel }: {
   active: boolean
   children: ReactNode
@@ -292,7 +316,7 @@ export const TRAINING_CSS = `
 .tyd-wheel { scrollbar-width: none; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
 .tyd-wheel::-webkit-scrollbar { display: none; }
 .tyd-wheel-wrap { border-radius: 12px; }
-.tyd-wheel-wrap:has(.tyd-wheel:focus-visible) { box-shadow: 0 0 0 2px ${TRAINING_ACCENT}8c; }
+.tyd-wheel-wrap:has(.tyd-wheel:focus-visible) { box-shadow: 0 0 0 2px ${accentMix(55)}; }
 /* Tastatur: sichtbarer Fokus statt keinem */
 .tyd-train-input { outline: none; }
 .tyd-train-input:focus-visible { outline: 2px solid var(--lg-accent); outline-offset: -2px; }

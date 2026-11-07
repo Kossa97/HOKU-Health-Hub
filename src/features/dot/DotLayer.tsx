@@ -13,6 +13,8 @@ import { heuteHinweis, heuteOffen, kontextVonHeute, ladeDotKontext, type DotKont
 import { useDotZugang } from './lib/zugang'
 import { useDotText } from './texte'
 import { CoachPanel, type DotSeite } from './chat/CoachPanel'
+import { setHokuLichtQuelle } from '../../lib/hokuLicht'
+import { leseHokuEinstellungen } from './lib/hokuEinstellungen'
 import './dot.css'
 
 /**
@@ -37,8 +39,11 @@ function seiteVon(pathname: string): DotSeite {
   if (pathname === '/my-stack') return 'my-stack'
   if (pathname === '/kalender') return 'kalender'
   if (pathname === '/ernaehrung') return 'ernaehrung'
+  if (pathname === '/training') return 'training'
   return 'sonst'
 }
+
+const linseSichtbar = () => !!document.querySelector('.tyd-tabdock .tyd-tabbar-pill[data-linse]')
 
 const leisteFinden = () => {
   const kapsel = document.querySelector<HTMLElement>('.tyd-tabdock .tyd-tabbar')
@@ -49,6 +54,13 @@ const leisteFinden = () => {
     logo,
     plus: document.querySelector<HTMLElement>('.tyd-tabdock .tyd-tabdock-action'),
     spalt: document.querySelector<HTMLElement>('.tyd-tabdock .tyd-dot-spalt'),
+    // Die Kopien in der Glaslinse nur, solange die Linse zu sehen ist — sonst
+    // malte Hoku jedes Bild dreimal umsonst (sie sind dann unsichtbar).
+    spaltKopie: () => linseSichtbar() ? document.querySelectorAll<HTMLElement>('.tyd-tabdock .tyd-tabbar-linse-tor') : [],
+    torBild: () => ({
+      haupt: document.querySelector<HTMLCanvasElement>('.tyd-tabdock .tyd-tabbar > .tyd-dot-torbild'),
+      kopien: linseSichtbar() ? document.querySelectorAll<HTMLCanvasElement>('.tyd-tabdock .tyd-tabbar-linse-torbild') : [],
+    }),
   }
 }
 
@@ -163,6 +175,14 @@ export function DotLayer() {
     setDot(neu)
   }, [aktiv])
   useEffect(() => () => { api.current?.zerstoeren(); api.current = null; dotStore.verbinde(null, null); setDot(null) }, [])
+  // Hoku-Licht (src/lib/hokuLicht.ts): wo Hoku ist, leuchten die Kanten in seiner Nähe
+  useEffect(() => {
+    setHokuLichtQuelle(() => {
+      const a = api.current
+      return a && a.modus() !== 'away' ? a.lage() : null
+    })
+    return () => setHokuLichtQuelle(null)
+  }, [])
 
   // Mit dem Logo verbinden; gesperrt heißt: Hinweis auf Pro
   useEffect(() => {
@@ -177,7 +197,7 @@ export function DotLayer() {
     const beiAuto = (e: Event) => {
       const anzahl = (e as CustomEvent<{ anzahl: number }>).detail?.anzahl ?? 0
       kontext.current.zeit = 0
-      if (anzahl > 0 && dot.modus() === 'home') dot.sag(dtRef.current('auto_eingetragen', { anzahl }), 4200)
+      if (anzahl > 0 && dot.modus() === 'home' && leseHokuEinstellungen().hinweise) dot.sag(dtRef.current('auto_eingetragen', { anzahl }), 4200)
     }
     window.addEventListener(AUTO_EREIGNIS, beiAuto)
     return () => window.removeEventListener(AUTO_EREIGNIS, beiAuto)
@@ -189,7 +209,7 @@ export function DotLayer() {
   useEffect(() => {
     if (!stand.hinweis) { gesagt.current = null; return }
     if (!dot || stand.hinweis === gesagt.current) return
-    if (stand.modus !== 'home') return
+    if (stand.modus !== 'home' || !leseHokuEinstellungen().hinweise) return
     gesagt.current = stand.hinweis
     dot.sag(stand.hinweis, 4500)
   }, [dot, stand.hinweis, stand.modus])

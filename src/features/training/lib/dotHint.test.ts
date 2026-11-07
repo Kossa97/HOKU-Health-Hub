@@ -6,7 +6,7 @@ import type { NextInPlan } from './planRotation'
 
 const tt = (key: TrainingTextKey, vars?: Record<string, string | number>) => trainingText('de', key, vars)
 const routine = { id: 'r1', name: 'Push', kind: 'strength', weekdays: [1], exercises: [], sortOrder: 0, folder: null } as TrainingRoutine
-const next = (plannedToday: boolean): NextInPlan => ({ routine, folder: null, rotation: [routine], lastTrainedAt: null, plannedToday })
+const next = (plannedToday: boolean): NextInPlan => ({ routine, folder: null, rotation: [routine], lastTrainedAt: null, plannedToday, schedule: { mode: 'weekdays' }, status: null })
 const session = { id: 's', kind: 'strength', title: 'Beine' } as TrainingSession
 const base = { tt, todaySessions: [], hasRoutines: true, next: null, restDay: false, lowReadiness: false, week: { sessions: 1, goal: 3 } }
 

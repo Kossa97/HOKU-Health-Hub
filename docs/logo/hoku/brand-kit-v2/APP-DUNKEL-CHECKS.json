@@ -1,0 +1,249 @@
+{
+  "approvedMasterSha256": "0dabfbf18621f291a0d879459271b9dd2550d5c29fe2e0797c065921110203a9",
+  "sizes": [
+    1024,
+    512,
+    256,
+    192,
+    180,
+    167,
+    152,
+    144,
+    128,
+    120,
+    96,
+    87,
+    80,
+    76,
+    72,
+    64,
+    60,
+    58,
+    48,
+    40,
+    32,
+    29,
+    20,
+    16
+  ],
+  "icoSha256": "7475b352fc8d048bb2e7e94a816a0e583cd61161aa4ef259778ae3a09115cf28",
+  "pngs": [
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-original.png",
+      "width": 1254,
+      "height": 1254,
+      "colorType": 2,
+      "sha256": "0dabfbf18621f291a0d879459271b9dd2550d5c29fe2e0797c065921110203a9"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "colorType": 2,
+      "sha256": "1a42d302af509b56d9b7151103a1f26ec1264bdeebaf82fccf2fd1d56f56b0d0"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-512.png",
+      "width": 512,
+      "height": 512,
+      "colorType": 2,
+      "sha256": "7ac10b1d3f7ea45ae4118eab737fb2e75975a4600e49b01f97c07faec0738186"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-256.png",
+      "width": 256,
+      "height": 256,
+      "colorType": 2,
+      "sha256": "f2f022fe6cea41ef3a2362561d77406de71569043a7aaa99385a525a56245691"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-192.png",
+      "width": 192,
+      "height": 192,
+      "colorType": 2,
+      "sha256": "55a21b59a302c34a38dfb8b8ba0b3c98f63a076867afbbefcd65a329c715713b"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-180.png",
+      "width": 180,
+      "height": 180,
+      "colorType": 2,
+      "sha256": "ad89a3586453d4f3180bd00aa0512774ac96c4eda996a6b56c50cab6d269bf87"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-167.png",
+      "width": 167,
+      "height": 167,
+      "colorType": 2,
+      "sha256": "58a0a858736da647a22eeb8937ac79fb97d264d101976c215d878c2568e989b6"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-152.png",
+      "width": 152,
+      "height": 152,
+      "colorType": 2,
+      "sha256": "0a015c03191d0af7bad2fcffe1493fe7d350acd6fa3ab7545f0082a525fd81b8"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-144.png",
+      "width": 144,
+      "height": 144,
+      "colorType": 2,
+      "sha256": "05209d48a700f149a9234034dab48eeb2c8168d89fd1b23156260c7fb25f9a85"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-128.png",
+      "width": 128,
+      "height": 128,
+      "colorType": 2,
+      "sha256": "8e54a254b32e08a8735ea5dc1a2e175f920cd8dd369e628712c16622851e07c5"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-120.png",
+      "width": 120,
+      "height": 120,
+      "colorType": 2,
+      "sha256": "4abd2ead06b6a5786f12dd827d218d80e403d63236deb0122501103a3f7bd93a"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-96.png",
+      "width": 96,
+      "height": 96,
+      "colorType": 2,
+      "sha256": "2a4f7291d4b3cc45bde4e7c5f8715a410c0983f427bdc6175ac89ca8c8d8f334"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-87.png",
+      "width": 87,
+      "height": 87,
+      "colorType": 2,
+      "sha256": "d262a2fbc5728debfa13327748198466e854829d8f56f74559d7d93207bb8931"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-80.png",
+      "width": 80,
+      "height": 80,
+      "colorType": 2,
+      "sha256": "a91a8dbf43290f0f8417d0c9430c5fdfdb9dce7016b47ee3366073cc9e1a8fbe"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-76.png",
+      "width": 76,
+      "height": 76,
+      "colorType": 2,
+      "sha256": "faff70314215b0a26c7ff7cc66fe649ae8ead96f7e4a9a4ae05dbd2ee6d3a34a"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-72.png",
+      "width": 72,
+      "height": 72,
+      "colorType": 2,
+      "sha256": "069a53ddf4d7c67014b31a5112ff7cada8c0acbf40355fd97e62c4ff05d0001a"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-64.png",
+      "width": 64,
+      "height": 64,
+      "colorType": 2,
+      "sha256": "b12286f2f65ecabc03ed68c58b760e46ae5c21441f0888b3b76c994bc77018ef"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-60.png",
+      "width": 60,
+      "height": 60,
+      "colorType": 2,
+      "sha256": "f90931b7afd6502b1d2ed2dbc8d12302de4baf23ca5b8d97cce61478c991070d"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-58.png",
+      "width": 58,
+      "height": 58,
+      "colorType": 2,
+      "sha256": "fd4bdb8bd7c1a7223e154b79fcc7a66ff6aebb306b48f53f22d7b244f2bb909c"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-48.png",
+      "width": 48,
+      "height": 48,
+      "colorType": 2,
+      "sha256": "39d988e24a75417f0a4691702508c19b84aba77cb3ba036c012c26ec682e47d2"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-40.png",
+      "width": 40,
+      "height": 40,
+      "colorType": 2,
+      "sha256": "684f55359f25c38c0a7dc1a93b34eeb067610ec0c660147978036927fd33f5f2"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-32.png",
+      "width": 32,
+      "height": 32,
+      "colorType": 2,
+      "sha256": "453989676294fe9a5b94324b405772f99ddb3b57d8abd8f1da75193c425d9cdd"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-29.png",
+      "width": 29,
+      "height": 29,
+      "colorType": 2,
+      "sha256": "4d625adb45c0f3e061740f512da2998a3e9517a60add2ec313cebfe85128fa6f"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-20.png",
+      "width": 20,
+      "height": 20,
+      "colorType": 2,
+      "sha256": "c60a9bca4dd5c25c1b1e27aab5a04629fa0ab6d683f9e38129c2e805ab6f5b49"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-app-cyan-dunkel-16.png",
+      "width": 16,
+      "height": 16,
+      "colorType": 2,
+      "sha256": "40a0838642eed63929f93b9656b49c76fd6bf985d5a158698c92373994127bc6"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-favicon-dunkel-16.png",
+      "width": 16,
+      "height": 16,
+      "colorType": 2,
+      "sha256": "88ab8dcb9b3b5635f26e643abb88ec943e8dce7c8ae0249fd5c2062b0470b3f1"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-favicon-dunkel-32.png",
+      "width": 32,
+      "height": 32,
+      "colorType": 2,
+      "sha256": "4950c78a1c62e7d2f319f8ecb8594dcd68a5b20e0064c2584edcf3620b40b895"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-favicon-dunkel-48.png",
+      "width": 48,
+      "height": 48,
+      "colorType": 2,
+      "sha256": "8544f7f929ac21a653deff007eefddbaecec49b77fe9c6f3f9fb91e3a90c2d05"
+    },
+    {
+      "file": "04-Icons/Dunkel/hoku-favicon-dunkel-64.png",
+      "width": 64,
+      "height": 64,
+      "colorType": 2,
+      "sha256": "cf5b8179824b283541f5ba0aa7878ea4544ab92988913f3306db19f82dd4f39b"
+    },
+    {
+      "file": "HOKU-App-Icons-Uebersicht.png",
+      "width": 2000,
+      "height": 1020,
+      "colorType": 2,
+      "sha256": "27829cd4bba8afefea7ee9276233a3b6d273d672117c6a50dd46d2e067c6e7c8"
+    },
+    {
+      "file": "HOKU-Uebersicht.png",
+      "width": 2000,
+      "height": 3780,
+      "colorType": 2,
+      "sha256": "524501e19412183463b7326c77d6f30cf040be69b468fdca9feb7c08e0ebec46"
+    }
+  ]
+}

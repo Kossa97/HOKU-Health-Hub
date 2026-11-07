@@ -64,8 +64,8 @@ export function altfelderAus(p: BioProfile, heute: string): { age: number | null
   }
 }
 
-const heuteIso = (): string => {
-  const d = new Date()
+/** Heutiges Datum in der Zeitzone des Geräts, YYYY-MM-DD. */
+export const heuteIso = (d = new Date()): string => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 

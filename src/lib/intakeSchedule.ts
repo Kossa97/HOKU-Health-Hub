@@ -526,6 +526,18 @@ export function findOldestOverdueIntake(
 /** Marker in dose_logs.notes für automatisch als „verpasst" eingetragene Einnahmen. */
 export const AUTO_MISSED_NOTE = 'auto-missed'
 
+/**
+ * Marker in dose_logs.notes für selbst übersprungene Einnahmen. Übersprungen
+ * (grau) ist nur, was jemand bewusst übersprungen hat; jede andere nicht
+ * genommene Einnahme gilt als verpasst (rot) — auch ältere ohne Marker.
+ */
+export const MANUAL_SKIP_NOTE = 'skipped'
+
+/** Die Marker sind keine Notizen der Nutzer: nirgends anzeigen, beim Wiederöffnen leeren. */
+export function istSystemNotiz(notes: string | null | undefined): boolean {
+  return notes === AUTO_MISSED_NOTE || notes === MANUAL_SKIP_NOTE
+}
+
 export interface MissedIntake {
   cycleId: string
   stackItemId: string

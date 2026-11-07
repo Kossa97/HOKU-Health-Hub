@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { KurvenUmriss, Silhouette } from '../../components/ui/Silhouette'
 import { LiveStatus } from './LiveStatus'
-import { behebbar, type EntryCurve, type ReadyEntry } from './entries'
+import { behebbar, type EntryCurve, type ProduktGruppe } from './entries'
 import { useBlutspiegelData } from './useBlutspiegelData'
 import { formatOffset, useBlutspiegelFormat } from './format'
 import { aenderungSeit, type LevelPoint } from './chart/stocksChartMath'
@@ -21,65 +21,102 @@ const ABGEKLUNGEN_UNTER = 0.5
 /** Kleinste Spanne der Mini-Kurve in Prozentpunkten — sonst wird Rauschen zur Zacke. */
 const MIN_SPANNE = 2
 
-function Verlauf({ points, now, color, ruhig }: { points: LevelPoint[]; now: number; color: string; ruhig: boolean }) {
+/** Eine Linie der Mini-Kurve; mehrere teilen sich die Achsen der Zeile. */
+interface VerlaufLinie { key: string; points: LevelPoint[]; color: string }
+
+function Verlauf({ linien, now, ruhig }: { linien: VerlaufLinie[]; now: number; ruhig: boolean }) {
   const W = 72
   const H = 32
-  const tag = points.filter(p => p.ts >= now - DAY)
-  if (tag.length < 2) return <span aria-hidden="true" style={{ width: W, height: H, flexShrink: 0 }} />
+  const tage = linien.map(linie => ({ ...linie, tag: linie.points.filter(p => p.ts >= now - DAY) })).filter(l => l.tag.length >= 2)
+  if (!tage.length) return <span aria-hidden="true" style={{ width: W, height: H, flexShrink: 0 }} />
+  // Gemeinsame Achsen: bei einem Kombipraeparat sieht man, welcher Wirkstoff gerade hoeher steht.
   let min = Infinity
   let max = -Infinity
-  for (const p of tag) { min = Math.min(min, p.level); max = Math.max(max, p.level) }
+  let t0 = Infinity
+  let t1 = -Infinity
+  for (const { tag } of tage) {
+    for (const p of tag) { min = Math.min(min, p.level); max = Math.max(max, p.level) }
+    t0 = Math.min(t0, tag[0].ts)
+    t1 = Math.max(t1, tag[tag.length - 1].ts)
+  }
   // Eigene Spanne je Zeile, wie in der Aktienliste: die Form zaehlt, nicht die Hoehe.
   const span = Math.max(MIN_SPANNE, max - min)
-  const t0 = tag[0].ts
-  const dt = Math.max(1, tag[tag.length - 1].ts - t0)
-  const xy = tag.map(p => [((p.ts - t0) / dt) * W, H - 3 - ((p.level - min) / span) * (H - 6)] as const)
-  const line = xy.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`).join('')
-  const id = `bs-v-${color.replace('#', '')}`
+  const dt = Math.max(1, t1 - t0)
+  const pfad = (tag: LevelPoint[]) => tag
+    .map((p, i) => `${i ? 'L' : 'M'}${(((p.ts - t0) / dt) * W).toFixed(1)},${(H - 3 - ((p.level - min) / span) * (H - 6)).toFixed(1)}`)
+    .join('')
+  // Die Flaeche nur bei einer Linie — uebereinander wuerden Flaechen zu Matsch.
+  const flaeche = tage.length === 1 && !ruhig
+  const id = `bs-v-${tage[0].key.replace(/[^a-zA-Z0-9_-]/g, '')}`
   return (
     <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} aria-hidden="true" style={{ flexShrink: 0 }}>
-      <defs>
-        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity={0.28} />
-          <stop offset="100%" stopColor={color} stopOpacity={0} />
-        </linearGradient>
-      </defs>
-      {!ruhig && <path d={`${line}L${W},${H}L0,${H}Z`} fill={`url(#${id})`} />}
-      <path d={line} fill="none" stroke={ruhig ? 'var(--lg-text-3)' : color} strokeOpacity={ruhig ? 0.5 : 1} strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" />
+      {flaeche && (
+        <defs>
+          <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={tage[0].color} stopOpacity={0.28} />
+            <stop offset="100%" stopColor={tage[0].color} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+      )}
+      {flaeche && <path d={`${pfad(tage[0].tag)}L${W},${H}L0,${H}Z`} fill={`url(#${id})`} />}
+      {tage.map(({ key, tag, color }) => (
+        <path key={key} d={pfad(tag)} fill="none" stroke={ruhig ? 'var(--lg-text-3)' : color} strokeOpacity={ruhig ? 0.5 : 1} strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" />
+      ))}
     </svg>
   )
 }
 
-function Zeile({ entry, curve, now }: { entry: ReadyEntry; curve: EntryCurve | undefined; now: number }) {
+function Zeile({ gruppe, curves, now }: { gruppe: ProduktGruppe; curves: Map<string, EntryCurve>; now: number }) {
   const f = useBlutspiegelFormat()
   const { t } = f
+  const kombi = gruppe.wirkstoffe.length > 1
+  const erster = gruppe.wirkstoffe[0]
+  const curve = curves.get(erster.key)
   const points = curve?.points ?? []
+  // Ein Zyklus: Pause und naechste Einnahme gelten fuer alle Wirkstoffe.
   const pausiert = curve?.interruptedAt != null
-  const abgeklungen = !pausiert && curve?.current != null && curve.current < ABGEKLUNGEN_UNTER
-  const change = pausiert || abgeklungen ? null : aenderungSeit(points, now - DAY)
-  // Neutral: zwischen zwei Dosen faellt der Spiegel immer — das ist kein Warnsignal.
-  const linie = entry.accent
-  const naechste = entry.nextDoseAt != null ? formatOffset(entry.nextDoseAt - now, t) : null
+  const abgeklungen = !pausiert && gruppe.wirkstoffe.every(w => {
+    const c = curves.get(w.key)?.current
+    return c != null && c < ABGEKLUNGEN_UNTER
+  })
+  const change = pausiert || abgeklungen || kombi ? null : aenderungSeit(points, now - DAY)
+  const naechste = erster.nextDoseAt != null ? formatOffset(erster.nextDoseAt - now, t) : null
+  const linien = gruppe.wirkstoffe.map(w => ({ key: w.key, points: curves.get(w.key)?.points ?? [], color: w.accent }))
   return (
     <li>
       <Link
-        to={detailPfad(entry.key)}
+        to={detailPfad(gruppe.key)}
         // Rueckmeldung beim Druecken, nicht erst beim Loslassen.
         className="flex min-h-[64px] items-center gap-3 px-4 py-2.5 transition-colors duration-100 active:bg-white/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--lg-accent)]"
         style={{ color: 'var(--text)', WebkitTapHighlightColor: 'transparent' }}
-        data-bs-row={entry.key}
+        data-bs-row={gruppe.key}
         data-bs-decayed={abgeklungen || undefined}
+        data-bs-lines={linien.length}
       >
         <span className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-[17px] font-semibold">{entry.name}</span>
+          <span className="truncate text-[17px] font-semibold">{gruppe.name}</span>
           <span className="truncate text-[13px]" style={{ color: 'var(--lg-text-2)' }}>
             {pausiert ? t('pk_overview_paused') : naechste ? t('pk_overview_next', { when: naechste }) : t('pk_overview_no_next')}
           </span>
         </span>
-        <Verlauf points={points} now={now} color={linie} ruhig={pausiert || abgeklungen} />
+        <Verlauf linien={linien} now={now} ruhig={pausiert || abgeklungen} />
         {abgeklungen ? (
           <span className="flex w-[84px] shrink-0 justify-end whitespace-nowrap text-[13px] font-medium" style={{ color: 'var(--lg-text-3)' }}>
             {t('pk_overview_decayed')}
+          </span>
+        ) : kombi ? (
+          // Je Wirkstoff ein Wert mit Farbpunkt — die Farbe verbindet ihn mit seiner Linie.
+          <span className="flex w-[84px] shrink-0 flex-col items-end gap-0.5 tabular-nums">
+            {gruppe.wirkstoffe.map(w => {
+              const wert = curves.get(w.key)?.current
+              return (
+                <span key={w.key} className="flex items-center gap-1.5 text-[14px] font-semibold" style={pausiert ? { color: 'var(--lg-text-2)' } : undefined} title={w.wirkstoff} data-bs-value={w.key}>
+                  <span aria-hidden="true" className="inline-block h-2 w-2 rounded-full" style={{ background: w.accent }} />
+                  <span className="sr-only">{w.wirkstoff}:</span>
+                  {wert != null ? `${f.pct(wert)} %` : '—'}
+                </span>
+              )
+            })}
           </span>
         ) : (
           <span className="flex w-[84px] shrink-0 flex-col items-end gap-1 tabular-nums">
@@ -146,11 +183,11 @@ export function BlutspiegelUebersicht({ children }: { children?: ReactNode }) {
   return (
     <div className="flex flex-col gap-5">
       {kopf}
-      {data.ready.length > 0 ? (
+      {data.produkte.length > 0 ? (
         <section aria-label={t('pk_overview_list')}>
           <ul className="lg-group lg-rows">
-            {data.ready.map(entry => (
-              <Zeile key={entry.key} entry={entry} curve={data.curves.get(entry.key)} now={data.asOf} />
+            {data.produkte.map(gruppe => (
+              <Zeile key={gruppe.key} gruppe={gruppe} curves={data.curves} now={data.asOf} />
             ))}
           </ul>
           <p className="mx-4 mt-2 text-[13px] leading-snug" style={{ color: 'var(--lg-text-3)' }}>{t('pk_overview_hint')}</p>

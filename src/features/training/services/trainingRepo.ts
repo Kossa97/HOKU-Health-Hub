@@ -2,12 +2,16 @@ import { supabase } from '../../../lib/supabase'
 import {
   DEFAULT_TRAINING_SETTINGS,
   ROUTINE_FOLDER_MAX,
+  type PlanConfig,
+  type PlanSchedule,
   type CustomExercise,
   type SessionExercise,
   type TrainingRoutine,
   type TrainingSession,
   type TrainingSettings,
 } from '../types'
+import { normalizeFavorites } from '../lib/favorites'
+import { normalizeSchedule } from '../lib/planSchedule'
 
 /**
  * Lesen und Schreiben des Workout-Trackers in Supabase.
@@ -242,6 +246,91 @@ export async function deleteRoutine(userId: string, id: string) {
   if (error) throw error
 }
 
+// ─── Plaene (Zeitplan je Plan) ──────────────────────────────────────────────
+//
+// `supabase-training-v3.sql`. Ein Plan ist der Name im `folder` der Workouts;
+// die Tabelle haelt nur seinen Zeitplan. Fehlt sie (Migration noch nicht
+// eingespielt), laedt die App ohne Zeitplaene weiter — alles gilt als
+// „Wochentage", wie bisher.
+
+interface PlanRow {
+  id: string
+  name: string
+  schedule: unknown
+  sort_order: number
+}
+
+const PLAN_COLUMNS = 'id, name, schedule, sort_order'
+
+const planFromRow = (row: PlanRow): PlanConfig => ({
+  id: row.id, name: row.name, schedule: normalizeSchedule(row.schedule), sortOrder: row.sort_order,
+})
+
+export async function loadPlans(userId: string): Promise<PlanConfig[]> {
+  const { data, error } = await supabase
+    .from('training_plans')
+    .select(PLAN_COLUMNS)
+    .eq('user_id', userId)
+    .order('sort_order')
+  if (isMissingTable(error)) return []
+  if (error) throw error
+  return ((data ?? []) as PlanRow[]).map(planFromRow)
+}
+
+/** Zeitplan eines Plans setzen (anlegen oder ersetzen, je Name). */
+export async function savePlanSchedule(userId: string, name: string, schedule: PlanSchedule, sortOrder = 0): Promise<PlanConfig> {
+  const planName = normalizeFolder(name)
+  if (!planName) throw new Error('plan name required')
+  const { data, error } = await supabase
+    .from('training_plans')
+    .upsert({ user_id: userId, name: planName, schedule, sort_order: sortOrder, updated_at: new Date().toISOString() }, { onConflict: 'user_id,name' })
+    .select(PLAN_COLUMNS)
+    .single()
+  if (error) throw error
+  return planFromRow(data as PlanRow)
+}
+
+/**
+ * Plan umbenennen: erst die Workouts (ihr `folder`), dann der Zeitplan. Ohne
+ * Zeitplan-Zeile (oder ohne Tabelle) bleibt es beim ersten Schritt.
+ */
+export async function renamePlan(userId: string, from: string, to: string) {
+  const next = normalizeFolder(to)
+  if (!next) throw new Error('plan name required')
+  const { error } = await supabase
+    .from('training_routines')
+    .update({ folder: next, updated_at: new Date().toISOString() })
+    .eq('user_id', userId)
+    .eq('folder', from)
+  if (error) throw error
+  const plan = await supabase.from('training_plans').update({ name: next, updated_at: new Date().toISOString() }).eq('user_id', userId).eq('name', from)
+  if (plan.error && !isMissingTable(plan.error)) throw plan.error
+}
+
+/**
+ * Plan loeschen, nie halb: erst alle seine Workouts in EINER Anweisung (alle
+ * oder keins), dann der Zeitplan. Scheitert der zweite Schritt, steht der Plan
+ * leer, aber sichtbar in „Heute" und laesst sich erneut loeschen — es bleibt
+ * nichts Unsichtbares zurueck. Bisherige Trainings bleiben (sie verweisen nur
+ * per `routineId`, ohne Fremdschluessel).
+ */
+export async function deletePlan(userId: string, name: string): Promise<{ workoutsDeleted: boolean; scheduleDeleted: boolean }> {
+  const workouts = await supabase.from('training_routines').delete().eq('user_id', userId).eq('folder', name)
+  if (workouts.error) throw workouts.error
+  try {
+    await deletePlanSchedule(userId, name)
+    return { workoutsDeleted: true, scheduleDeleted: true }
+  } catch {
+    return { workoutsDeleted: true, scheduleDeleted: false }
+  }
+}
+
+/** Zeitplan-Zeile eines Plans entfernen (die Workouts bleiben, wie sie sind). */
+export async function deletePlanSchedule(userId: string, name: string) {
+  const { error } = await supabase.from('training_plans').delete().eq('user_id', userId).eq('name', name)
+  if (error && !isMissingTable(error)) throw error
+}
+
 // ─── Eigene Uebungen ────────────────────────────────────────────────────────
 
 interface CustomRow {
@@ -319,6 +408,7 @@ export function normalizeSettings(raw: unknown): TrainingSettings {
     // Fehlt der Schluessel (Einstellungen aus v1), gilt der Standard „an".
     restSound: value.restSound !== false,
     restNotify: value.restNotify === true,
+    favoriteExercises: normalizeFavorites(value.favoriteExercises),
   }
 }
 
