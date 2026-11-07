@@ -3,13 +3,13 @@
  * Dot, der KI-Coach (siehe prompt.ts). Prüft Anmeldung, Zugang (Pro oder
  * Tester), Einwilligung (profiles.coach_consent_at) und Tageslimit, dann
  * fragt Claude. Meldungen zu Einnahmen („vergessen", „erst um 22 Uhr") und
- * vorbereitete Substanzen gibt sie geprüft an die App weiter, die sie
- * ausführt bzw. zum Bestätigen öffnet. Frage, Antwort und Nutzerdaten werden
+ * vorbereitete Substanzen und Trainingspläne gibt sie geprüft an die App
+ * weiter, die sie ausführt bzw. zum Bestätigen öffnet. Frage, Antwort und Nutzerdaten werden
  * nirgends gespeichert; gezählt wird nur die Zahl der Fragen je Tag (coach_usage).
  */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Anthropic from 'npm:@anthropic-ai/sdk@0.135.0'
-import { DAILY_LIMIT, SYSTEM_PROMPT, WERKZEUGE, hatZugang, pruefeAnfrage, pruefeAnlagen, pruefeMeldungen, rahmen } from './prompt.ts'
+import { DAILY_LIMIT, SYSTEM_PROMPT, WERKZEUGE, hatZugang, pruefeAnfrage, pruefeAnlagen, pruefeMeldungen, pruefePlaene, rahmen } from './prompt.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -78,7 +78,8 @@ Deno.serve(async (request: Request) => {
       max_tokens: 16000,
       betas: ['server-side-fallback-2026-07-01'],
       fallbacks: 'default',
-      output_config: { effort: 'low' },
+      // Einen Trainingsplan zu entwerfen braucht mehr Abwägen als eine Chat-Antwort
+      output_config: { effort: anfrage.seite === 'training' ? 'medium' : 'low' },
       system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
       // Die App führt Meldungen selbst aus; ein zweiter Rundgang mit dem
       // Ergebnis ist nicht nötig, die Bestätigung schreibt die App
@@ -96,7 +97,8 @@ Deno.serve(async (request: Request) => {
   const antwort = message.content.flatMap(b => (b.type === 'text' ? [b.text] : [])).join('').trim()
   const meldungen = pruefeMeldungen(message.content)
   const anlagen = pruefeAnlagen(message.content)
-  if (!antwort && meldungen.length === 0 && anlagen.length === 0) return json({ error: 'server_error' }, 502)
+  const plaene = pruefePlaene(message.content)
+  if (!antwort && meldungen.length === 0 && anlagen.length === 0 && plaene.length === 0) return json({ error: 'server_error' }, 502)
 
-  return json({ antwort, meldungen, anlagen, verbleibend: Math.max(0, DAILY_LIMIT - Number(zaehler)) })
+  return json({ antwort, meldungen, anlagen, plaene, verbleibend: Math.max(0, DAILY_LIMIT - Number(zaehler)) })
 })

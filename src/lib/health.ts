@@ -657,3 +657,22 @@ export async function getBloodPressure(options?: HealthQueryOptions): Promise<He
 // Kein getHrv(): weder @perfood/capacitor-healthkit 1.3 (keine Sample-Art fuer
 // heartRateVariabilitySDNN) noch capacitor-health-connect 0.7 (kein
 // HeartRateVariabilityRmssd im Serializer) liefern Herzratenvariabilitaet.
+
+/**
+ * Aktive Energie (kcal) von Uhr und iPhone im Zeitraum, Standard: heute.
+ * null = nicht verfügbar (Browser, Android noch nicht angebunden, Fehler).
+ * HealthKit meldet einen verweigerten Lesezugriff nicht; dann kommt 0.
+ */
+export async function getActiveEnergyTotal(options?: HealthQueryOptions): Promise<number | null> {
+  if (!isNative || !isIOS) return null;
+  try {
+    const samples = await queryHealthKit<OtherData>('activeEnergyBurned', {
+      ...options,
+      startDate: options?.startDate ?? startOfToday(),
+      endDate: options?.endDate ?? new Date(),
+    });
+    return Math.round(samples.reduce((sum, sample) => sum + (sample.value > 0 ? sample.value : 0), 0));
+  } catch {
+    return null;
+  }
+}

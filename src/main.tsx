@@ -10,6 +10,8 @@ import { installUpdateWatch } from './lib/staleChunkReload'
 import { applyLook, getLook } from './lib/look'
 import { installReflex } from './lib/reflex'
 import { installFlashlight } from './lib/flashlight'
+import { installHokuLicht } from './lib/hokuLicht'
+import { LINSE_STANDARD, wendeLinseAn } from './lib/linse'
 import { installStoerungsFetch } from './lib/stoerung'
 
 // Vor allem anderen: jede Dienst-Anfrage läuft ab jetzt über lib/stoerung.ts
@@ -20,6 +22,10 @@ installStoerungsFetch()
 applyLook(getLook())
 installReflex()
 installFlashlight()
+installHokuLicht()
+wendeLinseAn(LINSE_STANDARD)
+// Die Test-Regler sind entfernt: ihre gespeicherten Werte aufräumen
+try { localStorage.removeItem('tyd_linse_3') } catch { /* ohne Speicher nichts zu tun */ }
 
 const DEV_SW_RESET_KEY = 'tyd_dev_sw_reset'
 

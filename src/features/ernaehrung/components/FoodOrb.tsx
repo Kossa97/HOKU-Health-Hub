@@ -119,6 +119,6 @@ export const FoodOrb = forwardRef<FoodOrbHandle, { values: FoodOrbValues; goalKc
       },
     }), [])
 
-    return <canvas ref={canvasRef} aria-hidden="true" className="block shrink-0" style={{ width: size, height: size }} />
+    return <canvas ref={canvasRef} aria-hidden="true" className="tyd-orb block shrink-0" style={{ width: size, height: size }} />
   },
 )

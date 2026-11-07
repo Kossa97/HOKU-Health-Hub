@@ -29,7 +29,56 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
 
+// Erst das schnelle Modell; erkennt es kein Etikett (kleine Schrift, runde
+// Dose), liest das staerkere dasselbe Bild noch einmal. Nur dann kostet es mehr.
 const ANTHROPIC_MODEL = 'claude-haiku-5-5'
+const ANTHROPIC_MODEL_NACHLESEN = 'claude-sonnet-5-5'
+
+type Lesung = { label: ReturnType<typeof sanitizeLabel> } | { fehler: 'extraction_failed' }
+
+async function lesen(apiKey: string, model: string, file: string, mimeType: string, names: string[]): Promise<Lesung> {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 8192,
+      // Ablesen, nicht nachdenken: niedriger Aufwand reicht und ist schneller.
+      output_config: { effort: 'low', format: { type: 'json_schema', schema: LABEL_SCHEMA } },
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mimeType, data: file } },
+            { type: 'text', text: buildPrompt(names) },
+          ],
+        },
+      ],
+    }),
+  })
+
+  if (!response.ok) {
+    // Keine Nutzerdaten ins Log, nur Modell und Status.
+    console.error('label-extract upstream status:', model, response.status)
+    return { fehler: 'extraction_failed' }
+  }
+
+  const payload = await response.json()
+  // Abgelehnt oder abgeschnitten heisst nicht „kein Etikett" — sonst riete die
+  // App zu einem neuen Foto, das wieder genauso endet.
+  if (payload?.stop_reason === 'refusal' || payload?.stop_reason === 'max_tokens') {
+    return { fehler: 'extraction_failed' }
+  }
+  // Die Antwort kann mit Denkbloecken beginnen — der Text steht dahinter.
+  const textBlock = Array.isArray(payload?.content)
+    ? payload.content.find((block: { type?: string }) => block?.type === 'text')
+    : null
+  return { label: sanitizeLabel(extractJson(typeof textBlock?.text === 'string' ? textBlock.text : '')) }
+}
 
 // Kostenschutz je Nutzer: ein Scan ist ein Foto, kein Stapel.
 const perMinutes = new RateLimiter(10, 10 * 60 * 1000)
@@ -89,47 +138,12 @@ Deno.serve(async (request: Request) => {
   const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
   if (!apiKey) return json({ error: 'server_error' }, 500)
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: ANTHROPIC_MODEL,
-      max_tokens: 8192,
-      // Ablesen, nicht nachdenken: niedriger Aufwand reicht und ist schneller.
-      output_config: { effort: 'low', format: { type: 'json_schema', schema: LABEL_SCHEMA } },
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: mimeType, data: file } },
-            { type: 'text', text: buildPrompt(names) },
-          ],
-        },
-      ],
-    }),
-  })
-
-  if (!response.ok) {
-    // Keine Nutzerdaten ins Log, nur der Status.
-    console.error('label-extract upstream status:', response.status)
-    return json({ error: 'extraction_failed' }, 502)
+  let lesung = await lesen(apiKey, ANTHROPIC_MODEL, file, mimeType, names)
+  if ('label' in lesung && !lesung.label) {
+    lesung = await lesen(apiKey, ANTHROPIC_MODEL_NACHLESEN, file, mimeType, names)
   }
-
-  const payload = await response.json()
-  // Abgelehnt oder abgeschnitten heisst nicht „kein Etikett" — sonst riete die
-  // App zu einem neuen Foto, das wieder genauso endet.
-  if (payload?.stop_reason === 'refusal' || payload?.stop_reason === 'max_tokens') {
-    return json({ error: 'extraction_failed' }, 502)
-  }
-  // Die Antwort kann mit Denkbloecken beginnen — der Text steht dahinter.
-  const textBlock = Array.isArray(payload?.content)
-    ? payload.content.find((block: { type?: string }) => block?.type === 'text')
-    : null
-  const label = sanitizeLabel(extractJson(typeof textBlock?.text === 'string' ? textBlock.text : ''))
+  if ('fehler' in lesung) return json({ error: lesung.fehler }, 502)
+  const { label } = lesung
   if (!label) return json({ error: 'no_label_found' }, 422)
 
   return json({ label })

@@ -16,7 +16,7 @@ vi.mock('../../../lib/health', () => health)
 
 const repo = vi.hoisted(() => ({
   MAX_DISMISSED: 500,
-  loadSessions: vi.fn(), loadRoutines: vi.fn(), loadCustomExercises: vi.fn(), loadSettings: vi.fn(),
+  loadSessions: vi.fn(), loadRoutines: vi.fn(), loadCustomExercises: vi.fn(), loadSettings: vi.fn(), loadPlans: vi.fn(),
   isMissingTable: () => false, importSessions: vi.fn(), enrichSession: vi.fn(), saveSettings: vi.fn(),
 }))
 vi.mock('../services/trainingRepo', () => repo)
@@ -31,6 +31,7 @@ beforeEach(() => {
   repo.loadRoutines.mockResolvedValue([])
   repo.loadCustomExercises.mockResolvedValue([])
   repo.loadSettings.mockResolvedValue({ ...DEFAULT_TRAINING_SETTINGS, healthImport: true })
+  repo.loadPlans.mockResolvedValue([])
   health.getWorkouts.mockResolvedValue([])
   health.getSleep.mockResolvedValue([])
   health.getRestingHeartRate.mockResolvedValue([])

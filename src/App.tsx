@@ -16,6 +16,7 @@ import { SeitenSilhouette } from './components/ui/Silhouette'
 import { silhouetteFuerPfad } from './components/ui/silhouetteTakt'
 import { FehlerGrenze } from './components/FehlerGrenze'
 import { VerbindungsHinweis } from './components/VerbindungsHinweis'
+import { AppLinks } from './lib/appLinks'
 
 const Home = lazyPage(() => import('./pages/Home'), 'Home')
 const Dashboard = lazyPage(() => import('./pages/Dashboard'), 'Dashboard')
@@ -26,6 +27,7 @@ const Profil = lazyPage(() => import('./pages/Profil'), 'Profil')
 const ProfilEinstellungen = lazyPage(() => import('./pages/ProfilEinstellungen'), 'ProfilEinstellungen')
 const ProfilSichtbarkeit = lazyPage(() => import('./pages/ProfilEinstellungen'), 'ProfilSichtbarkeit')
 const ProfilBlockiert = lazyPage(() => import('./pages/ProfilEinstellungen'), 'ProfilBlockiert')
+const HokuSeite = lazyPage(() => import('./pages/HokuSeite'), 'HokuSeite')
 const PublicProfile = lazyPage(() => import('./pages/PublicProfile'), 'PublicProfile')
 const FAQ = lazyPage(() => import('./pages/FAQ'), 'FAQ')
 const Rechner = lazyPage(() => import('./pages/Rechner'), 'Rechner')
@@ -44,6 +46,7 @@ const BlutspiegelSimulation = lazyPage(() => import('./pages/BlutspiegelSimulati
 const BlutspiegelDetail = lazyPage(() => import('./pages/BlutspiegelDetail'), 'BlutspiegelDetail')
 const BlutspiegelManuell = lazyPage(() => import('./pages/BlutspiegelManuell'), 'BlutspiegelManuell')
 const Legal = lazyPage(() => import('./pages/Legal'), 'Legal')
+const ErkenntnissePage = lazyPage(() => import('./features/dot/erkenntnisse/ErkenntnissePage'), 'ErkenntnissePage')
 // Vorschau-Seiten nur in der Entwicklung — im fertigen Build fehlen Route und Code.
 const DevPreviews = import.meta.env.DEV ? lazyPage(() => import('./pages/__DevPreviews'), 'DevPreviews') : null
 
@@ -111,11 +114,13 @@ function PersonalApp() {
             <Route path="profil/einstellungen" element={<LazyPage><ProfilEinstellungen /></LazyPage>} />
             <Route path="profil/sichtbarkeit" element={<LazyPage><ProfilSichtbarkeit /></LazyPage>} />
             <Route path="profil/blockiert" element={<LazyPage><ProfilBlockiert /></LazyPage>} />
+            <Route path="profil/hoku" element={<LazyPage><HokuSeite /></LazyPage>} />
             <Route path="faq" element={<LazyPage><FAQ /></LazyPage>} />
             <Route path="injektionen" element={<LazyPage><InjektionsTracker /></LazyPage>} />
             <Route path="ernaehrung" element={<LazyPage><ErnaehrungPage /></LazyPage>} />
             <Route path="progress" element={<LazyPage><Progress /></LazyPage>} />
             <Route path="training" element={<LazyPage><TrainingPage /></LazyPage>} />
+            <Route path="erkenntnisse" element={<LazyPage><ErkenntnissePage /></LazyPage>} />
             <Route path="simulation" element={<LazyPage><BlutspiegelSimulation /></LazyPage>} />
             <Route path="simulation/neu" element={<LazyPage><BlutspiegelManuell /></LazyPage>} />
             <Route path="simulation/:key" element={<LazyPage><BlutspiegelDetail /></LazyPage>} />
@@ -129,7 +134,7 @@ function PersonalApp() {
 
 export default function App() {
   // Äußerste Grenze: was keine Seite abfängt, endet hier statt weiß
-  return <FehlerGrenze ort="app"><BrowserRouter><ReloadOnUpdate /><VerbindungsHinweis /><AppBackNavigation><Routes>
+  return <FehlerGrenze ort="app"><BrowserRouter><ReloadOnUpdate /><AppLinks /><VerbindungsHinweis /><AppBackNavigation><Routes>
       {publicPeptipediaRoutes()}
       <Route path="*" element={<PersonalApp />} />
     </Routes></AppBackNavigation></BrowserRouter></FehlerGrenze>

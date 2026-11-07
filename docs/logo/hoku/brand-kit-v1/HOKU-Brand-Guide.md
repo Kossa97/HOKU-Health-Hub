@@ -1,5 +1,7 @@
 # HOKU – Brand-Guide v1
 
+**Archiv:** Aktuell ist seit 02.11.2026 der [Brand-Guide v2 / Cyan](../brand-kit-v2/HOKU-Brand-Guide.html). Die folgenden Regeln und Bilder dokumentieren den vorherigen Stand.
+
 Stand: 29.10.2026.
 
 ## Die gewählten Fassungen
@@ -45,3 +47,9 @@ Zusätzlich sind beide bestätigten Logo-PNGs unverändert mit ihrer ursprüngli
 
 - [Weiß auf Schwarz](06-Originale/hoku-health-hub-michroma-weiss-auf-schwarz-v1.png)
 - [Schwarz auf Weiß](06-Originale/hoku-health-hub-michroma-schwarz-auf-weiss-v1.png)
+
+## KI-Button-Symbol – gewählte Fassung C
+
+Final gewählt: die vereinfachte Hoku-Partikelkugel mit integriertem vierzackigem Funkeln oben rechts. Der Stern sitzt in der Kugelkontur; umliegende Punkte lassen ihm freien Raum. Dateien in 07-KI-Button-Symbol: transparente, vollständig vektorbasierte SVGs in Hoku-Blau und Weiß sowie PNGs in 24, 32, 48, 64, 128 und 256 px. Standard: blaues Zeichen ab 24 px auf ruhigem dunklem Hintergrund. Weiß für passende dunkle oder farbige Flächen. Keine Schrift und keine Buttonfläche im Symbol.
+
+Das Zeichen steht für Hoku; die Aktion erklärt die Beschriftung des Buttons, z. B. „Essen erkennen“. Bei einem Button nur mit Symbol einen zugänglichen Namen wie „Essen mit Hoku erkennen“ setzen. Die anklickbare Fläche kann mindestens 44 × 44 px groß sein, während das Zeichen selbst 24–32 px bleibt.

@@ -2,9 +2,10 @@ import { useEffect, useLayoutEffect, useRef } from 'react'
 import { dotStore, useDotStand } from '../../dot/dotStore'
 import { useDotText } from '../../dot/texte'
 import { merkeRundflug, rundflugBahn, rundflugFaellig, rundflugTexte, umlaufBahn, zaehleBesuch } from '../lib/dotRundflug'
-import { orbBuehne } from '../lib/orbBridge'
+import { orbBuehne, takeOrbTap } from '../lib/orbBridge'
 import type { MacroKey } from '../lib/orb'
 import type { Goals, Nutrients } from '../lib/nutrition'
+import { leseHokuEinstellungen } from '../../dot/lib/hokuEinstellungen'
 
 /** Erst landen lassen: Seite gleitet herein, die Kugel steht. */
 const WARTEN_MS = 700
@@ -24,15 +25,24 @@ const wenigerBewegung = () => typeof matchMedia === 'function' && matchMedia('(p
  * ist; draußen startet er, wo er ist, sonst am linken Rand. Antippen kürzt ab. Bei „Bewegung
  * reduzieren“ kein Flug — beim Rundflug nur der Satz.
  */
-export function useDotRundflug({ heute, bereit, total, goals }: { heute: boolean; bereit: boolean; total: Nutrients; goals: Goals }) {
+export function useDotRundflug({ heute, bereit, total, goals, nachsatz = '' }: {
+  heute: boolean
+  bereit: boolean
+  total: Nutrients
+  goals: Goals
+  /** Nach der Zusammenfassung noch ein Satz (Nährstoff-Lücken mit Tipp); leer = keiner. */
+  nachsatz?: string
+}) {
   const { dt } = useDotText()
   const stand = useDotStand()
-  const aktuell = useRef({ total, goals, dt })
-  useEffect(() => { aktuell.current = { total, goals, dt } })
+  const aktuell = useRef({ total, goals, dt, nachsatz })
+  useEffect(() => { aktuell.current = { total, goals, dt, nachsatz } })
   const gestartet = useRef(false)
   /** Seite verlassen mitten im Flug: er fliegt direkt an seinen Platz, ohne Zusammenfassung. */
   const abbrechen = useRef<() => void>(() => {})
-  useEffect(() => () => abbrechen.current(), [])
+  /** Satz zu den Lücken nach der Zusammenfassung — beim Verlassen der Seite nicht mehr sagen. */
+  const nachTimer = useRef(0)
+  useEffect(() => () => { abbrechen.current(); window.clearTimeout(nachTimer.current) }, [])
 
   // Vor Dots eigenem Seitenwechsel (Layout-Effekt): dieses Hineinnavigieren zählen; kommt gleich ein
   // Rundflug, wartet er im Haus, statt unten herauszukommen — dann erscheint er am linken Rand.
@@ -63,7 +73,7 @@ export function useDotRundflug({ heute, bereit, total, goals }: { heute: boolean
       const start = s.modus === 'home' ? dot.lage() : { x: -46, y: main.y - main.r * 0.25 }
       const lage = () => { const k = orbBuehne()?.koerper(); return k?.main ? { main: k.main, moons: k.moons } : null }
       let laeuft = true
-      const abkuerzen = () => { if (!laeuft) return; orbBuehne()?.fokus(null); dot.rundflugAbkuerzen(0.5) }
+      const abkuerzen = () => { if (!laeuft) return; takeOrbTap(); orbBuehne()?.fokus(null); dot.rundflugAbkuerzen(0.5) }
       const aufraeumen = () => {
         laeuft = false
         document.removeEventListener('pointerdown', abkuerzen, true)
@@ -104,15 +114,19 @@ export function useDotRundflug({ heute, bereit, total, goals }: { heute: boolean
           if (!war) return
           dot.sag(T.summe, SUMME_MS)
           if (T.erledigt) { dot.setStimmung('joy'); window.setTimeout(() => dot.setStimmung('idle'), 1800) }
+          // Danach die Lücken mit Tipp, wenn es welche gibt (der Satz steht auch in „Dein Tag“).
+          const nach = aktuell.current.nachsatz
+          if (nach) nachTimer.current = window.setTimeout(() => dotStore.api()?.sag(nach, SUMME_MS + 600), SUMME_MS)
         },
         // Chat, Kamera oder Zugang weg haben ihn herausgeholt: nur aufräumen
         abgebrochen: aufraeumen,
       })
       if (fliege(bahn)) merkeRundflug(Date.now())
       // Weniger Bewegung (oder er kann gerade nicht fliegen): nur der Satz, wenn er draußen ist
-      else if (s.modus === 'home') { dot.sag(T.summe, SUMME_MS); merkeRundflug(Date.now()) } else gestartet.current = false
+      // Hinweise aus (Seite „Hoku“): auch der Satz nicht
+      else if (s.modus === 'home') { if (leseHokuEinstellungen().hinweise) dot.sag(T.summe, SUMME_MS); merkeRundflug(Date.now()) } else gestartet.current = false
     }
     timer = window.setTimeout(los, WARTEN_MS)
     return () => window.clearTimeout(timer)
-  }, [bereit, dotFrei])
+  }, [bereit, dotFrei, heute])
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_FRAGE, MAX_KONTEXT, MAX_NACHRICHTEN, SYSTEM_PROMPT, WERKZEUGE, hatZugang, kontextText, pruefeAnfrage, pruefeAnlagen, pruefeMeldungen, rahmen } from './prompt'
+import { MAX_FRAGE, MAX_KONTEXT, MAX_NACHRICHTEN, MAX_UEBUNGEN, SYSTEM_PROMPT, WERKZEUGE, hatZugang, kontextText, pruefeAnfrage, pruefeAnlagen, pruefeMeldungen, pruefePlaene, rahmen } from './prompt'
 
 describe('coach: Anfrage prüfen', () => {
   it('nimmt einen gültigen Verlauf und kürzt lange Fragen', () => {
@@ -119,5 +119,53 @@ describe('coach: Substanz anlegen per Satz', () => {
   it('das Werkzeug ist streng, und der Prompt verbietet ausgedachte Mengen', () => {
     expect(WERKZEUGE[1].strict).toBe(true)
     expect(SYSTEM_PROMPT).toContain('Never fill in an amount')
+  })
+})
+
+describe('coach: Plan entwerfen', () => {
+  const block = (input: unknown) => [{ type: 'tool_use', name: 'plan_entwerfen', input }]
+  const uebung = (id: string, extra: Record<string, unknown> = {}) => ({ id, saetze: 3, wdh_min: 8, wdh_max: 12, sekunden: 0, pause_s: 90, ...extra })
+
+  it('nimmt einen gültigen Plan mit Zeitplan', () => {
+    const [p] = pruefePlaene(block({
+      name: 'Ganzkörper · Kurzhanteln', zeitplan: 'pro_woche', anzahl: 3,
+      workouts: [{ name: 'A', wochentage: ['Mo'], uebungen: [uebung('goblet_squat'), uebung('plank', { wdh_min: 0, wdh_max: 0, sekunden: 45 })] }],
+    }))
+    expect(p.zeitplan).toBe('pro_woche')
+    expect(p.anzahl).toBe(3)
+    // Wochentage zählen nur bei festen Wochentagen
+    expect(p.workouts[0].wochentage).toEqual([])
+    expect(p.workouts[0].uebungen[1]).toEqual({ id: 'plank', saetze: 3, wdhMin: null, wdhMax: null, sekunden: 45, pauseS: 90 })
+  })
+
+  it('verwirft ungültige IDs, leere Workouts und unsinnige Zahlen', () => {
+    const [p] = pruefePlaene(block({
+      name: '', zeitplan: 'alle_x_tage', anzahl: 99,
+      workouts: [
+        { name: 'Leer', wochentage: [], uebungen: [uebung('Bank Drücken!')] },
+        { name: 'B', wochentage: [], uebungen: [uebung('bench_press_dumbbell', { saetze: 50, wdh_min: 12, wdh_max: 8, pause_s: 5 })] },
+      ],
+    }))
+    expect(p.workouts.map(w => w.name)).toEqual(['B'])
+    expect(p.name).toBe('B')
+    // Anzahl ungültig: so oft pro Woche, wie es Workouts gibt
+    expect(p.zeitplan).toBe('pro_woche')
+    expect(p.anzahl).toBe(1)
+    expect(p.workouts[0].uebungen[0]).toMatchObject({ saetze: 3, wdhMin: 8, wdhMax: 12, pauseS: null })
+  })
+
+  it('begrenzt die Zahl der Übungen und braucht mindestens eine', () => {
+    expect(pruefePlaene(block({ name: 'X', zeitplan: 'wochentage', anzahl: 0, workouts: [{ name: 'A', wochentage: [], uebungen: [] }] }))).toEqual([])
+    const viele = Array.from({ length: 30 }, (_, i) => uebung(`ex_${i}`))
+    const [p] = pruefePlaene(block({ name: 'X', zeitplan: 'wochentage', anzahl: 0, workouts: [{ name: 'A', wochentage: ['Di', 'Xy'], uebungen: viele }] }))
+    expect(p.workouts[0].uebungen).toHaveLength(MAX_UEBUNGEN)
+    expect(p.workouts[0].wochentage).toEqual(['Di'])
+  })
+
+  it('das Werkzeug ist strikt und kennt die Trainingsseite', () => {
+    const t = WERKZEUGE.find(w => w.name === 'plan_entwerfen')
+    expect(t?.strict).toBe(true)
+    expect(SYSTEM_PROMPT).toContain('plan_entwerfen')
+    expect(rahmen({ nachrichten: [], kontext: null, seite: 'training', sprache: 'de' })).toContain('Training')
   })
 })
