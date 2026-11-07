@@ -160,7 +160,7 @@ export function LiquidCanvas({
     c.beginPath(); c.rect(0, LIQUID_VB_H - 34, LIQUID_VB_W, 34); c.clip()
     ellipseVerlauf(c, LIQUID_VB_W / 2, LIQUID_VB_H, LIQUID_VB_W * 0.7, 34 * 0.7, FLOOR, 1)
     c.restore()
-    const f01 = Math.max(0, Math.min(1, fill))
+    const f01 = Math.max(0, Math.min(1, animatedFill))
     ellipseVerlauf(c, LIQUID_VB_W / 2, LIQUID_VB_H - 13, 32 + 10 * f01, 10 + 3 * f01, CAUSTIC, 1)
     // Lichtbrechung links und rechts, folgt dem Bühnenlicht
     const rl = 5 + lightOffset * 8, rr = 99 + lightOffset * 5
@@ -222,6 +222,16 @@ export function LiquidCanvas({
     return fillTweenRef.current !== null
   }, [zeichne, passeAn, height, vbH])
 
+  // Neuer Füllstand: das Gleiten beginnt, BEVOR unten neu gezeichnet wird (sonst
+  // stünde für ein Bild schon der neue Stand da)
+  useLayoutEffect(() => {
+    const prev = previousFillRef.current
+    if (Math.abs(prev - fill) < 0.001) return
+    // Ohne Maschine (Vorschau ohne Bühne) gibt es keine Bilder zum Gleiten: gleich der neue Stand
+    fillTweenRef.current = reducedMotion || !subscribe ? null : { from: prev, to: fill, start: performance.now(), duration: levelChangeDurationMs(prev, fill) }
+    previousFillRef.current = fill
+  }, [fill, reducedMotion, subscribe])
+
   // Neu gebaut (Füllstand, Farbe, Größe): sofort einmal ganz zeichnen
   useLayoutEffect(() => {
     pfadRef.current = null
@@ -258,13 +268,6 @@ export function LiquidCanvas({
     ro.observe(cv)
     return () => ro.disconnect()
   }, [passeAn, zeichne])
-
-  useEffect(() => {
-    const prev = previousFillRef.current
-    if (Math.abs(prev - fill) < 0.001) return
-    fillTweenRef.current = reducedMotion ? null : { from: prev, to: fill, start: performance.now(), duration: levelChangeDurationMs(prev, fill) }
-    previousFillRef.current = fill
-  }, [fill, reducedMotion])
 
   const applyStageLight = useCallback((focus: number, lightOffset: number) => {
     stageRef.current = { focus, lightOffset }
