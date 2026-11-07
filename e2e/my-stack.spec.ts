@@ -1,3 +1,4 @@
+import type { Page } from '@playwright/test'
 import { expect, test } from './support/fixtures'
 import { RpcError } from './support/mockSupabase'
 import { expectStep, next, seedBpc157, seedPeptide, stageObject } from './support/myStack'
@@ -186,21 +187,45 @@ test('Reiter wechseln: der aktive Eintrag bleibt, wo er dabei ist — und steht 
   await expect(stageObject(page, 'HCG')).toBeInViewport({ ratio: 0.9 })
 })
 
-test('Karussell: nur sichtbare Vials lassen Blasen aufsteigen', async ({ page, mock }) => {
-  // Die Blasen waren SMIL-Animationen und kosteten, fuer alle Vials zugleich,
-  // im Ruhezustand mehr Stilberechnung als alles andere auf der Seite. Heute
-  // sind sie CSS-Animationen — nur sichtbare Vials tragen sie trotzdem.
+/** Kurzer Fingerabdruck der Zeichenfläche einer Flüssigkeit: ändert er sich, bewegt sie sich. */
+async function fluessigBild(page: Page, index: number): Promise<string> {
+  return page.locator(`[data-vial-index="${index}"] [data-vial-detail="liquid-canvas"]`).evaluate((c: HTMLCanvasElement) => {
+    const d = c.getContext('2d')?.getImageData(0, 0, c.width, c.height).data
+    if (!d) return ''
+    let h = 0
+    for (let i = 0; i < d.length; i += 61) h = (h * 31 + d[i]) >>> 0
+    return `${c.width}x${c.height}:${h}`
+  })
+}
+
+/** Wie oft sich die Flüssigkeit in zehn Blicken im Abstand von 100 ms verändert. */
+async function fluessigWechsel(page: Page, index: number): Promise<number> {
+  let zuletzt = await fluessigBild(page, index)
+  let anzahl = 0
+  for (let i = 0; i < 10; i++) {
+    await page.waitForTimeout(100)
+    const jetzt = await fluessigBild(page, index)
+    if (jetzt !== zuletzt) anzahl++
+    zuletzt = jetzt
+  }
+  return anzahl
+}
+
+test('Karussell: nur sichtbare Vials bewegen ihre Flüssigkeit', async ({ page, mock }) => {
+  // Früher SMIL-, dann CSS-Blasen; seit 07.11.2026 zeichnet jede Flüssigkeit
+  // ihre Bläschen und Wellen selbst auf eine Zeichenfläche. Ausgerollte Vials
+  // zeichnen trotzdem nicht: sie stehen als fertiges Bild.
   for (const name of ['BPC-157', 'CJC-1295', 'GHK-Cu', 'Ipamorelin', 'KPV', 'TB-500']) {
     seedPeptide(mock, name, { startDate: '2026-09-01' })
   }
   await page.goto('/my-stack')
-  const blasen = (index: number) => page.locator(`[data-vial-index="${index}"] [data-vial-detail="liquid-bubble"]`).count()
-  await expect.poll(() => blasen(0)).toBeGreaterThan(0)
-  await expect.poll(() => blasen(5)).toBe(0)
+  await expect(page.locator('[data-vial-index="0"] [data-vial-detail="liquid-canvas"]')).toBeAttached()
+  await expect.poll(() => fluessigWechsel(page, 0)).toBeGreaterThan(3)
+  expect(await fluessigWechsel(page, 5)).toBe(0)
 
   await page.locator('[data-vial-index="5"]').evaluate(el => el.scrollIntoView({ inline: 'center', block: 'nearest' }))
-  await expect.poll(() => blasen(5)).toBeGreaterThan(0)
-  await expect.poll(() => blasen(0)).toBe(0)
+  await expect.poll(() => fluessigWechsel(page, 5)).toBeGreaterThan(3)
+  expect(await fluessigWechsel(page, 0)).toBe(0)
 })
 
 test('Neue Version ausgeliefert: fehlender Programmteil lädt neu statt abzustürzen', async ({ page, mock }) => {
@@ -286,21 +311,11 @@ test('Öffnen: die Oberfläche bewegt sich sofort, auch wenn der Sichtbarkeitsw�
     }
   })
   await page.goto('/my-stack')
-  const rim = stageObject(page, 'BPC-157').locator('[data-vial-detail="liquid-rim"]')
-  await expect(rim).toBeAttached()
+  await expect(stageObject(page, 'BPC-157').locator('[data-vial-detail="liquid-canvas"]')).toBeAttached()
 
   // Zehn Blicke im Abstand von 100 ms: die Oberflaeche aendert sich fast jedes Mal.
-  const wechsel = await rim.evaluate(async element => {
-    let zuletzt = element.getAttribute('d')
-    let anzahl = 0
-    for (let i = 0; i < 10; i++) {
-      await new Promise(resolve => setTimeout(resolve, 100))
-      const jetzt = element.getAttribute('d')
-      if (jetzt !== zuletzt) anzahl++
-      zuletzt = jetzt
-    }
-    return anzahl
-  })
+  const index = await stageObject(page, 'BPC-157').evaluate(el => el.closest('[data-vial-index]')?.getAttribute('data-vial-index') ?? '0')
+  const wechsel = await fluessigWechsel(page, Number(index))
   expect(wechsel).toBeGreaterThanOrEqual(6)
 })
 

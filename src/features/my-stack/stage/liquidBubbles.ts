@@ -19,8 +19,8 @@ export type Blase = (typeof LIQUID_BUBBLES)[number]
 const VON = 192, BIS = 30
 
 /**
- * Lage und Deckkraft einer Blase zur Zeit `t` (s), wie `tyd-liquid-bubble` in
- * index.css: Einblenden bis 18 %, halb sichtbar bis 72 %, Ausblenden bis zum Ende.
+ * Lage und Deckkraft einer Blase zur Zeit `t` (s), wie früher die CSS-Animation
+ * der SVG-Flüssigkeit: Einblenden bis 18 %, halb sichtbar bis 72 %, Ausblenden bis zum Ende.
  */
 export function blaseZu(b: { dur: number; phase: number }, t: number): { y: number; deckkraft: number } {
   const roh = (t / b.dur + b.phase) % 1

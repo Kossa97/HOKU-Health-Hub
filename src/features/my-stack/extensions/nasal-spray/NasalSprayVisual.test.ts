@@ -27,9 +27,9 @@ describe('NasalSprayVisual', () => {
 
   it('beschneidet die Fluessigkeit an der Innenkontur, nicht an der Aussenkontur', () => {
     const source = readFileSync(new URL('./NasalSprayVisual.tsx', import.meta.url), 'utf8')
-    const window = source.match(/data-nasal-spray-detail="liquid-window"[\s\S]{0,120}/)?.[0] ?? ''
-    expect(window).toContain('innerClip')
-    expect(window).not.toContain('outerClip')
+    const fenster = source.slice(source.indexOf('<LiquidCanvas'), source.indexOf('/>', source.indexOf('<LiquidCanvas')))
+    expect(fenster).toContain('clipPath={NASAL_SPRAY_BODY_INNER_PATH}')
+    expect(fenster).not.toContain('OUTER')
   })
 
   it('beschneidet das Kopflicht auf den Kopf', () => {

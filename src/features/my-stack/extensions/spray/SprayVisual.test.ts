@@ -19,7 +19,7 @@ describe('SprayVisual', () => {
     expect(html).toContain('data-spray-detail="glass"')
     expect(html).toContain('data-spray-detail="outer-contour"')
     expect(html).toContain('data-spray-detail="inner-contour"')
-    expect(html).toContain('data-spray-detail="liquid-window"')
+    expect(html).toContain('data-spray-detail="liquid-canvas"')
     expect(html).toContain('data-spray-detail="dip-tube"')
     expect(html).toContain('data-spray-detail="actuator"')
     expect(html).toContain('data-spray-detail="nozzle"')
@@ -68,7 +68,7 @@ describe('SprayVisual', () => {
 
   it('haengt an derselben Fluessigkeit und demselben Etikett wie die Familie', () => {
     const src = source()
-    expect(src).toContain('LiquidGraphic')
+    expect(src).toContain('LiquidCanvas')
     expect(src).toContain('<StageLabel')
   })
 
@@ -76,12 +76,13 @@ describe('SprayVisual', () => {
     // Auf die aeussere beschnitten klebte die Fluessigkeit an der Aussenwand
     // und der Glasboden fehlte.
     const src = source()
-    const fenster = src.slice(src.indexOf('data-spray-detail="liquid-window"'))
-    expect(fenster.startsWith('data-spray-detail="liquid-window" clipPath={`url(#${uid}-innerClip)`}')).toBe(true)
+    const fenster = src.slice(src.indexOf('<LiquidCanvas'), src.indexOf('/>', src.indexOf('<LiquidCanvas')))
+    expect(fenster).toContain('clipPath={SPRAY_INNER_PATH}')
+    expect(fenster).not.toContain('OUTER')
     const rohr = src.slice(src.indexOf('data-spray-detail="dip-tube"'))
     expect(rohr.startsWith('data-spray-detail="dip-tube" clipPath={`url(#${uid}-innerClip)`}')).toBe(true)
     // Das Rohr steht IM Glas, wird also nach der Fluessigkeit gezeichnet.
-    expect(src.indexOf('data-spray-detail="liquid-window"'))
+    expect(src.indexOf('<LiquidCanvas'))
       .toBeLessThan(src.indexOf('data-spray-detail="dip-tube"'))
   })
 

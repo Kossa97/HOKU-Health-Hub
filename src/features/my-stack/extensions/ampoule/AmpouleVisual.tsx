@@ -1,6 +1,6 @@
 import { useCallback, useId, useRef } from 'react'
 import type { Ref } from 'react'
-import { LiquidGraphic, type LiquidGraphicHandle } from '../../stage/LiquidGraphic'
+import { LiquidCanvas, type LiquidGraphicHandle } from '../../stage/LiquidCanvas'
 import { StageLabel } from '../../stage/StageLabel'
 import { usePrefersReducedMotion } from '../../stage/usePrefersReducedMotion'
 import { useStageLight, type StageLightHandle } from '../../stage/useStageLight'
@@ -12,6 +12,10 @@ import {
   AMPOULE_OUTER_PATH,
   AMPOULE_SPEC,
 } from './ampouleShape'
+
+/** viewBox des Glases, fest: die Zeichenfläche zeichnet nur bei neuen Werten neu */
+const AMPOULE_VIEWBOX = [24, 5, 72, 274] as const
+const AMPOULE_LIQUID_DETAIL = { 'data-ampoule-detail': 'liquid-canvas' }
 
 export interface AmpouleVisualProps {
   name?: string | null
@@ -220,23 +224,36 @@ export function AmpouleVisual({
 
         {/* The liquid is clipped by the INNER contour, never the outer one, so
             a glass floor stays under it and it rounds into the inner radius. */}
-        <g data-ampoule-detail="liquid-window" clipPath={`url(#${uid}-innerClip)`}>
-          <LiquidGraphic
-            uid={`${uid}-liquid`}
-            fill={AMPOULE_FILL}
-            chamberAspect={chamber.aspect}
-            x={chamber.x}
-            y={chamber.y}
-            width={chamber.width}
-            height={chamber.height}
-            color={color}
-            bubbles={size === 'large'}
-            reducedMotion={reducedMotion}
-            seedFocus={visualFocus}
-            seedLightOffset={visualLightOffset}
-            handleRef={liquidRef}
-          />
-        </g>
+      </svg>
+
+      {/* Flüssigkeit als Zeichenfläche (LiquidCanvas) zwischen Glas hinten und Glas vorn:
+          ihre Bewegung malt nur sie neu, nicht das Glas samt Filtern (iPhone 07.11.2026) */}
+      <LiquidCanvas
+        fill={AMPOULE_FILL}
+        chamberAspect={chamber.aspect}
+        x={chamber.x}
+        y={chamber.y}
+        width={chamber.width}
+        height={chamber.height}
+        color={color}
+        bubbles={size === 'large'}
+        reducedMotion={reducedMotion}
+        seedFocus={visualFocus}
+        seedLightOffset={visualLightOffset}
+        handleRef={liquidRef}
+        viewBox={AMPOULE_VIEWBOX}
+        fit="meet"
+        clipPath={AMPOULE_INNER_PATH}
+        detail={AMPOULE_LIQUID_DETAIL}
+      />
+
+      <svg
+        data-ampoule-detail="glass-front"
+        className="absolute inset-0 h-full w-full overflow-visible"
+        viewBox="24 5 72 274"
+        preserveAspectRatio="xMidYMid meet"
+        aria-hidden="true"
+      >
 
         {/* Boden wie beim Vial: ein weicher heller Schein im Glas und ein
             dunkler Schatten darunter. Kein Punt und kein Bogen — die dunkle

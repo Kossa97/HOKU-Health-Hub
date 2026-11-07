@@ -1,6 +1,6 @@
 import { useCallback, useId, useRef } from 'react'
 import type { Ref } from 'react'
-import { LiquidGraphic, type LiquidGraphicHandle } from '../../stage/LiquidGraphic'
+import { LiquidCanvas, type LiquidGraphicHandle } from '../../stage/LiquidCanvas'
 import { StageLabel } from '../../stage/StageLabel'
 import { usePrefersReducedMotion } from '../../stage/usePrefersReducedMotion'
 import { useStageLight, type StageLightHandle } from '../../stage/useStageLight'
@@ -15,6 +15,10 @@ import {
   NASAL_SPRAY_NOZZLE_PATH,
   NASAL_SPRAY_SPEC,
 } from './nasalSprayShape'
+
+/** viewBox des Glases, fest: die Zeichenfläche zeichnet nur bei neuen Werten neu */
+const NASAL_SPRAY_VIEWBOX = [21, 6, 78, 288] as const
+const NASAL_SPRAY_LIQUID_DETAIL = { 'data-nasal-spray-detail': 'liquid-canvas' }
 
 export interface NasalSprayVisualProps {
   name?: string | null
@@ -250,23 +254,36 @@ export function NasalSprayVisual({
 
         {/* Die Fluessigkeit wird von der INNEN-Kontur beschnitten, nie von der
             aeusseren: sonst fehlt der Glasboden und sie klebt an der Aussenwand. */}
-        <g data-nasal-spray-detail="liquid-window" clipPath={`url(#${uid}-innerClip)`}>
-          <LiquidGraphic
-            uid={`${uid}-liquid`}
-            fill={fillPct == null ? NASAL_SPRAY_FILL : NASAL_SPRAY_FILL * clamp01(fillPct / 100)}
-            chamberAspect={chamber.aspect}
-            x={chamber.x}
-            y={chamber.y}
-            width={chamber.width}
-            height={chamber.height}
-            color={color}
-            bubbles={size === 'large'}
-            reducedMotion={reducedMotion}
-            seedFocus={visualFocus}
-            seedLightOffset={visualLightOffset}
-            handleRef={liquidRef}
-          />
-        </g>
+      </svg>
+
+      {/* Flüssigkeit als Zeichenfläche (LiquidCanvas) zwischen Glas hinten und Glas vorn:
+          ihre Bewegung malt nur sie neu, nicht das Glas samt Filtern (iPhone 07.11.2026) */}
+      <LiquidCanvas
+        fill={fillPct == null ? NASAL_SPRAY_FILL : NASAL_SPRAY_FILL * clamp01(fillPct / 100)}
+        chamberAspect={chamber.aspect}
+        x={chamber.x}
+        y={chamber.y}
+        width={chamber.width}
+        height={chamber.height}
+        color={color}
+        bubbles={size === 'large'}
+        reducedMotion={reducedMotion}
+        seedFocus={visualFocus}
+        seedLightOffset={visualLightOffset}
+        handleRef={liquidRef}
+        viewBox={NASAL_SPRAY_VIEWBOX}
+        fit="meet"
+        clipPath={NASAL_SPRAY_BODY_INNER_PATH}
+        detail={NASAL_SPRAY_LIQUID_DETAIL}
+      />
+
+      <svg
+        data-nasal-spray-detail="glass-front"
+        className="absolute inset-0 h-full w-full overflow-visible"
+        viewBox="21 6 78 288"
+        preserveAspectRatio="xMidYMid meet"
+        aria-hidden="true"
+      >
 
         {/* Die Wandstaerke. Non-scaling, damit sie die Karussellbreite ueberlebt. */}
         <use

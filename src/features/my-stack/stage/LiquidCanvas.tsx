@@ -18,7 +18,6 @@ import type { Ref } from 'react'
 import { buildLiquid, LIQUID_VB_H, LIQUID_VB_W, type LiquidGeometry } from './liquidGeometry'
 import { useSloshSubscribe } from '../../../components/SloshContext'
 import { REST_ENERGY, type SloshState } from '../../../components/sloshEngine'
-import type { LiquidGraphicHandle } from './LiquidGraphic'
 import { LIQUID_BUBBLES, blaseZu } from './liquidBubbles'
 
 /** Wie LiquidGraphic: Ruhewellen unter einem halben Bildpunkt zeichnet ein kleines Vial nicht nach */
@@ -64,13 +63,22 @@ function ellipseVerlauf(c: CanvasRenderingContext2D, cx: number, cy: number, rx:
   c.restore()
 }
 
+// Das Bühnenlicht der umgebenden Form: sie ruft das aus ihrem applyStageLight,
+// damit Glas und Flüssigkeit im selben Bild wandern.
+export interface LiquidGraphicHandle {
+  applyStageLight: (focus: number, lightOffset: number) => void
+}
+
 export interface LiquidCanvasProps {
   fill: number
   tilt?: number
   chamberAspect?: number
-  /** Größe des umgebenden Glases (viewBox, preserveAspectRatio none) */
-  vbW: number
-  vbH: number
+  /** viewBox des umgebenden Glases [x, y, Breite, Höhe] */
+  viewBox: readonly [number, number, number, number]
+  /** wie preserveAspectRatio des Glases: 'none' (gestreckt) oder 'meet' (xMidYMid meet) */
+  fit?: 'none' | 'meet'
+  /** data-Attribut für Tests und Werkzeuge, z. B. { 'data-vial-detail': 'liquid-canvas' } */
+  detail?: Record<string, string>
   /** Kammer im Glas: dort liegt die Flüssigkeit (viewBox des Glases) */
   x: number
   y: number
@@ -88,7 +96,7 @@ export interface LiquidCanvasProps {
 }
 
 export function LiquidCanvas({
-  fill, tilt = 0, chamberAspect, vbW, vbH, x, y, width, height, clipPath, color,
+  fill, tilt = 0, chamberAspect, viewBox, fit = 'none', detail, x, y, width, height, clipPath, color,
   bubbles = true, reducedMotion = false, seedFocus = 1, seedLightOffset = 0, handleRef, className = '',
 }: LiquidCanvasProps) {
   const subscribe = useSloshSubscribe()
@@ -135,7 +143,14 @@ export function LiquidCanvas({
     c.setTransform(1, 0, 0, 1, 0, 0)
     c.clearRect(0, 0, W, H)
     // Glas-Koordinaten, dann die Kammer: wie die verschachtelten SVG (preserveAspectRatio none)
-    const glas = new DOMMatrix().scale(W / vbW, H / vbH)
+    const [vx, vy, vw, vh] = viewBox
+    let glas: DOMMatrix
+    if (fit === 'meet') {
+      const k = Math.min(W / vw, H / vh)
+      glas = new DOMMatrix().translate((W - vw * k) / 2, (H - vh * k) / 2).scale(k, k).translate(-vx, -vy)
+    } else {
+      glas = new DOMMatrix().scale(W / vw, H / vh).translate(-vx, -vy)
+    }
     const kammer = glas.translate(x, y).scale(width / LIQUID_VB_W, height / LIQUID_VB_H)
     c.save()
     c.setTransform(glas)
@@ -170,7 +185,8 @@ export function LiquidCanvas({
     c.fillStyle = linear(c, rr, 0, rr + 10, 0, REFRACT); c.fillRect(rr, 0, 10, LIQUID_VB_H)
     c.globalAlpha = 1
     c.fillStyle = linear(c, 0, g.bodyTop, 0, g.glowBottom, GLOW); c.fill(new Path2D(g.glow))
-    if (bubbles && !reducedMotion) {
+    // Prüfschalter „Bläschen aus" (lib/pruef.ts) zum Eingrenzen am Gerät
+    if (bubbles && !reducedMotion && !('blasenAus' in document.documentElement.dataset)) {
       for (const b of LIQUID_BUBBLES) {
         const z = blaseZu(b, s.time)
         if (z.deckkraft <= 0) continue
@@ -201,7 +217,7 @@ export function LiquidCanvas({
     c.lineCap = 'round'
     c.stroke(rim)
     c.restore()
-  }, [fill, chamberAspect, vbW, vbH, x, y, width, height, clipPath, color, bubbles, reducedMotion])
+  }, [fill, chamberAspect, viewBox, fit, x, y, width, height, clipPath, color, bubbles, reducedMotion])
 
   const draw = useCallback((s: SloshState) => {
     lastStateRef.current = s
@@ -210,7 +226,7 @@ export function LiquidCanvas({
       const r = canvasRef.current?.getBoundingClientRect() ?? null
       const sichtbar = !!r && r.right > 0 && r.left < window.innerWidth && r.bottom > 0 && r.top < window.innerHeight
       const hoehe = r?.height ?? 0
-      ruhewelleSichtbarRef.current = hoehe === 0 || RUHEWELLE_EINHEITEN * (hoehe * (height / vbH) / LIQUID_VB_H) >= RUHEWELLE_MIN_PX
+      ruhewelleSichtbarRef.current = hoehe === 0 || RUHEWELLE_EINHEITEN * (hoehe * (height / viewBox[3]) / LIQUID_VB_H) >= RUHEWELLE_MIN_PX
       visibleRef.current = sichtbar
       if (sichtbar) passeAn()
     }
@@ -220,7 +236,7 @@ export function LiquidCanvas({
     ruhendGezeichnetRef.current = ruhig
     zeichne(s)
     return fillTweenRef.current !== null
-  }, [zeichne, passeAn, height, vbH])
+  }, [zeichne, passeAn, height, viewBox])
 
   // Neuer Füllstand: das Gleiten beginnt, BEVOR unten neu gezeichnet wird (sonst
   // stünde für ein Bild schon der neue Stand da)
@@ -281,9 +297,11 @@ export function LiquidCanvas({
   return (
     <canvas
       ref={canvasRef}
-      data-vial-detail="liquid-canvas"
+      {...detail}
       aria-hidden="true"
       className={`pointer-events-none absolute inset-0 h-full w-full ${className}`.trim()}
+      // Die Farbe der Flüssigkeit, wie früher am SVG ablesbar (Tests, Werkzeuge)
+      style={{ color }}
     />
   )
 }

@@ -1811,47 +1811,11 @@ html:not([data-navbar='eigen']) .tyd-tabdock :is(.tyd-tabbar[data-gedrueckt='tru
   .tyd-active-dot::after { animation: tyd-active-ping 2s cubic-bezier(0.23, 1, 0.32, 1) infinite; }
 }
 
-/* Blasen in der Vial-Fluessigkeit (LiquidGraphic). Frueher SMIL — das zwang
-   Chrome in jedem Bild zur Stilberechnung der ganzen Seite. Jetzt nur
-   transform und opacity. In SVG gelten px als Einheiten des viewBox:
-   derselbe Weg von 192 nach 30 wie vorher. */
-@keyframes tyd-liquid-bubble {
-  0% { transform: translateY(192px); }
-  100% { transform: translateY(30px); }
-}
-/* Ein- und Ausblenden getrennt, in Stufen von rund 30 je Sekunde (bei 5–7 s
-   Dauer): jede Änderung malt die Flüssigkeit neu, und flüssiger als 30 Schritte
-   sieht ein Bläschen nicht aus. Den Aufstieg stuft LiquidGraphic genauso. */
-@keyframes tyd-liquid-bubble-fade {
-  0% { opacity: 0; animation-timing-function: steps(32); }
-  18% { opacity: 0.5; }
-  72% { opacity: 0.5; animation-timing-function: steps(50); }
-  100% { opacity: 0; }
-}
-.tyd-liquid-bubble { opacity: 0; }
-/* Prüfschalter „Flüssigkeit wie vorher": Bläschen wieder in jedem Bild (Vergleich am iPhone) */
-@keyframes tyd-liquid-bubble-alt {
-  0% { transform: translateY(192px); opacity: 0; }
-  18% { opacity: 0.5; }
-  72% { opacity: 0.5; }
-  100% { transform: translateY(30px); opacity: 0; }
-}
-html[data-fluessig-alt] .tyd-liquid-bubble { animation-name: tyd-liquid-bubble-alt !important; animation-timing-function: linear !important; }
-@media (prefers-reduced-motion: no-preference) {
-  .tyd-liquid-bubble {
-    animation-name: tyd-liquid-bubble, tyd-liquid-bubble-fade;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-  }
-}
-/* Ruhe (sloshEngine.ts): steht die Flüssigkeit still, halten auch die
-   Bläschen an, wo sie gerade sind. Erst wenn beides steht, muss Safari das
-   Fläschchen nicht mehr in jedem Bild neu malen. */
 /* Die Flüssigkeit im Fläschchen auf eigener Ebene (PeptideVialVisual): was sich
-   darin bewegt, malt nur diese Ebene neu, nicht die Seite darunter */
+   darin bewegt, malt nur diese Ebene neu, nicht die Seite darunter. Ihre
+   Bläschen zeichnet die Zeichenfläche (LiquidCanvas); in Ruhe steht sie still. */
 [data-vial-detail="liquid-motion-viewport"] { will-change: transform; }
-html[data-fluessig-ruht] .tyd-liquid-bubble { animation-play-state: paused; }
-/* Auch die kleinen Dauer-Animationen der Seite ruhen dann (iPhone 06.11.: mit
+/* Ruhe (sloshEngine.ts): auch die kleinen Dauer-Animationen der Seite ruhen dann (iPhone 06.11.: mit
    ihnen blieb Hoku auf MyStack schwammig, erst „alles angehalten" lief mit
    118 Bildern/s). Ruhig heißt hier wie bei „Bewegung reduzieren": der Punkt bei
    „Aktiv" ohne Puls, bei der Haltbarkeit steht der Rest statt des Wechsels. */
@@ -2032,9 +1996,6 @@ html[data-effekte-aus] :is(.lg-surface, .card, .lg-group, .lg-glass)::before,
 html[data-effekte-aus] :is(.lg-surface, .card, .lg-group, .lg-glass)::after { display: none !important; }
 /* Prüfschalter ?hintergrund=aus: einfarbiger Grund statt Rauschen und Verläufen */
 html[data-hintergrund-aus] body { background: var(--app-bg) !important; }
-/* ?blasen=aus: nur die Bläschen in den Fläschchen weg (SVG-Animation, die
-   Safari das ganze Fläschchen in jedem Bild neu malen lässt) */
-html[data-blasen-aus] .tyd-liquid-bubble { animation: none !important; display: none; }
 /* ?buehne=still: alle Dauer-Animationen der Seite angehalten (Bläschen,
    Schimmer, Punkte, Hinweise); Hoku und die Leiste liegen außerhalb von main */
 html[data-buehne-still] main *,

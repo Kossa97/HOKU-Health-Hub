@@ -13,9 +13,10 @@ const stageLightSource = () =>
 const stageLabelSource = () =>
   readFileSync(new URL('../features/my-stack/stage/StageLabel.tsx', import.meta.url), 'utf8')
 // The liquid paint stack is shared with the other stage forms; the vial hands
-// it the chamber it should fill.
-const liquidGraphicSource = () =>
-  readFileSync(new URL('../features/my-stack/stage/LiquidGraphic.tsx', import.meta.url), 'utf8')
+// it the chamber it should fill. Seit 07.11.2026 eine Zeichenflaeche (Canvas)
+// statt SVG: am iPhone baute Safari die SVG-Fluessigkeit bei jeder Bewegung neu.
+const liquidCanvasSource = () =>
+  readFileSync(new URL('../features/my-stack/stage/LiquidCanvas.tsx', import.meta.url), 'utf8')
 // Aussen- und Innenkontur liegen als Daten in der Formbeschreibung, damit sie
 // nicht mehrfach woertlich in der Komponente stehen.
 const shapeSource = () =>
@@ -99,15 +100,13 @@ describe('PeptideVialVisual', () => {
     }))
 
     expect(html).toContain('data-vial-detail="liquid-motion-viewport" class="pointer-events-none absolute inset-0 vial-liquid-fill-reveal"')
-    expect(html).toContain('data-vial-detail="liquid-graphic"')
-    expect(html).toContain('class="overflow-visible"')
+    expect(html).toContain('data-vial-detail="liquid-canvas"')
     expect(html).not.toContain('data-vial-detail="liquid-motion-viewport" class="pointer-events-none absolute inset-0 vial-liquid-rise"')
     expect(source()).toContain('@keyframes vial-liquid-fill-reveal')
     expect(source()).toContain('clip-path: inset(100% 0 0 0)')
     expect(source()).toContain('clip-path: inset(0 0 0 0)')
-    expect(liquidGraphicSource()).not.toContain('data-vial-detail="liquid-intro-reveal-clip"')
-    expect(liquidGraphicSource()).not.toContain('<animate attributeName="y"')
-    expect(liquidGraphicSource()).not.toContain('<animate attributeName="height"')
+    expect(liquidCanvasSource()).not.toContain('liquid-intro-reveal-clip')
+    expect(liquidCanvasSource()).not.toContain('<animate')
   })
 
   test('uses a visible but fill-dependent intro duration', () => {
@@ -248,7 +247,8 @@ describe('PeptideVialVisual', () => {
     }))
 
     expect(html).toContain('data-vial-detail="cap-light-sheen"')
-    expect(html).toContain('data-vial-detail="liquid-glass-window"')
+    expect(html).toContain('data-vial-detail="liquid-canvas"')
+    expect(source()).toContain('liquidRef.current?.applyStageLight(f, o)')
     expect(html).toContain('data-vial-detail="label-glass-wrap"')
     expect(source()).toContain('VialTop({ focus: visualFocus, lightOffset: visualLightOffset, sheenRef: capSheenRef, arcRef: capArcRef, marginClass: capMarginClass })')
     // Der seitliche Einzug steht nicht mehr als getippte Prozentzahl im
@@ -298,7 +298,7 @@ describe('PeptideVialVisual', () => {
     expect(source()).not.toContain('className="pr-10"')
   })
 
-  test('draws the liquid as one SVG graphic, not a block with a separate waterline band', () => {
+  test('draws the liquid as one canvas graphic, not a block with a separate waterline band', () => {
     const html = renderToStaticMarkup(createElement(PeptideVialVisual, {
       name: 'BPC-157',
       amount: '5',
@@ -308,51 +308,40 @@ describe('PeptideVialVisual', () => {
     }))
 
     // One graphic whose body, surface, glow and rim share the same geometry.
-    expect(html).toContain('data-vial-detail="liquid-graphic"')
-    expect(html).toContain('viewBox="0 0 120 200"')
-    expect(html).toContain('data-vial-detail="liquid-body"')
-    expect(html).toContain('data-vial-detail="liquid-surface"')
-    expect(html).toContain('data-vial-detail="liquid-glow"')
-    expect(html).toContain('data-vial-detail="liquid-rim"')
+    expect(html).toContain('data-vial-detail="liquid-canvas"')
+    const canvas = liquidCanvasSource()
+    expect(canvas).toContain('new Path2D(g.body)')
+    expect(canvas).toContain('new Path2D(g.surface)')
+    expect(canvas).toContain('new Path2D(g.glow)')
+    expect(canvas).toContain('new Path2D(g.rim)')
 
     // The old stacked block + pill waterline must be gone.
     expect(html).not.toContain('realistic-meniscus-surface')
     expect(html).not.toContain('liquid-motion-layer')
     expect(html).not.toContain('realistic-liquid-body')
-    expect(html).not.toContain('viewBox="0 0 120 28"')
     expect(html).not.toContain('vial-liquid-slosh')
   })
 
   test('drives a living, physics-coupled surface with rising bubbles', () => {
-    const html = renderToStaticMarkup(createElement(PeptideVialVisual, {
-      name: 'Ipamorelin',
-      amount: '2',
-      unit: 'mg',
-      fillPct: 95,
-      color: '#ec4899',
-    }))
-
-    // Ambient life: rising bubbles rendered as animated SVG circles.
-    expect(html).toContain('data-vial-detail="liquid-bubble"')
-    expect(html).toContain('tyd-liquid-bubble')
-    // Kein SMIL: es rechnete in jedem Bild den Stil der ganzen Seite neu.
-    expect(html).not.toContain('<animateTransform')
-
-    const text = source()
-    // Surface is redrawn imperatively from the shared slosh engine each frame.
-    expect(liquidGraphicSource()).toContain('useSloshSubscribe')
-    expect(liquidGraphicSource()).toContain('buildLiquid')
-    expect(liquidGraphicSource()).toContain("setAttribute('d'")
-    expect(text).toContain('(prefers-reduced-motion: reduce)')
+    const canvas = liquidCanvasSource()
+    // Die Oberflaeche zeichnet sich aus der gemeinsamen Maschine, Blasen inklusive.
+    expect(canvas).toContain('useSloshSubscribe')
+    expect(canvas).toContain('buildLiquid')
+    expect(canvas).toContain('LIQUID_BUBBLES')
+    expect(canvas).toContain('blaseZu(b, s.time)')
+    expect(canvas).toContain('!reducedMotion')
+    // Kein SMIL und keine CSS-Animation mehr: beides liess Safari die Grafik neu bauen.
+    expect(canvas).not.toContain('<animateTransform')
+    expect(canvas).not.toContain('tyd-liquid-bubble')
+    expect(source()).toContain('(prefers-reduced-motion: reduce)')
   })
-
 
   test('animates fill-level changes inside the integrated glass window', () => {
     const text = source()
 
-    expect(liquidGraphicSource()).toContain('fillTweenRef')
-    expect(liquidGraphicSource()).toContain('levelChangeDurationMs')
-    expect(liquidGraphicSource()).toContain('tween.from + (tween.to - tween.from)')
+    expect(liquidCanvasSource()).toContain('fillTweenRef')
+    expect(liquidCanvasSource()).toContain('levelChangeDurationMs')
+    expect(liquidCanvasSource()).toContain('tween.from + (tween.to - tween.from)')
     expect(text).not.toContain('vial-liquid-level-motion')
     expect(text).not.toContain('--vial-fill-motion-shift')
     expect(text).toContain('data-vial-detail="liquid-motion-viewport"')
@@ -368,18 +357,17 @@ describe('PeptideVialVisual', () => {
     }))
     const text = source()
 
-    expect(html).toContain('data-vial-detail="liquid-vial-chamber"')
-    expect(html).toContain('data-vial-detail="liquid-glass-window"')
-    expect(text).toContain('liquidChamberClip')
-    expect(text).toContain('clipPath={`url(#${uid}-liquidChamberClip)`}')
+    expect(html).toContain('data-vial-detail="liquid-canvas"')
     // Die Kammer kommt aus den Formdaten und sitzt in der Innenkontur, damit
     // ein Glasboden unter der Fluessigkeit stehen bleibt.
+    expect(text).toContain('clipPath={VIAL_INNER_PATH}')
     expect(text).toContain('x={VIAL_CHAMBER.x}')
     expect(text).toContain('height={VIAL_CHAMBER.height}')
     expect(text).toContain('chamberAspect={VIAL_CHAMBER.aspect}')
-    expect(text).toMatch(/liquidChamberClip`}>[\s\S]{0,80}VIAL_INNER_PATH/)
+    expect(liquidCanvasSource()).toContain('c.clip(pfadRef.current)')
     expect(text).not.toContain('className="absolute inset-0 overflow-hidden"')
   })
+
   test('clips the travelling sweep to the glass', () => {
     // Das wandernde Licht muss auf die Form beschnitten sein. Bei der Tablette
     // fehlte genau das: ihr Glanz malte beim Wischen bis zu 14 Einheiten

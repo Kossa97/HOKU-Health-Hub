@@ -31,10 +31,6 @@ const MAX_DT = 1 / 30 // clamp long frames so tab-switches don't explode the spr
 // Any slosh energy, a subscriber's own animation or a fresh impulse returns to
 // every frame at once.
 export const REST_ENERGY = 0.004
-// Auch beim Schwappen höchstens 60-mal je Sekunde neu zeichnen: auf 120-Hz-
-// Bildschirmen jedes zweite Bild. Jede Zeichnung malt das Fläschchen neu, und
-// Hoku braucht die halbe Zeit (iPhone 07.11.2026: wach 66 Bilder/s, in Ruhe 120).
-const ACTIVE_FRAME_MS = 1000 / 60 - 4
 const REST_FRAME_MS = 1000 / 30 - 6 // slack for rAF timestamps that aren't snapped to vsync
 // Ruhe (Messung am iPhone 05.11.2026): Solange die Ruhewelle läuft, malt Safari
 // das ganze Fläschchen in jedem Bild neu, samt Verläufen und Bläschen; auf
@@ -81,12 +77,6 @@ export function createSloshEngine(): SloshEngine {
   let lastNotify = 0
   let busy = false // a subscriber asked for every frame
   const subs = new Set<Subscriber>()
-  // Beim Schwappen jedes Bild: mit der Zeichenfläche (Prüfschalter „Flüssigkeit neu
-  // gezeichnet") ist das günstig genug, und jedes zweite Bild wirkte am iPhone
-  // holperig, sobald die Bildabstände schwankten (Nutzer 07.11.2026). Ebenso mit
-  // „Flüssigkeit wie vorher". Nur die SVG-Fassung bleibt bei höchstens 60 je Sekunde.
-  const html = typeof document !== 'undefined' ? document.documentElement.dataset : null
-  const aktivMs = html && ('fluessigAlt' in html || 'fluessigNeu' in html) ? 0 : ACTIVE_FRAME_MS
   // Ruhe: Zeitpunkt der letzten Regung (rAF-Zeit); `regungOffen` setzt ihn im nächsten Bild
   let letzteRegung = 0
   let regungOffen = true
@@ -123,7 +113,9 @@ export function createSloshEngine(): SloshEngine {
     const resting = !busy && Math.abs(angle) + Math.abs(vel) * 0.12 < REST_ENERGY
     // Schwappen oder eine eigene Animation zählen als Regung
     if (regungOffen || !resting) { letzteRegung = ts; regungOffen = false }
-    if ((!resting && ts - lastNotify >= aktivMs) || ts - lastNotify >= REST_FRAME_MS) {
+    // Beim Schwappen jedes Bild: jedes zweite wirkte am iPhone holperig, sobald die
+    // Bildabstände schwankten (Nutzer 07.11.2026); die Zeichenfläche schafft jedes
+    if (!resting || ts - lastNotify >= REST_FRAME_MS) {
       lastNotify = ts
       notify()
     }

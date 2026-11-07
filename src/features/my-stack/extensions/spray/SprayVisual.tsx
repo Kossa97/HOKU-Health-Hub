@@ -1,6 +1,6 @@
 import { useCallback, useId, useRef } from 'react'
 import type { Ref } from 'react'
-import { LiquidGraphic, type LiquidGraphicHandle } from '../../stage/LiquidGraphic'
+import { LiquidCanvas, type LiquidGraphicHandle } from '../../stage/LiquidCanvas'
 import { StageLabel } from '../../stage/StageLabel'
 import { usePrefersReducedMotion } from '../../stage/usePrefersReducedMotion'
 import { useStageLight, type StageLightHandle } from '../../stage/useStageLight'
@@ -26,6 +26,10 @@ import {
   SPRAY_OUTER_PATH,
   SPRAY_SHEEN_SHIFT,
 } from './sprayShape'
+
+/** viewBox des Glases, fest: die Zeichenfläche zeichnet nur bei neuen Werten neu */
+const SPRAY_VIEWBOX = [23, 72, 74, 220] as const
+const SPRAY_LIQUID_DETAIL = { 'data-spray-detail': 'liquid-canvas' }
 
 export interface SprayVisualProps {
   name?: string | null
@@ -297,23 +301,36 @@ export function SprayVisual({
 
         {/* Die Fluessigkeit wird von der INNEN-Kontur beschnitten, nie von der
             aeusseren: sonst fehlt der Glasboden und sie klebt an der Aussenwand. */}
-        <g data-spray-detail="liquid-window" clipPath={`url(#${uid}-innerClip)`}>
-          <LiquidGraphic
-            uid={`${uid}-liquid`}
-            fill={fillPct == null ? SPRAY_FILL : SPRAY_FILL * clamp01(fillPct / 100)}
-            chamberAspect={SPRAY_CHAMBER.aspect}
-            x={SPRAY_CHAMBER.x}
-            y={SPRAY_CHAMBER.y}
-            width={SPRAY_CHAMBER.width}
-            height={SPRAY_CHAMBER.height}
-            color={color}
-            bubbles={size === 'large'}
-            reducedMotion={reducedMotion}
-            seedFocus={visualFocus}
-            seedLightOffset={visualLightOffset}
-            handleRef={liquidRef}
-          />
-        </g>
+      </svg>
+
+      {/* Flüssigkeit als Zeichenfläche (LiquidCanvas) zwischen Glas hinten und Glas vorn:
+          ihre Bewegung malt nur sie neu, nicht das Glas samt Filtern (iPhone 07.11.2026) */}
+      <LiquidCanvas
+        fill={fillPct == null ? SPRAY_FILL : SPRAY_FILL * clamp01(fillPct / 100)}
+        chamberAspect={SPRAY_CHAMBER.aspect}
+        x={SPRAY_CHAMBER.x}
+        y={SPRAY_CHAMBER.y}
+        width={SPRAY_CHAMBER.width}
+        height={SPRAY_CHAMBER.height}
+        color={color}
+        bubbles={size === 'large'}
+        reducedMotion={reducedMotion}
+        seedFocus={visualFocus}
+        seedLightOffset={visualLightOffset}
+        handleRef={liquidRef}
+        viewBox={SPRAY_VIEWBOX}
+        fit="meet"
+        clipPath={SPRAY_INNER_PATH}
+        detail={SPRAY_LIQUID_DETAIL}
+      />
+
+      <svg
+        data-spray-detail="glass-front"
+        className="absolute inset-0 h-full w-full overflow-visible"
+        viewBox="23 72 74 220"
+        preserveAspectRatio="xMidYMid meet"
+        aria-hidden="true"
+      >
 
         {/* Das Steigrohr steht IM Glas, also nach der Fluessigkeit gezeichnet
             und auf denselben Innenraum beschnitten: es ragt durch den Pegel

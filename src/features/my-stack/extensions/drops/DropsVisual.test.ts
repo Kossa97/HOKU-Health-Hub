@@ -44,9 +44,9 @@ describe('DropsVisual', () => {
   it('beschneidet die Fluessigkeit an der Innenkontur, nie an der aeusseren', () => {
     // Sonst fehlt der Glasboden und die Fluessigkeit klebt an der Aussenwand.
     const source = readFileSync(new URL('./DropsVisual.tsx', import.meta.url), 'utf8')
-    const fenster = source.match(/data-drops-detail="liquid-window"[\s\S]{0,120}/)?.[0] ?? ''
-    expect(fenster).toContain('innerClip')
-    expect(fenster).not.toContain('outerClip')
+    const fenster = source.slice(source.indexOf('<LiquidCanvas'), source.indexOf('/>', source.indexOf('<LiquidCanvas')))
+    expect(fenster).toContain('clipPath={DROPS_INNER_PATH}')
+    expect(fenster).not.toContain('OUTER')
   })
 
   it('beschneidet jedes wandernde Licht auf das Glas', () => {

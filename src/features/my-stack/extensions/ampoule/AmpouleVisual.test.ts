@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
@@ -26,11 +27,13 @@ describe('AmpouleVisual', () => {
   })
 
   it('clips the liquid with the inner contour, never the outer one', () => {
-    const html = render()
-    const innerClip = html.match(/id="([^"]*-innerClip)"/)?.[1]
-
-    expect(innerClip).toBeTruthy()
-    expect(html).toContain(`data-ampoule-detail="liquid-window" clip-path="url(#${innerClip})"`)
+    // Die Fluessigkeit ist eine Zeichenflaeche (LiquidCanvas); sie beschneidet
+    // sich selbst an dem Pfad, den die Ampulle ihr gibt.
+    expect(render()).toContain('data-ampoule-detail="liquid-canvas"')
+    const source = readFileSync(new URL('./AmpouleVisual.tsx', import.meta.url), 'utf8')
+    const fluessigkeit = source.slice(source.indexOf('<LiquidCanvas'), source.indexOf('/>', source.indexOf('<LiquidCanvas')))
+    expect(fluessigkeit).toContain('clipPath={AMPOULE_INNER_PATH}')
+    expect(fluessigkeit).not.toContain('OUTER')
   })
 
   it('beschneidet den wandernden Sweep auf das Glas', () => {

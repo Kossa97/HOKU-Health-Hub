@@ -2,8 +2,7 @@ import { useCallback, useId, useRef, useState } from 'react'
 import type { CSSProperties, Ref, RefObject } from 'react'
 import { usePrefersReducedMotion } from '../features/my-stack/stage/usePrefersReducedMotion'
 import { useStageLight, type StageLightHandle } from '../features/my-stack/stage/useStageLight'
-import { LiquidGraphic, type LiquidGraphicHandle } from '../features/my-stack/stage/LiquidGraphic'
-import { LiquidCanvas } from '../features/my-stack/stage/LiquidCanvas'
+import { LiquidCanvas, type LiquidGraphicHandle } from '../features/my-stack/stage/LiquidCanvas'
 import { VIAL_CAP_COLLAR, VIAL_CAP_HEIGHT, VIAL_CAP_TOP_PATH, VIAL_INNER_PATH, VIAL_LABEL_INSET_PCT, VIAL_OUTER_PATH, VIAL_SPEC } from '../features/my-stack/extensions/peptide/vialShape'
 import { StageLabel } from '../features/my-stack/stage/StageLabel'
 
@@ -127,8 +126,9 @@ function VialTop({
 // Fluessigkeitsfenster nicht auseinanderlaufen koennen.
 const VIAL_CHAMBER = VIAL_SPEC.chamber!
 
-/** Prüfschalter „Flüssigkeit neu gezeichnet" (lib/pruef.ts): Zeichenfläche statt SVG */
-const fluessigNeu = () => typeof document !== 'undefined' && 'fluessigNeu' in document.documentElement.dataset
+/** viewBox des Glases, fest: die Zeichenfläche zeichnet nur bei neuen Werten neu */
+const VIAL_VIEWBOX = [0, 0, 120, 294] as const
+const VIAL_LIQUID_DETAIL = { 'data-vial-detail': 'liquid-canvas' }
 
 export function PeptideVialVisual({
   name,
@@ -421,99 +421,49 @@ export function PeptideVialVisual({
             <ellipse cx="60" cy="278" rx="45" ry="9" fill="rgba(0,0,0,0.32)" opacity="0.55" />
           </svg>
 
-          {/* Single-graphic liquid: body, tilting surface, meniscus rim and
-              highlight all derive from one geometry so they move as one. */}
-          {/* Eigene Zeichenebene (will-change in index.css): Wellen und Bläschen
-              malen nur sie neu, nicht die ganze Seite samt Glas, Weichzeichnern
-              und Schrift (iPhone 06.11.2026: Hoku ruckelte auf MyStack, solange
-              die Flüssigkeit lief). */}
+          {/* Die Flüssigkeit als Zeichenfläche (LiquidCanvas): Körper, kippende
+              Oberfläche, Wasserlinie und Glanz aus einer Geometrie. Darüber
+              als SVG nur die feste Innenkontur. Eigene Zeichenebene
+              (will-change in index.css): die Bewegung malt nur sie neu
+              (iPhone 06./07.11.2026: Hoku ruckelte auf MyStack, solange die
+              SVG-Flüssigkeit lief). */}
           <div
             data-vial-detail="liquid-motion-viewport"
             className={`pointer-events-none absolute inset-0 ${viewportRevealClass}`.trim()}
             style={viewportRevealStyle}
           >
-            {fluessigNeu() ? (
-              <>
-                <LiquidCanvas
-                  fill={fillFrac}
-                  tilt={tilt}
-                  vbW={120}
-                  vbH={294}
-                  x={VIAL_CHAMBER.x}
-                  y={VIAL_CHAMBER.y}
-                  width={VIAL_CHAMBER.width}
-                  height={VIAL_CHAMBER.height}
-                  chamberAspect={VIAL_CHAMBER.aspect}
-                  clipPath={VIAL_INNER_PATH}
-                  color={color}
-                  reducedMotion={reducedMotion}
-                  seedFocus={visualFocus}
-                  seedLightOffset={visualLightOffset}
-                  handleRef={liquidRef}
-                />
-                <svg
-                  className="absolute inset-0 h-full w-full overflow-visible"
-                  viewBox="0 0 120 294"
-                  preserveAspectRatio="none"
-                  aria-hidden="true"
-                >
-                  <path
-                    data-vial-detail="inner-contour"
-                    d={VIAL_INNER_PATH}
-                    fill="none"
-                    stroke="rgba(226,232,240,0.34)"
-                    strokeWidth="0.9"
-                    vectorEffect="non-scaling-stroke"
-                  />
-                </svg>
-              </>
-            ) : (
-              <svg
-                data-vial-detail="liquid-vial-chamber"
-                className="absolute inset-0 h-full w-full overflow-visible"
-                viewBox="0 0 120 294"
-                preserveAspectRatio="none"
-                aria-hidden="true"
-              >
-                <defs>
-                  {/* Die Fluessigkeit wird von der INNEN-Kontur beschnitten, nie
-                      von der aeusseren: sonst fehlt der Glasboden und sie klebt
-                      an der Aussenwand. */}
-                  <clipPath id={`${uid}-liquidChamberClip`}>
-                    <path d={VIAL_INNER_PATH} />
-                  </clipPath>
-                </defs>
-                <g data-vial-detail="liquid-glass-window" clipPath={`url(#${uid}-liquidChamberClip)`}>
-                  <LiquidGraphic
-                    uid={uid}
-                    fill={fillFrac}
-                    tilt={tilt}
-                    x={VIAL_CHAMBER.x}
-                    y={VIAL_CHAMBER.y}
-                    width={VIAL_CHAMBER.width}
-                    height={VIAL_CHAMBER.height}
-                    chamberAspect={VIAL_CHAMBER.aspect}
-                    color={color}
-                    reducedMotion={reducedMotion}
-                    seedFocus={visualFocus}
-                    seedLightOffset={visualLightOffset}
-                    handleRef={liquidRef}
-                  />
-                </g>
-
-                {/* Die Wandstaerke. Sie liegt in diesem SVG und damit ueber der
-                    Fluessigkeit — im Glas-SVG darunter waere sie verdeckt.
-                    Non-scaling, damit sie die Karussellbreite ueberlebt. */}
-                <path
-                  data-vial-detail="inner-contour"
-                  d={VIAL_INNER_PATH}
-                  fill="none"
-                  stroke="rgba(226,232,240,0.34)"
-                  strokeWidth="0.9"
-                  vectorEffect="non-scaling-stroke"
-                />
-              </svg>
-            )}
+            <LiquidCanvas
+              fill={fillFrac}
+              tilt={tilt}
+              viewBox={VIAL_VIEWBOX}
+              detail={VIAL_LIQUID_DETAIL}
+              x={VIAL_CHAMBER.x}
+              y={VIAL_CHAMBER.y}
+              width={VIAL_CHAMBER.width}
+              height={VIAL_CHAMBER.height}
+              chamberAspect={VIAL_CHAMBER.aspect}
+              clipPath={VIAL_INNER_PATH}
+              color={color}
+              reducedMotion={reducedMotion}
+              seedFocus={visualFocus}
+              seedLightOffset={visualLightOffset}
+              handleRef={liquidRef}
+            />
+            <svg
+              className="absolute inset-0 h-full w-full overflow-visible"
+              viewBox="0 0 120 294"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <path
+                data-vial-detail="inner-contour"
+                d={VIAL_INNER_PATH}
+                fill="none"
+                stroke="rgba(226,232,240,0.34)"
+                strokeWidth="0.9"
+                vectorEffect="non-scaling-stroke"
+              />
+            </svg>
           </div>
 
           <div className="vial-shimmer pointer-events-none absolute inset-y-[24%] left-[24%] w-[32%] rotate-6 rounded-full bg-white/10 blur-[6px]" />

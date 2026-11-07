@@ -118,16 +118,15 @@ describe('rest throttling', () => {
     })
   })
 
-  test('auf 120 Hz zeichnet das Schwappen höchstens rund 60-mal je Sekunde', () => {
+  test('auf 120 Hz zeichnet das Schwappen jedes Bild (jedes zweite wirkte holperig)', () => {
     withFakeFrames(step => {
       const engine = createSloshEngine()
       let calls = 0
       engine.subscribe(() => { calls++ })
       engine.pushImpulse(1)
       calls = 0
-      for (let i = 0; i < 120; i++) step(1000 / 120)
-      expect(calls).toBeGreaterThanOrEqual(58)
-      expect(calls).toBeLessThanOrEqual(62)
+      for (let i = 0; i < 60; i++) step(1000 / 120)
+      expect(calls).toBe(60)
       engine.destroy()
     })
   })
