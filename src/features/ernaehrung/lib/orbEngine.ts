@@ -755,7 +755,7 @@ export class OrbEngine {
       drawSphere(r, m.n, pm ? pm.fill : m.fill, {
         preview: pm ? previewRange(m.fill, pm.fill) : null,
         M: Mm, HM: qMat(qMul(this.q, qAxis(0, 1, 0, (this.reduce ? 0 : -now * 0.0003) + o.phase))),
-        cx: mcx, cy: mcy, R: mR, px: DOT_MOON * k * dens * scale, color: MOON_COLOR[m.key],
+        cx: mcx, cy: mcy, R: mR, px: DOT_MOON * k * dens * m.dens * scale, color: MOON_COLOR[m.key],
         now, live: !this.reduce, flash: this.moonFlash[m.key] ?? null,
       })
       this.moonGeo[m.key] = { M: Mm, n: m.n, cx: mcx, cy: mcy, R: mR, front }

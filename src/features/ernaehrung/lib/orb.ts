@@ -1,15 +1,19 @@
 /**
  * Rechenkern der Kalorien-Kugel — ohne React, ohne Canvas.
  *
- * 1 Punkt = 1 kcal (ab 4000 kcal Ziel mehrere je Punkt), 1 Punkt = 1 g bei den
- * Makro-Monden. Gefüllt wird von unten; was über dem Ziel liegt, schwebt als
- * lockere Hülle außen, in derselben Farbe, bis zum doppelten Ziel.
+ * 1 Punkt = 1 kcal, 1 Punkt = 1 g bei den Makro-Monden — immer, auch beim höchsten
+ * Ziel. Regel (Nutzer 07.11.2026): Die Kugeln passen immer ins Bild und bleiben
+ * proportional. Wird das Ziel größer, wird die Kugel nicht größer, sondern die Punkte
+ * feiner (`dotScale`); dasselbe gilt für Gericht- und Essens-Kugeln, die nicht in
+ * ihren Platz passen würden. Gefüllt wird von unten; was über dem Ziel liegt, schwebt
+ * als lockere Hülle außen, in derselben Farbe, bis zum doppelten Ziel.
  * Entscheidungen: memory/projects/kalorientracker.md.
  */
 import type { DayTotals } from './dayRings'
 import type { Goals } from './nutrition'
 
-export const MAX_DOTS = 4000
+/** Höchstes Kalorienziel (GOAL_LIMITS.kcal): so bleibt jeder Punkt genau 1 kcal. */
+export const MAX_DOTS = 6000
 export const MAX_MOON_DOTS = 1500
 /** Kalorien ausgeblendet: Eiweiß wird die große Kugel, als Anteil am Ziel. */
 export const PROTEIN_ORB_DOTS = 1500
@@ -105,6 +109,15 @@ const ORBIT_EXTENT: Record<MacroKey, { x: number; y: number }> = (() => {
 
 /** Ein Mond wird vorn bis 15 % größer, angetippt noch einmal 38 %. */
 const MOON_GROW = 1.15 * 1.38
+/** Hülle über dem Ziel (Kugelradien): Grundabstand, Streuung, Atmen — gezeichnet in orbDraw. */
+export const HULL_BASE = 1.12
+export const HULL_SPREAD = 0.16
+export const HULL_WOBBLE = 0.03
+/**
+ * So weit reicht die Hülle höchstens — oben und seitlich bleibt dafür Platz. Unten darf sie
+ * hinter die Zahl ziehen (die Zeichenfläche reicht 120 px weiter), so bleibt die Kugel groß.
+ */
+const HULL_EXTENT = HULL_BASE + HULL_SPREAD + HULL_WOBBLE + 0.02
 
 /**
  * Größe und Lage der Tageskugel in der Zone (CSS-Pixel): so groß, wie Breite und Höhe
@@ -113,7 +126,7 @@ const MOON_GROW = 1.15 * 1.38
  */
 export function fitOrb(layout: OrbLayout, width: number, height: number): { R: number; cy: number } {
   const TOP = 4, SIDE = 6, TEXT = 80
-  let extX = 1, extUp = 1
+  let extX = HULL_EXTENT, extUp = HULL_EXTENT
   for (const m of layout.moons) {
     const e = ORBIT_EXTENT[m.key]
     extX = Math.max(extX, e.x + m.r * MOON_GROW)
@@ -136,6 +149,11 @@ export interface Moon extends Sphere {
   key: MacroKey
   /** Radius in Kugelradien. */
   r: number
+  /**
+   * Punktgröße relativ zur großen Kugel, damit die Dichte gleich bleibt, auch wenn der
+   * Radius begrenzt ist (sehr großer Mond: feinere Punkte; sehr kleiner: kräftigere).
+   */
+  dens: number
   orbit: Orbit
 }
 
@@ -161,10 +179,12 @@ export function orbLayout(totals: DayTotals, goals: Goals): OrbLayout {
     .map(key => {
       const goal = goalOf(key, goals)
       const n = Math.max(1, Math.min(MAX_MOON_DOTS, Math.round(goal)))
+      const ideal = Math.sqrt(n / main.n)
+      const r = Math.max(0.12, Math.min(0.6, ideal))
       return {
         key, n, unit: goal / n, orbit: ORBITS[key],
         fill: fill(n, totals[key] / goal),
-        r: Math.max(0.12, Math.min(0.6, Math.sqrt(n / main.n))),
+        r, dens: Math.max(0.4, Math.min(2.5, r / ideal)),
       }
     })
   return {
@@ -173,9 +193,23 @@ export function orbLayout(totals: DayTotals, goals: Goals): OrbLayout {
   }
 }
 
-/** Mehr Punkte = kleinere Punkte, damit die Kugel gleich luftig bleibt (Bezug: 3000 Punkte). */
+/**
+ * Mehr Punkte = feinere Punkte, damit die Kugel gleich luftig bleibt (Bezug: 3000 Punkte).
+ * Nach unten weit offen: beim höchsten Ziel (6000 kcal) noch 1 Punkt = 1 kcal, nur feiner.
+ */
 export function dotScale(n: number): number {
-  return Math.max(0.8, Math.min(1.15, Math.sqrt(3000 / n)))
+  return Math.max(0.55, Math.min(1.15, Math.sqrt(3000 / n)))
+}
+
+/**
+ * Passt eine Kugel nicht in ihren Platz (Radius über `max`), wird sie auf `max` begrenzt
+ * und ihre Punkte im selben Verhältnis feiner — so bleibt die Dichte gleich (proportional).
+ */
+export function fitRadius(R: number, max: number): { R: number; dotFactor: number } {
+  if (!(R > max)) return { R, dotFactor: 1 }
+  // Noch kein Platz gemessen (oder keiner da): nichts zeichnen statt überlaufen.
+  if (max <= 0) return { R: 0, dotFactor: 0 }
+  return { R: max, dotFactor: max / R }
 }
 
 /**

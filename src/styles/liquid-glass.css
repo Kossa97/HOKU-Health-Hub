@@ -443,6 +443,54 @@ input[type='search']::-webkit-search-decoration { -webkit-appearance: none; disp
   --inj-backdrop: radial-gradient(ellipse 60% 48% at 50% 46%, rgba(255,244,230,0.10), rgba(255,244,230,0) 70%), #000;
 }
 
+/* Injektionskarte: senkrechter Schalter Torso / Liste. Die Linse gleitet unter
+   den gewaehlten Platz; die Liste blendet von unten ein. */
+.injection-view-switch {
+  display: flex;
+  flex-direction: column;
+  width: 44px;
+  border-radius: 22px;
+  isolation: isolate;
+}
+.injection-view-switch-lens {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  transition: transform 220ms var(--lg-ease-out);
+  z-index: 0;
+}
+.injection-view-switch-btn {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--lg-text-2);
+  transition: color 160ms ease, transform 160ms var(--lg-ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.injection-view-switch-btn[aria-checked='true'] { color: var(--lg-text); }
+.injection-view-switch-btn:active { transform: scale(0.92); transition-duration: 100ms; }
+.injection-view-switch-btn:focus-visible { outline: 2px solid var(--lg-accent, #7dd3fc); outline-offset: -2px; }
+
+@keyframes injection-site-list-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+.injection-site-list { animation: injection-site-list-in 240ms var(--lg-ease-out); }
+@media (prefers-reduced-motion: reduce) {
+  .injection-view-switch-lens { transition: none; }
+  .injection-site-list { animation: lg-fade-in 150ms ease; }
+}
+
 /* ── Grund für Vollbilder: dasselbe reine Schwarz wie die Seiten ───────── */
 .lg-backdrop { background-color: #000; }
 /* Viele Glasflächen auf einer Seite: auf Schwarz zeigt der Weichzeichner

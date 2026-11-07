@@ -11,6 +11,9 @@ export type BodyRegion =
   | 'torso'
   | 'outside_typical'
 export type BodySide = 'left' | 'right' | 'center'
+/** Eintrag aus der Listenansicht: Stelle ohne genaue Position auf dem Torso. */
+export const INJECTION_LIST_MODEL_VERSION = 'liste-v1'
+
 export type InjectionVisualMode = 'clean' | 'hybrid' | 'anatomy'
 
 export interface Vector3Json {

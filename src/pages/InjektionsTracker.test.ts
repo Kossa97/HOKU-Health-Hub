@@ -92,12 +92,24 @@ describe('InjektionsTracker fullscreen map layout', () => {
     expect(source).toContain('injection-active-pin-chip')
   })
 
+  it('switches between torso and a fullscreen list tracker', () => {
+    const source = readFileSync(new URL('./InjektionsTracker.tsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('<InjectionViewSwitch')
+    expect(source).toContain('<InjectionSiteList')
+    expect(source).toContain('onSelect={selectListSite}')
+    // Listen-Eintraege: Sheet direkt, nie als Pin, gewaehlte Ansicht gemerkt
+    expect(source).toContain('setDraftPin(listPinDraft(preset))')
+    expect(source).toContain('logs.filter(hasExactInjectionPosition)')
+    expect(source).toContain('useState<InjectionView>(readInjectionView)')
+  })
+
   it('hides floating tracker actions while confirming a new injection position', () => {
     const source = readFileSync(new URL('./InjektionsTracker.tsx', import.meta.url), 'utf8')
 
     expect(source).toContain('const showPositionActions = draftPin && !showLogSheet')
-    expect(source).toContain('{showPositionActions && (')
-    expect(source).toContain('{!showPositionActions && (')
+    expect(source).toContain('{!listeOffen && showPositionActions && (')
+    expect(source).toContain('{!showPositionActions && !listeOffen && (')
     expect(source).toContain('setTrackerSheetOpen(false)')
   })
 

@@ -1,13 +1,15 @@
 // src/lib/injectionGeometry.ts
 import { differenceInCalendarDays, parseISO } from 'date-fns'
-import type {
-  BodyRegion,
-  BodySide,
-  InjectionLog3D,
-  InjectionPinDraft,
-  InjectionProximityWarning,
-  Vector3Json,
+import {
+  INJECTION_LIST_MODEL_VERSION,
+  type BodyRegion,
+  type BodySide,
+  type InjectionLog3D,
+  type InjectionPinDraft,
+  type InjectionProximityWarning,
+  type Vector3Json,
 } from './injectionLogTypes'
+import { INJECTION_MODEL_VERSION } from './injectionModelMaterial'
 
 const CAUTION_DISTANCE = 0.09
 const STRONG_DISTANCE = 0.04
@@ -101,6 +103,12 @@ export function filterRecentInjectionLogs(
   })
 }
 
+// Listen-Eintraege tragen die Standardposition ihrer Stelle im Raum des
+// Torsos: fuer die Abstandswarnung zaehlen sie wie ein Pin dort.
+function koordinatenRaum(modelVersion: string): string {
+  return modelVersion === INJECTION_LIST_MODEL_VERSION ? INJECTION_MODEL_VERSION : modelVersion
+}
+
 export function proximityWarning(
   draft: InjectionPinDraft,
   logs: InjectionLog3D[],
@@ -110,7 +118,7 @@ export function proximityWarning(
   let nearest: { log: InjectionLog3D; distance: number } | null = null
 
   for (const log of recent) {
-    if (log.model_version !== draft.model_version) continue
+    if (koordinatenRaum(log.model_version) !== koordinatenRaum(draft.model_version)) continue
     const d = distance(draft.position, log.position)
     if (!nearest || d < nearest.distance) nearest = { log, distance: d }
   }

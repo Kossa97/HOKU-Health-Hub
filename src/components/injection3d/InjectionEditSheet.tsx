@@ -4,7 +4,7 @@ import { format, parseISO } from 'date-fns'
 import { Check, Info, Trash2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { methodLabel } from '../../lib/intakeMethods'
-import { formatInjectionSite } from '../../lib/injectionHistory'
+import { useInjectionSiteLabel } from './useInjectionSiteLabel'
 import type { InjectionLog3D } from '../../lib/injectionLogTypes'
 import type { InjectionLogEdit } from '../../lib/injectionPersistence'
 import { denyProps } from '../../lib/denyFeedback'
@@ -28,6 +28,7 @@ export function InjectionEditSheet({
   onDelete: () => Promise<void>
 }) {
   const { t } = useTranslation()
+  const siteLabel = useInjectionSiteLabel()
   const linked = Boolean(log.dose_log_id)
   const [substance, setSubstance] = useState(log.substance_label ?? '')
   const [dose, setDose] = useState(log.dose == null ? '' : String(log.dose))
@@ -98,7 +99,7 @@ export function InjectionEditSheet({
             <h2 id="injection-edit-title" className="lg-title2 truncate">
               {t('injection_edit_title', { defaultValue: 'Injektion bearbeiten' })}
             </h2>
-            <p className="mt-0.5 truncate text-[13px] text-[var(--lg-text-3)]">{title} · {formatInjectionSite(log)}</p>
+            <p className="mt-0.5 truncate text-[13px] text-[var(--lg-text-3)]">{title} · {siteLabel(log)}</p>
           </div>
           <button
             type="button"
