@@ -10,6 +10,14 @@ describe('Zustimmung', () => {
     expect(zustimmungFehlt({ age_confirmed_at: '2026-10-01T00:00:00Z', terms_accepted_at: '2026-10-01T00:00:00Z', terms_version: '2020-01' })).toBe(true)
   })
 
+  it('fragt nach der Fassung 2026-10 erneut (Datenschutz um die Web-Seite ergaenzt)', () => {
+    expect(TERMS_VERSION).toBe('2026-11')
+    const alt = { age_confirmed_at: '2026-10-05T10:00:00Z', terms_accepted_at: '2026-10-05T10:00:00Z', terms_version: '2026-10' }
+    expect(zustimmungFehlt(alt)).toBe(true)
+    // auch eine alte Zustimmung aus den Konto-Metadaten wird nicht still uebernommen
+    expect(zustimmungAusMetadaten(alt)).toBeNull()
+  })
+
   it('ist vollstaendig mit beiden Zeitpunkten und aktueller Fassung', () => {
     const row = zustimmungsZeile(new Date('2026-10-05T10:00:00Z'))
     expect(row).toEqual({ age_confirmed_at: '2026-10-05T10:00:00.000Z', terms_accepted_at: '2026-10-05T10:00:00.000Z', terms_version: TERMS_VERSION })

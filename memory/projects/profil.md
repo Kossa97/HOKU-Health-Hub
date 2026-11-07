@@ -140,6 +140,40 @@ Neuer, richtig guter Slogan gesucht (gern tiefgründig, psychologisch).
 Claude-Standard (ungeprüft, im Spec markiert): Adresse = echter Nickname; Berichte-Hinweis nur, wenn Feld
 Erfahrungsberichte auf „Alle“; Desktop: „In Hoku öffnen“ zeigt Store-Knöpfe + QR; neutrale Karte ohne Personen-Neugier.
 
+## Teilprojekt 2c gebaut (04.11.2026, Branch `profil-p2c-web`, Basis 2b)
+Web-Seite `/u/<name>` (api/u.js setzt Meta-Tags, Smart App Banner serverseitig), Link-Karte `/api/og` (resvg,
+drei Karten wie freigegeben), Hoku-Code + Teilen-Sheet mit Vollbild, „Abzeichen im Web“, Suchmaschinen-Schalter,
+Profil melden ohne Konto, App-Links (Platzhalter Team-ID/SHA-256), TERMS_VERSION 2026-11. Migration
+`supabase-profil-p2c-web.sql` im Container geprüft (Trockenlauf-Doku `docs/profil/profil-p2c-trockenlauf.md`),
+NICHT gegen Produktion. Reihenfolge Produktion: 2a → 2b → 2c, jede direkt vor dem Merge ihres PRs (Nutzer mergt).
+Prüfungen 04.11.: Unit 4313 grün, E2E voll (831) bis auf behobene Fälle grün, nach Korrekturen 354/354 Profil-E2E;
+code-review: 7 Funde behoben (altes v zeigt aktuelle Karte, Banner im Server-HTML, canonical klein, feste
+hokuhealth.app für App-Links, Server-Tags beim Verlassen weg, Suchmaschinen-Schalter abschaltbar, Listener-catch);
+offen gelassen: anonyme Meldegrenzen gemeinsam (200/h, 5/Profil/h) erschöpfbar; profile_entry_count läuft bei
+jedem Web-Aufruf (auch für die Seite, die die Zahl nicht zeigt) — später ggf. eigene Karten-Funktion.
+security-review 04.11.: keine Funde. Bewusst freigeben: Eintragszahl zeigt Aktivität über die Zeit.
+Firewall-Regel „Profil-Links bremsen“ (100/min je IP, /u/ und /api/og, 429 für 1 min) vom Nutzer angelegt.
+VITE_APP_STORE_ID muss in Vercel auch zur Laufzeit gesetzt sein (api/u.js liest sie für den Banner).
+
+## Vorgemerkt für den Nutzer (06.11.2026, 2c-Einrichtung)
+Erledigt: Apple Team-ID 5K69NY3K6F in der AASA (gepusht); Vercel `VITE_PUBLIC_SITE_URL=https://hokuhealth.app`
+(nur Production, wirkt ab dem nächsten Deploy); Domain hokuhealth.app ist Hauptdomain, www/meethoku leiten per 308 um.
+Offen, beim nächsten Gespräch am Rechner ansprechen:
+0. Android-Release aufgeschoben (Nutzer 06.11.): erst Kleingewerbe anmelden, dann D-U-N-S, dann Play-Konto als
+   ORGANISATION (kein 12-Tester/14-Tage-Test, kein Risiko „Medical“ nur für Organisationen). Noch kein Play-Konto
+   vorhanden. Apple bleibt Einzelperson (Team 5K69NY3K6F). Impressum/Rechtstexte mit Gewerbeadresse.
+1. SHA-256 Play App Signing + Upload aus der Play Console (App-Integrität → App-Signatur) → `assetlinks.json`,
+   danach `npm run applinks:check`. Geht auch am Handy im Browser (Desktop-Ansicht), falls die App schon in der
+   Play Console liegt; sonst erst nach dem ersten Upload eines App-Bundles.
+2. Store-Adressen und `VITE_APP_STORE_ID` erst, wenn die Apps veröffentlicht sind (sonst führt der Knopf zu /auth).
+3. `HOKU_PATTERN_FEATURE=1` erst mit der Musterfunktion.
+4. `npx cap sync` erledigt (06.11., @capacitor/app + haptics eingetragen). Noch kein Mac (Nutzer 06.11.):
+   Mac kommt spätestens 07.11. Xcode-Schritte warten — Team 5K69NY3K6F wählen (Associated Domains), iOS-Build, QR-Test mit echtem iPhone.
+   Auffällig: @perfood/capacitor-healthkit fehlt in CapApp-SPM/Package.swift (kein Package.swift) — Apple-Health-
+   Import in iOS vermutlich nicht verlinkt; Aufgabe vorgeschlagen. Nutzer will KEINEN macOS-Runner,
+   sondern auf dem eigenen Mac prüfen. `graphify update .` nur lokal (Cloud verliert 105 Dateien).
+5. Rechtliche Platzhalter `[[…]]` (Web-Link Art. 9, Aufbewahrung Meldungen, Rechtsgrundlage) juristisch füllen.
+
 ## Offen
 - Migration `supabase-profil-p1-datenbasis.sql` lief am 31.10.2026 nach Freigabe gegen
   Produktion (Migration `profil_p1_datenbasis`): vorher 0 neue Spalten/Tabellen, 13 Profile;
@@ -156,6 +190,10 @@ Erfahrungsberichte auf „Alle“; Desktop: „In Hoku öffnen“ zeigt Store-Kn
   2b: Baseline aus Health über bestehende Einwilligung (Art. 9); freigegebener Bereichswert mit nur einem
   Wert verrät dessen Verlauf (z. B. Blut), freigegebene Abzeichen-IDs verraten Gesundheitsfakten
   (first_bloodwork, all_markers_in_range, first_cycle_done) — nur nach Freigabe, Standard „Nur ich“.
+  2c: Rückfall-Text „kann Muster finden“ nur mit Musterfunktion; keine Wörter wie „überwacht/erkennt/warnt“.
+  Titel (04.11.): persönliche Titel aus Gesundheits-/Einnahmedaten — Bestätigungstext als Einwilligung nach
+  Art. 9 Abs. 2 a DSGVO (ausdrücklich, informiert, widerrufbar) und neutrale Namen (Apple/Google-Richtlinien zu
+  Substanzen); Nutzer will sich damit auseinandersetzen.
 - 2a: Durchsicht-Punkte vom Nutzer bestätigt (Schnappschuss, Web-Link Standard aus, Prüffehler = privat).
   Chips: kleiner Punkt + Wort in derselben Zeile neben der Beschriftung. Bau auf Branch
   `profil-p2a-sichtbarkeit` (von profil-p1-datenbasis abgezweigt; nach Merge von #114 auf main umsetzen).
@@ -179,3 +217,104 @@ Erfahrungsberichte auf „Alle“; Desktop: „In Hoku öffnen“ zeigt Store-Kn
   Link (1 h) liefert nach Löschen + Neuanlegen unter gleichem Namen den neuen Inhalt.
 - Kleinere Reste: Über-dich ohne Retry nach Ladefehler, Health-Connect-Seitenlimit 50,
   iOS-Blutdruck nur bei exakt gleicher Zeit, jvmTarget-Block nur mit Java 25 gebaut.
+
+### Canva-Vorlage (03.11.)
+Nutzer bearbeitet die Karten selbst in Canva. `docs/profil/canva/hoku-link-karten.pptx`
+(20 Folien 1200 × 630, aus Karten-Mockup Fassung 2, Elemente einzeln). Skripte in
+`docs/profil/canva/quelle/`. Canva-Verbindung im Container nicht erreichbar, daher Datei-Import.
+
+### Nutzer 03.11. zu den Karten — Auswahl (Fassung 3)
+Mockup `docs/profil/mockups/profil-2c-karten-auswahl.html`, https://claude.ai/artifact/9dsm9rL8JLVzYMw5KVL4cy.
+- **Slogan entschieden: „Sieh, wer du wirst.“ / “See who you’re becoming.”**
+- **Fortschritt (A1) = H**: Profil mittig im linken Teil, „trackt 9 Werte“ (9 in Cyan) + Bereiche OBEN, darunter „über 30 %“.
+- **Rückfall (C) = B1** (Nutzer korrigiert 03.11.: nicht B3): Hoku unten rechts angeschnitten (504 px), Kompaktlogo oben
+  rechts; Profil mittig im linken Teil wie A1, 9 in Cyan, Trennlinie, Text über Hoku davor. Alle sechs Texte passen.
+- **Neutral = B3**: Hoku links aus der Kante, Hauptlogo 480 px + Slogan mittig rechts auf Pupillenhöhe, Adresse darunter.
+- C-Text: Nutzer will beschreiben, was Hoku alles kann + die „Engine“ dahinter, kurz; C1–C6 „so lala“. Neue Texte T1–T6
+  (Empfehlung T1 „Du trackst. Hoku verbindet.“). Wahl offen.
+- Offen: Web-Fortschritt nur aus den freigegebenen Bereichen rechnen (sonst passt „trackt 9 Werte“ über dem Ergebnis nicht,
+  und die Zahl verrät etwas über Blut/Einnahmen). Brand-Guide-Freigabe für B1 und B3 (Anschnitt).
+- Recht: in Werbetexten nicht „überwacht“, „erkennt“, „warnt“, „optimiert Gesundheit“ (Medizinprodukt-Anschein, Irreführung).
+- Archiv: Fassung 2 (B1–B6, C1–C6, alle Slogans) in `profil-2c-karten.html` und Canva-Vorlage `docs/profil/canva/` bleiben.
+- Nutzer 03.11.: Rückfall-Überschrift **„Mehr als nur Tracking.“**, Einstieg **„Du trackst. Hoku verbindet.“**, dann
+  „Hokus intelligente Engine legt alles, was du trackst, übereinander …“ (Nutzer-Idee: „erkennt Synergien/Zusammenhänge“).
+  Enden V1–V6 im Mockup; V1–V3 stimmen heute (Vergleich mit Start, KI-Coach erklärt), V4–V6 (Zusammenhänge, Muster,
+  „was dich weiterbringt“) erst mit echter Zusammenhangs-/Mustersuche — sonst irreführende Werbung (UWG) und „erkennt“ klingt
+  nach Medizinprodukt. Empfehlung V1. Wahl offen. Alte T1–T6 in der Git-Historie (c7413e3).
+- Nutzer 03.11.: Sein Zeilen-Anfang war nur ein Beispiel für den Stil. Überschrift bleibt „Mehr als nur Tracking.“;
+  Zeilen Z1–Z6 im Mockup (fetter Kurzsatz + Satz über die Engine). Empfehlung **Z4 „Einzeln sind es Zahlen. Zusammen
+  bist es du.“**; Z6 (Muster finden) braucht erst eine echte Mustersuche. Wahl offen. V1–V6 in der Git-Historie (82918f1).
+- **Rückfall-Text entschieden (Nutzer 03.11.):** „Mehr als nur Tracking.“ / „**Du trackst. Hoku verbindet.** Hokus intelligente
+  Engine legt deine Werte übereinander und kann Muster finden, die du allein nicht gesehen hättest.“ (Nutzer 03.11.: „kann“, verspricht Fähigkeit statt Ergebnis) EN: “More than just tracking.” /
+  “You track. Hoku connects. Hoku’s smart engine layers your data and can find patterns you’d never have spotted on your own.”
+  Voraussetzung: **Musterfunktion läuft zum Start** (Nutzer: ja, Blutwerte evtl. ohne oder gedrosselt). Text nur zusammen mit
+  der Funktion freischalten; sonst übergangsweise Ersatz „… und zeigt dir, was sich seit deinem Start verändert hat.“
+  Muster über die genannten Bereiche (Training, Ernährung, Schlaf, Körper); keine Kausalaussagen. Musterfunktion = eigenes
+  Vorhaben (Spec fehlt; Wirkungs-Check-PRD 2026-10-18 ist nur Vorher/Nachher für Stack-Einträge).
+- Nutzer 03.11. (vor Endfreigabe): **Web-Fortschritt rechnet über ALLE Bereiche** (wie im Profil), weil nur grob in Stufen und
+  nie je Bereich gezeigt — mein Vorschlag „nur freigegebene Bereiche“ abgelehnt. **B1 und B3 nach Brand-Guide freigegeben**
+  (Anschnitt erlaubt). Rückfall-Zeile: Einstieg „Du trackst. / Hoku verbindet.“ in Space Grotesk, „Hoku verbindet.“ Cyan,
+  Rest 70 % Weiß. **Logo weiß, wo Hoku groß im Bild ist**: neutral Hauptlogo weiß (Nutzer-Idee), Rückfall Kompaktlogo weiß
+  (meine Ergänzung, gleiche Regel); A1 Hauptlogo bleibt Cyan. Mockup-Stand „zur Freigabe“; Z1–Z6 in Git-Historie (c0c999f).
+- Nutzer 03.11.: Rückfall-Überschrift „Mehr als nur Tracking.“ **in einer Zeile** (darf über die Spalte bis vor die Bildmarke),
+  Engine-Satz **kursiv** (Inter Italic 500, 76 % Weiß).
+- Nutzer 03.11.: **Fortschrittskarte links statt „16 Abzeichen“ + „41 Tage dabei“**: Zeile 1 „7 Werte verbessert“ (nur unter
+  den Web-Werten der Karte gezählt) → Fallback „16 Abzeichen“ → Zeile entfällt. Zeile 2 „91 % der Tage getrackt“ (Tage mit
+  Eintrag seit Start, abgerundet) ab 70 %, darunter „131 Tage getrackt“. Abzeichen bleiben im Web-Profil. Linke Spalte 30cqw.
+  „41 Tage dabei“ war im Mockup die Serie (Flamme), las sich aber wie Mitgliedschaft → auf Rückfall-Karte noch zu klären.
+- Nutzer 03.11. (ersetzt den Eintrag davor): „Werte verbessert“ und „% der Tage getrackt“ raus (Veränderung steht schon in %).
+  Links unter dem Profil jetzt **„Seit 7 Monaten dabei“** = Mitgliedschaft (unter 1 Monat in Tagen, ab 1 Jahr in Jahren,
+  abgerundet) — auf Fortschritt UND Rückfall (ersetzt „41 Tage dabei“). Fortschritt zweite Angabe: **Einträge**
+  („1.240 Einträge“, alle Bereiche, ohne Aufschlüsselung; Nutzer: „Einträge sind gut“), wahlweise Abzeichen. **Titel**
+  (künftig, muss man sich verdienen, z. B. „Routinier“) als leise Marke unter dem Namen — neues Vorhaben, Spec fehlt.
+  Trend-Symbol jetzt neben „30 %“. Rückfall linke Spalte 25cqw.
+- Nutzer 03.11.: Fortschritt bleibt bei „trackt 9 Werte“ (ohne „aus“/„in“/„in den Bereichen“).
+- **03.11. Link-Karten endgültig freigegeben** (Nutzer). Canva-Vorlage aktualisiert (6 Folien), Spec 3.3 und Plan Task 6 nachgezogen; profile_view web braucht zusätzlich Mitglied-seit, Einträge, Zahl Web-Werte.
+- Musterfunktion/Engine: Nutzer arbeitet daran in einem **eigenen Kontextfenster** (03.11.) — hier nicht weiterführen.
+  Für die Abstimmung relevant: Rückfall-Text „kann Muster finden“ hängt daran (Ersatztext bereit); Wirkungs-Check-PRD
+  (2026-10-18) schließt „Kreuzkorrelation über alle Messwerte“ ausdrücklich aus (Zufallstreffer) — muss dort aufgelöst werden;
+  60 Tage Wearable-Vorgeschichte aus P1 könnten erste Muster am ersten Tag liefern.
+- **Canva-Vorlagen nur noch bei Bedarf** (Nutzer 04.11.): nicht mehr von selbst nachziehen. Maßgeblich sind Mockup,
+  Spec und Code; Link-Karten erzeugt später `api/og.js`. Letzter Stand: `docs/profil/canva/hoku-link-karten.pptx` (9 Folien).
+- **2c offene Fragen entschieden (Nutzer 04.11.)**: Empfehlungen übernommen für 2, 4–6, 8–17, 19–21, 23
+  (TERMS_VERSION anheben, Profil melden per Formular, Rate-Limit 60/min, Cache 60 s/10 min, resvg, qrcode-generator,
+  web_badges, @capacitor/app, Lesetest macht der Nutzer). Abweichend: **Bio im Web bei „Alle“ nach Textprüfung**
+  (wie Anzeigename); **Grenzfall-Abzeichen ab Werk aus**; **Suchmaschinen: Standard noindex + Schalter
+  „In Suchmaschinen auffindbar“** (`profiles.web_indexable`). 2c wird jetzt gestapelt auf 2b gebaut.
+- **2c Task 1 (04.11.)**: `supabase-profil-p2c-web.sql` geschrieben, im Container geprüft (Trockenlauf und Proben:
+  `docs/profil/profil-p2c-trockenlauf.md`), NICHT gegen Produktion. Zwei Läufe gleiche Zählung (9 Profile, 8
+  Schnappschüsse, 8 mit Sichtbarkeit, 7 Web-Link an; 2 neue Spalten, 1 Prüfung, 9 Funktionen, 0 Abweichungen).
+  Web-Stufe: Felder `cover, country, goals, bio (Textfilter), streak, progress (nur Körper/Training/Erholung),
+  badges (web_badges/Standard), reviews (nur count)`, dazu `card` (`member_since` nur bei Feld auf „Alle“;
+  `entry_count` und `web_value_count` nur wenn progress im Web steht) und `web_indexable`. Grenzfall-Abzeichen
+  eigene Liste `profile_badge_web_borderline()` (8) neben `profile_badge_web_sensitive()` (10). `web_value_count`
+  braucht `progress.counts` im Schnappschuss (Task 2). Fortschrittsstufe rundet `profileCard.js`, nicht SQL.
+  Nebenbefund 2a: Bestands-update bricht ab, wenn eine `is_public`-Alt-Bio den Filter nicht besteht (Zählabfrage
+  in der Trockenlauf-Notiz) — vor dem 2a-Produktivlauf zählen.
+- **Vor dem Produktivlauf von 2a prüfen (Fund aus dem 2c-Trockenlauf, 04.11.):** Der Bio-Backfill in 2a (Abschnitt 4)
+  bricht die ganze Migration ab, wenn eine alte öffentliche Bio den heutigen Textfilter nicht besteht
+  (`ERROR: oeffentliches_profil_link`). Diese Zählung muss 0 ergeben, sonst Treffer von Hand klären:
+  `select count(*) from public.profiles where is_public and field_visibility = '{}'::jsonb and public.oeffentlicher_text_fehler(public_bio) is not null;`
+- **2c Task 1 (Migration) und Task 5a (Hoku-Code) gebaut** (04.11.): `supabase-profil-p2c-web.sql` + Trockenlauf
+  (`docs/profil/profil-p2c-trockenlauf.md`), `hokuCode.ts`/`HokuCode.tsx` mit Lesetest (qrcode-generator 2.0.4).
+  Nutzer-Entscheidungen zu den Migrationsfragen: **Web zeigt beim Fortschritt nur die Stufe** (keine genaue Zahl,
+  keine Bereiche — sonst ließe sich Blut/Einnahmen zurückrechnen); **Einträge zählen Blut/Einnahmen nur, wenn der
+  Nutzer es erlaubt** (Feld auf „Alle“); **„Seit … dabei“ und „trackt N Werte“ immer bei Web-Link an**;
+  **„Seit … dabei“ nur als Dauer**, nie als Datum.
+- **2c Task 1 überarbeitet (Nutzer 04.11., offene Fragen der Migration)**: Web-Fortschritt nur als Stufe
+  `progress.tier` (10/20/30/50/75/100, abgerundet, in SQL; kein total/areas/since — Subtraktionsleck weg);
+  `card.member_since` nur als Dauer `{unit, n}` (Jahre erst ab 366 Tagen, sonst „0 Jahre“), `card.web_value_count`
+  beide immer bei Web-Link an; `entry_count` nur mit Stufe, Blutwerte nur bei `markers`, Einnahmen nur bei
+  `adherence` auf „Alle“. Fortschrittskarte ⇔ `progress.tier` da; Karte ohne Startmonat („positive Veränderung“).
+  Trockenlauf frisch, zwei Läufe gleich (9/8/8/7, 2 Spalten, 1 Prüfung, 11 Funktionen), Proben W1–W21 bestanden.
+- 04.11.: Fortschrittskarte „positive Veränderung **seit Start**“ (en „since start“) statt „seit März“ — kein Datum im Web.
+  Eintragszähler: Blutbefunde nur bei Feld `markers` („Marker erfasst“) auf „Alle“, Einnahmen nur bei `adherence` auf „Alle“ (bestätigt).
+- 2c Server-Teil (04.11.): `api/u.js` + `api/og.js` + `api/_lib/profileViewWeb.js`, vercel.json (functions.includeFiles, AASA-Route,
+  `/u/*`-Route). **Vor dem Deploy (Nutzer):** Migration 2a→2b→2c freigeben; `VITE_PUBLIC_SITE_URL` in Vercel prüfen;
+  `HOKU_PATTERN_FEATURE` erst mit Musterfunktion auf 1; Firewall-Rate-Limit 60/min je IP auf `/u/*` und `/api/og` im
+  Dashboard anlegen; nach Preview-Deploy: Fonts/resvg im Bundle, Avatar als anon, Link in WhatsApp testen.
+  Bild-URL trägt `lang` (Hash passt so zu HTML). App-Links: Team ID + 2 SHA-256 nachtragen (`docs/applinks/EINRICHTEN.md`).
+- 04.11.: **Prüfabfrage vor 2a gegen Produktion gelaufen (nur Zählung): 1 öffentliches Profil, 0 Bios fallen durch** —
+  2a-Backfill bricht nicht ab. Migrationen laufen je direkt vor dem Merge ihres PRs (Nutzer-Entscheidung).
+  Firewall-Regel „Profil-Links bremsen“ (60/min je IP auf /u/ und /api/og, 429 für 10 min): Nutzer will sie; die
+  Nutzer hat sie im Dashboard angelegt: 100/min je IP (nicht 60, wegen Vorschau-Diensten), 429 für 1 Minute.

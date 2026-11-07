@@ -70,8 +70,28 @@ describe('Rechtstexte', () => {
     expect(en?.heading).toBe('6. Profile and visibility')
     const deText = de?.paragraphs.join(' ') ?? ''
     const enText = en?.paragraphs.join(' ') ?? ''
-    for (const wert of ['„Nur ich“', '„Freunde“', '„Alle“', 'angemeldete Hoku-Nutzer', 'Freunde-Funktion', 'Profilbild', 'privat', 'nie ihre Namen', 'Menstruationszyklus, Blutzucker und Medikamente', 'Profilwerte-Schnappschuss', 'mit deinem Konto gelöscht', 'standardmäßig aus', 'Erfahrungsberichte und alle anderen Werte sind ohne Anmeldung nie zu sehen']) expect(deText).toContain(wert)
-    for (const wert of ['“Only me”', '“Friends”', '“Everyone”', 'signed-in Hoku users', 'friends feature', 'profile picture', 'private', 'never their names', 'Menstrual cycle, blood sugar and medications', 'Profile values snapshot', 'deleted with your account', 'off by default', 'Experience reports and all other values are never visible without signing in']) expect(enText).toContain(wert)
+    for (const wert of ['„Nur ich“', '„Freunde“', '„Alle“', 'angemeldete Hoku-Nutzer', 'Freunde-Funktion', 'Profilbild', 'privat', 'nie ihre Namen', 'Menstruationszyklus, Blutzucker und Medikamente', 'Profilwerte-Schnappschuss', 'mit deinem Konto gelöscht', 'standardmäßig aus', 'Nie ohne Anmeldung zu sehen']) expect(deText).toContain(wert)
+    for (const wert of ['“Only me”', '“Friends”', '“Everyone”', 'signed-in Hoku users', 'friends feature', 'profile picture', 'private', 'never their names', 'Menstrual cycle, blood sugar and medications', 'Profile values snapshot', 'deleted with your account', 'off by default', 'Never visible without signing in']) expect(enText).toContain(wert)
+  })
+
+  it('beschreibt die Web-Stufe: was sichtbar ist, Link-Karte, Zwischenspeicher, Suchmaschinen, Melden ohne Konto', () => {
+    const text = (lang: 'de' | 'en') => LEGAL_DOCS.datenschutz[lang].sections.find(s => s.id === PROFILE_SECTION_ID)?.paragraphs.join(' ') ?? ''
+    const de = text('de')
+    const en = text('en')
+    for (const wert of ['/u/<Nutzername>', '„Seite nicht gefunden“', 'nur als Dauer', 'nie das Datum', 'abgerundete Stufe', 'ohne Bereiche und ohne Startdatum',
+      'Abzeichen im Web', 'Blutwerte und Marker', 'Inhalte deiner Erfahrungsberichte', 'Link-Karte', 'Server-Funktionen von Vercel', '„Marker erfasst“',
+      'rund 2 Minuten', 'bis zu 10 Minuten', 'Messenger', '„noindex“', 'In Suchmaschinen auffindbar', 'auch ohne Konto', 'Art. 16 Digital Services Act',
+      'E-Mail-Adresse nur für Rückfragen']) expect(de).toContain(wert)
+    for (const wert of ['/u/<username>', '“Page not found”', 'only as a duration', 'never the date', 'rounded-down tier', 'without areas and without the start date',
+      'Badges on the web', 'blood values and markers', 'content of your experience reports', 'Link card', 'Vercel server functions', '“Markers tracked”',
+      'about 2 minutes', 'up to 10 minutes', 'Messengers', '“noindex”', 'Findable in search engines', 'even without an account', 'Art. 16 Digital Services Act',
+      'email address only for follow-up questions']) expect(en).toContain(wert)
+  })
+
+  it('nennt Vercel fuer Web-Seite und Link-Karte, Funktionen in der EU', () => {
+    const vercel = (lang: 'de' | 'en') => LEGAL_DOCS.datenschutz[lang].sections[4].paragraphs.find(p => p.startsWith('Vercel')) ?? ''
+    for (const wert of ['Web-Seite /u/<Nutzername>', 'Link-Karte', 'EU (Irland)', 'zwischengespeichert']) expect(vercel('de')).toContain(wert)
+    for (const wert of ['web page /u/<username>', 'link card', 'EU (Ireland)', 'cached']) expect(vercel('en')).toContain(wert)
   })
 
   it('beschreibt Gesamtfortschritt und Abzeichen: auf dem Gerät, Baseline aus Health, im Konto, für andere nur Gesamt, Bereiche, Abzeichen', () => {

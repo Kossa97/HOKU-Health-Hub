@@ -201,6 +201,8 @@ export interface ProgressResult {
   total: number | null
   /** Wie viele der fuenf Bereiche ins Gesamt eingehen. */
   areaCount: number
+  /** Wie viele Werte je Bereich zaehlen (`change` nicht `null`); 0 = keiner. */
+  valueCounts: Record<ProgressArea, number>
 }
 
 const mean = (xs: readonly number[]) => xs.reduce((a, b) => a + b, 0) / xs.length
@@ -217,12 +219,13 @@ export function scoreProgress(
       : null
     return { ...v, area: areaOf(v.id), direction, source: directionSource(v.id), change }
   })
-  const areas = Object.fromEntries(PROGRESS_AREAS.map(area => {
-    const xs = values.filter(v => v.area === area && v.change !== null).map(v => v.change as number)
-    return [area, xs.length > 0 ? mean(xs) : null]
-  })) as Record<ProgressArea, number | null>
+  const perArea = Object.fromEntries(PROGRESS_AREAS.map(area =>
+    [area, values.filter(v => v.area === area && v.change !== null).map(v => v.change as number)])) as Record<ProgressArea, number[]>
+  const areas = Object.fromEntries(PROGRESS_AREAS.map(a =>
+    [a, perArea[a].length > 0 ? mean(perArea[a]) : null])) as Record<ProgressArea, number | null>
+  const valueCounts = Object.fromEntries(PROGRESS_AREAS.map(a => [a, perArea[a].length])) as Record<ProgressArea, number>
   const counted = PROGRESS_AREAS.map(a => areas[a]).filter((x): x is number => x !== null)
-  return { values, areas, total: counted.length > 0 ? mean(counted) : null, areaCount: counted.length }
+  return { values, areas, total: counted.length > 0 ? mean(counted) : null, areaCount: counted.length, valueCounts }
 }
 
 // ─── Tage ───────────────────────────────────────────────────────────────────
@@ -536,6 +539,13 @@ export interface ProgressSnapshot {
   total: number
   areas: Partial<Record<ProgressArea, number>>
   since: string
+  /**
+   * 2c: Zahl der Werte je Bereich, die ins Gesamt eingehen (nur Bereiche mit
+   * Wert). Grundlage von „trackt N Werte“ (`card.web_value_count`); der Server
+   * liest davon nur Koerper, Training, Erholung und gibt `counts` selbst nie
+   * an andere weiter (`profile_snapshot_clean`).
+   */
+  counts?: Partial<Record<ProgressArea, number>>
 }
 
 /** Bereiche mit Wert, auf eine Stelle gerundet (Schnappschuss und Wochenreihe). */
@@ -548,9 +558,22 @@ function roundedAreas(result: ProgressResult): Partial<Record<ProgressArea, numb
   return areas
 }
 
+/** Hoechstens so viele Werte je Bereich nimmt der Server an (`profile_web_value_count`). */
+export const PROGRESS_COUNT_MAX = 1000
+
+/** Werte je Bereich, die zaehlen; Bereiche ohne fehlen (wie in `areas`). */
+function countedPerArea(result: ProgressResult): Partial<Record<ProgressArea, number>> {
+  const counts: Partial<Record<ProgressArea, number>> = {}
+  for (const a of PROGRESS_AREAS) {
+    const n = result.valueCounts[a]
+    if (n > 0) counts[a] = Math.min(PROGRESS_COUNT_MAX, n)
+  }
+  return counts
+}
+
 export function progressSnapshot(result: ProgressResult, startOn: string): ProgressSnapshot | undefined {
   if (result.total === null) return undefined
-  return { total: round1(result.total), areas: roundedAreas(result), since: startOn }
+  return { total: round1(result.total), areas: roundedAreas(result), since: startOn, counts: countedPerArea(result) }
 }
 
 /** Ein Punkt der Zeitreise (`progress_settings.history`), Woche = Montag. */

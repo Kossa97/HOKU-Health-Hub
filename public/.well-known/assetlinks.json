@@ -3,8 +3,11 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.kossa97.tyd",
-      "sha256_cert_fingerprints": ["SHA256_FINGERPRINT_DES_SIGNIERSCHLUESSELS"]
+      "package_name": "com.trackyourdose.app",
+      "sha256_cert_fingerprints": [
+        "SHA256_PLATZHALTER_PLAY_APP_SIGNING",
+        "SHA256_PLATZHALTER_UPLOAD"
+      ]
     }
   }
 ]

@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Universal Links: der Knopf „In Hoku öffnen“ in den Mails öffnet die App (docs/registrierung/APP-LINKS.md) -->
+	<!-- Universal Links: geteilte Profile /u/<name> (Profil 2c) und der Knopf „In Hoku öffnen“ in den Mails (docs/registrierung/APP-LINKS.md) -->
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>applinks:hokuhealth.app</string>

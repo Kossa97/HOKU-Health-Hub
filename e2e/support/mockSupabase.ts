@@ -4,7 +4,8 @@ import { SUBSTANCE_CATALOG } from '../../scripts/substance-catalog-source.mjs'
 import { TERMS_VERSION } from '../../src/features/compliance/lib/consent'
 import { consentCoversLabels } from '../../supabase/functions/label-extract/prompt'
 import { hatZugang } from '../../supabase/functions/coach/prompt'
-import { isBadgeId } from '../../src/features/profil/lib/badgeIds'
+import { isBadgeId, parseWebBadges, webBadgeOn } from '../../src/features/profil/lib/badgeIds'
+import { MELDEGRUENDE } from '../../src/features/compliance/lib/moderation'
 
 /**
  * Nachgebildetes Supabase fuer die Geraetetests.
@@ -179,6 +180,39 @@ function schnappschussFuerAndere(snap: Record<string, unknown>): Record<string, 
     if (ids.length > 0) out.badges = ids
   }
   return out
+}
+
+/** profile_web_fields() (2c): was es ueberhaupt ins Web schaffen kann. */
+const WEB_FIELDS = ['cover', 'country', 'goals', 'bio', 'streak', 'progress', 'badges', 'reviews']
+
+/** profile_web_progress_tier: groesste Stufe <= total, sonst keine. */
+function webTier(total: unknown): number | null {
+  if (typeof total !== 'number' || !Number.isFinite(total)) return null
+  return [100, 75, 50, 30, 20, 10].find(t => total >= t) ?? null
+}
+
+/** profile_web_member_for: Dauer seit dem Konto, nie das Datum. */
+function mitgliedFuer(createdAt: unknown, now: Date): { unit: string; n: number } | null {
+  if (typeof createdAt !== 'string') return null
+  const tag = (d: Date) => Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
+  const d = Math.max(0, Math.round((tag(now) - tag(new Date(createdAt))) / 86_400_000))
+  if (d < 31) return { unit: 'days', n: d }
+  if (d < 366) return { unit: 'months', n: Math.floor(d / 30.44) }
+  return { unit: 'years', n: Math.floor(d / 365.25) }
+}
+
+/** profile_web_value_count: Summe aus progress.counts fuer Koerper, Training, Erholung. */
+function wertZahl(snap: Record<string, unknown>): number | null {
+  const counts = (snap.progress as { counts?: Record<string, unknown> } | undefined)?.counts
+  if (!counts || typeof counts !== 'object') return null
+  let sum = 0
+  for (const k of ['koerper', 'training', 'erholung']) {
+    const c = counts[k]
+    if (c === undefined) continue
+    if (typeof c !== 'number' || !Number.isInteger(c) || c < 0 || c > 1000) return null
+    sum += c
+  }
+  return sum > 0 ? sum : null
 }
 
 function toNumberish(value: string): unknown {
@@ -391,8 +425,10 @@ export class MockSupabase {
         (p.avatar_path === pfad && p.avatar_status === 'approved' && p.avatar_object_id === id
           && (betrachter !== null || (p.web_link_enabled === true && p.profile_private !== true)))
         || (p.cover_path === pfad && p.cover_status === 'approved' && p.cover_object_id === id
-          && betrachter !== null && p.profile_private !== true
-          && (p.field_visibility as Record<string, string> | undefined)?.cover === 'all')))
+          && p.profile_private !== true
+          && (p.field_visibility as Record<string, string> | undefined)?.cover === 'all'
+          // ohne Anmeldung nur bei eingeschaltetem Web-Link (2c)
+          && (betrachter !== null || p.web_link_enabled === true))))
   }
 
   /** Der echte Katalog aus der Quelldatei — dieselbe, aus der die SQL entsteht. */
@@ -1075,6 +1111,29 @@ export class MockSupabase {
       return null
     })
 
+    // Melden ohne Konto von der Web-Seite (supabase-profil-p2c-web.sql, Abschnitt 7): nur, was in der
+    // Stufe web zu sehen ist; sonst fuer jeden Fall derselbe Fehler. Grund und E-Mail vor der Suche.
+    this.onRpc('report_public_profile_web', params => {
+      if (!(MELDEGRUENDE as readonly string[]).includes(String(params.p_reason))) throw new RpcError('meldung_ungueltig')
+      const kontakt = String(params.p_contact ?? '').trim() || null
+      if (kontakt && (kontakt.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s.]+$/.test(kontakt))) throw new RpcError('kontakt_ungueltig')
+      const ziel = profilVon(params.p_username)
+      const melder = this.betrachter()
+      if (!ziel || ziel.hidden_by_moderation === true || ziel.web_link_enabled !== true || ziel.profile_private === true || ziel.id === melder) {
+        throw new RpcError('meldung_nicht_moeglich')
+      }
+      // Grenzen (5 je Profil, 200 je Stunde; angemeldet die der App) und die Doppelpruefung bildet
+      // der Mock nicht nach; die Proben dazu stehen im Trockenlauf (M4, M5, M8e, M11).
+      const bio = (ziel.field_visibility as Record<string, string> | undefined)?.bio === 'all' ? String(ziel.public_bio ?? '').trim() || null : null
+      this.insert('content_reports', {
+        review_id: null, reported_user_id: ziel.id, reporter_id: melder,
+        reason: params.p_reason, details: String(params.p_details ?? '').trim().slice(0, 1000) || null, status: 'offen',
+        snapshot: { art: 'profil', username: ziel.username, display_name: ziel.display_name ?? null, public_bio: bio },
+        source: 'web', reporter_contact: kontakt,
+      })
+      return null
+    })
+
     this.onRpc('set_profile_block', params => {
       const ziel = profilVon(params.p_username)
       if (!ziel || ziel.id === TEST_USER.id) return null
@@ -1099,6 +1158,7 @@ export class MockSupabase {
           review_id: row.review_id ?? null, review_exists: Boolean(review),
           username: this.table('profiles').find(p => p.id === row.reported_user_id)?.username ?? snapshot?.username ?? null,
           snapshot: snapshot ?? null,
+          source: row.source ?? 'app', contact: row.reporter_contact ?? null,
         }
       })
     })
@@ -1244,9 +1304,12 @@ export class MockSupabase {
       }
     })
 
-    // Nachbild von profile_view (supabase-profil-p2a-sichtbarkeit.sql): Eigentuemer
+    // Nachbild von profile_view (supabase-profil-p2c-web.sql): Eigentuemer
     // sieht alles (oder mit p_as eine andere Stufe), andere angemeldete nur "all",
-    // ohne Anmeldung ("web") nur Name, Nickname, Bild und Bio bei Web-Link an.
+    // ohne Anmeldung ("web") nur bei Web-Link an und nur die Web-Felder (2c):
+    // cover, country, goals, bio (nach Textfilter), streak, progress (nur {tier}),
+    // badges (nach web_badges), reviews (nur {count}); dazu `card` und
+    // `web_indexable`. `card.entry_count` fehlt im Nachbild (die Seite zeigt ihn nicht).
     this.onRpc('profile_view', params => {
       const betrachter = this.betrachter()
       const name = String(params.p_username ?? '').trim().toLowerCase()
@@ -1263,10 +1326,10 @@ export class MockSupabase {
       if (stufe === 'web' && (p.web_link_enabled !== true || p.profile_private === true)) return null
       const erlaubt = (key: string) => stufe === 'owner'
         || (p.profile_private !== true && (stufe === 'friends' ? ['friends', 'all'].includes(vis[key]) : vis[key] === 'all')
-          && (stufe !== 'web' || key === 'bio'))
+          && (stufe !== 'web' || WEB_FIELDS.includes(key)))
       const fields: Record<string, unknown> = {}
       const zeile: Record<string, unknown> = {
-        bio: p.public_bio || undefined,
+        bio: p.public_bio && (stufe !== 'web' || oeffentlicherTextFehler(p.public_bio) === null) ? p.public_bio : undefined,
         goals: Array.isArray(p.goals) && p.goals.length > 0 ? p.goals : undefined,
         country: p.country ?? undefined,
         gender: p.profile_gender ?? undefined,
@@ -1278,6 +1341,30 @@ export class MockSupabase {
       for (const [key, value] of Object.entries({ ...snap, ...zeile })) {
         if (value !== undefined && erlaubt(key)) fields[key] = value
       }
+      let card: Record<string, unknown> | undefined
+      if (stufe === 'web') {
+        const prog = fields.progress as { total: number; areas?: Record<string, number> } | undefined
+        const tier = prog && Object.keys(prog.areas ?? {}).some(a => ['koerper', 'training', 'erholung'].includes(a))
+          ? webTier((roh.progress as { total?: unknown } | undefined)?.total) : null
+        if (tier === null) delete fields.progress
+        else fields.progress = { tier }
+        if (Array.isArray(fields.badges)) {
+          const overrides = parseWebBadges(p.web_badges)
+          const ids = (fields.badges as unknown[]).filter(isBadgeId).filter(id => webBadgeOn(id, overrides))
+          if (ids.length > 0) fields.badges = ids
+          else delete fields.badges
+        }
+        const reviews = fields.reviews as { count?: number } | undefined
+        if (reviews) {
+          if (typeof reviews.count === 'number' && reviews.count > 0) fields.reviews = { count: reviews.count }
+          else delete fields.reviews
+        }
+        card = {}
+        const member = mitgliedFuer(p.created_at, this.now())
+        if (member) card.member_since = member
+        const values = wertZahl(roh)
+        if (values !== null) card.web_value_count = values
+      }
       return {
         username: p.username, own: eigen, blocked: false,
         // Andere bekommen den Anzeigenamen nur, wenn er den Textfilter besteht.
@@ -1286,9 +1373,11 @@ export class MockSupabase {
         ...(stufe !== 'owner' ? { private: p.profile_private === true } : {}),
         avatar: p.avatar_path && (stufe === 'owner' || p.avatar_status === 'approved') ? p.avatar_path : null,
         fields,
+        ...(card && Object.keys(card).length > 0 ? { card } : {}),
+        ...(stufe === 'web' || stufe === 'owner' ? { web_indexable: p.web_indexable === true } : {}),
         ...(stufe === 'owner' ? {
           visibility: vis, profile_private: p.profile_private === true, web_link_enabled: p.web_link_enabled === true,
-          avatar_status: p.avatar_status ?? null, cover_status: p.cover_status ?? null,
+          avatar_status: p.avatar_status ?? null, cover_status: p.cover_status ?? null, web_badges: p.web_badges ?? {},
         } : {}),
       }
     })

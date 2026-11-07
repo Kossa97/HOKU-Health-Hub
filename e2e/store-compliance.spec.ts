@@ -178,6 +178,24 @@ test('Admin: gemeldetes Profil ausblenden — danach ist es nicht mehr erreichba
   await expect(page.getByText('Profil nicht gefunden')).toBeVisible()
 })
 
+test('Admin: Meldung ohne Konto von der Web-Seite ist gekennzeichnet, mit E-Mail für Rückfragen', async ({ page, mock }) => {
+  mock.table('profiles')[0].is_admin = true
+  fremdesProfil(mock)
+  mock.insert('content_reports', {
+    review_id: null, reported_user_id: FREMD_ID, reporter_id: null, reason: 'spam', details: 'Über den Link gefunden', status: 'offen',
+    snapshot: { art: 'profil', username: 'max', display_name: 'Max', public_bio: null }, source: 'web', reporter_contact: 'melder@example.org',
+  })
+  mock.insert('content_reports', {
+    review_id: null, reported_user_id: FREMD_ID, reporter_id: null, reason: 'werbung', details: null, status: 'offen',
+    snapshot: { art: 'profil', username: 'max', display_name: 'Max', public_bio: null },
+  })
+  await page.goto('/lab/admin')
+  const meldungen = page.locator('[data-moderation-report]')
+  await expect(meldungen).toHaveCount(2)
+  await expect(meldungen.nth(0).locator('[data-moderation-web]')).toHaveText('Über die Web-Seite, ohne Konto · Kontakt für Rückfragen: melder@example.org')
+  await expect(meldungen.nth(1).locator('[data-moderation-web]')).toHaveCount(0)
+})
+
 test('Konto löschen: erst das Wort, dann Dateien, Konto und Abmeldung', async ({ page, mock }) => {
   mock.storage.set('progress-photos', [`${TEST_USER.id}/1.jpg`, `${TEST_USER.id}/2.jpg`, 'jemand-anders/3.jpg'])
   mock.storage.set('batch-files', [`${TEST_USER.id}/analyse.pdf`, `progress/${TEST_USER.id}/alt.jpg`, 'progress/jemand-anders/x.jpg'])

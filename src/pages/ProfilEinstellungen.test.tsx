@@ -192,6 +192,41 @@ describe('Einstellungen', () => {
     expect(container.querySelector('[data-setting-private]')?.getAttribute('aria-checked')).toBe('true')
   })
 
+  it('Web-Link: Eintrag „Abzeichen im Web“ und Schalter „In Suchmaschinen auffindbar“ (schreibt web_indexable)', async () => {
+    db.row = { ...db.row, web_indexable: false }
+    const { container } = renderAt('/profil/einstellungen')
+    await waitFor(() => expect(container.querySelector('[data-setting-indexable]')?.hasAttribute('disabled')).toBe(false))
+    expect(container.querySelector('[data-setting-web-badges]')?.getAttribute('href')).toBe('/profil/web-abzeichen')
+    const schalter = container.querySelector('[data-setting-indexable]')!
+    expect(schalter.getAttribute('aria-checked')).toBe('false')
+    expect(schalter.textContent).toContain('profil_web_indexable_sub')
+    await act(async () => { fireEvent.click(schalter) })
+    expect(db.updates).toEqual([{ web_indexable: true }])
+    expect(schalter.getAttribute('aria-checked')).toBe('true')
+  })
+
+  it.each([
+    ['Web-Link aus', { web_link_enabled: false }, '[data-setting-weblink]'],
+    ['privat', { profile_private: true }, '[data-setting-private]'],
+  ])('Suchmaschinen-Schalter ohne Wirkung (%s): Erklärung, Einschalten gesperrt, Ausschalten geht', async (_name, patch, umlegen) => {
+    db.row = { ...db.row, ...patch, web_indexable: true }
+    const { container } = renderAt('/profil/einstellungen')
+    await waitFor(() => expect(container.querySelector('[data-setting-private]')?.hasAttribute('disabled')).toBe(false))
+    const schalter = container.querySelector('[data-setting-indexable]')!
+    expect(schalter.getAttribute('aria-checked')).toBe('true')
+    expect(schalter.textContent).toContain('profil_web_indexable_gesperrt')
+    // Ein altes „an“ lässt sich abschalten, damit es nicht später still wieder wirkt
+    expect(schalter.hasAttribute('disabled')).toBe(false)
+    await act(async () => { fireEvent.click(schalter) })
+    await waitFor(() => expect(schalter.getAttribute('aria-checked')).toBe('false'))
+    expect(db.updates).toContainEqual({ web_indexable: false })
+    // Aus: Einschalten geht erst wieder mit Web-Link an (bzw. privat aus)
+    expect(schalter.hasAttribute('disabled')).toBe(true)
+    await act(async () => { fireEvent.click(container.querySelector(umlegen)!) })
+    expect(schalter.hasAttribute('disabled')).toBe(false)
+    expect(schalter.textContent).toContain('profil_web_indexable_sub')
+  })
+
   it('Ansehen als … führt zu /u/<name>?als=…', async () => {
     const { container } = renderAt('/profil/einstellungen')
     await waitFor(() => expect(container.querySelector('[data-setting-ansehen]')?.hasAttribute('disabled')).toBe(false))

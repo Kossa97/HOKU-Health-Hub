@@ -1990,6 +1990,60 @@ html[data-theme='light'] {
 /* Nur das Diagramm der Zeitreise nimmt den Finger ganz: die Seite scrollt sonst normal */
 [data-zeitreise-plot] { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 
+/* ── Profil teilen (Profil 2c, Spec 4.4) ─────────────────────────────────────
+   Den kleinen Code antippen öffnet das Vollbild: Druck wie ein Knopf. */
+.teilen-code-knopf {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+  border-radius: 16px;
+  transition: transform 160ms var(--tyd-ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+}
+.teilen-code-knopf:active { transform: scale(0.96); transition-duration: 100ms; }
+.teilen-aendern {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 1px;
+  white-space: nowrap;
+  color: var(--accent);
+  touch-action: manipulation;
+}
+
+/* Vollbild: immer dunkel auf hell (Kameras, Spec 4.2), unabhängig vom Look.
+   Erscheint kurz aus der Mitte; mit reduzierter Bewegung nur als Überblendung. */
+.hoku-vollbild {
+  --hoku-vollbild-ink: #16171b;
+  --hoku-vollbild-t2: rgba(22, 23, 27, 0.64);
+  color: var(--hoku-vollbild-ink);
+  background: radial-gradient(90% 60% at 50% 38%, #ffffff, #f1f2f4);
+  overscroll-behavior: none;
+  overflow: hidden;
+  /* nichts zu scrollen: Wischen bewegt nicht die Seite dahinter, Zoomen bleibt */
+  touch-action: pinch-zoom;
+  color-scheme: light;
+}
+.hoku-vollbild-knopf {
+  background: rgba(22, 23, 27, 0.07);
+  color: var(--hoku-vollbild-ink);
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+  transition: transform 160ms var(--tyd-ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+}
+.hoku-vollbild-knopf:active { transform: scale(0.97); transition-duration: 100ms; }
+.hoku-vollbild-primaer { background: var(--hoku-vollbild-ink); color: #ffffff; }
+.hoku-vollbild-knopf:focus-visible { outline: 2px solid var(--hoku-vollbild-ink); outline-offset: 2px; }
+/* Standard ist die reine Überblendung (gilt auch bei reduzierter Bewegung);
+   nur ohne diesen Wunsch kommt das Hereinwachsen dazu. */
+.hoku-vollbild { animation: tyd-fade-in 150ms ease both; }
+@media (prefers-reduced-motion: no-preference) {
+  .hoku-vollbild { animation: tyd-fade-in 180ms ease-out both; }
+  .hoku-vollbild-buehne { animation: hoku-vollbild-in 240ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+}
+@keyframes hoku-vollbild-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
+
 /* ── Hoku-Licht: Werte je Fläche, NICHT vererbt ───────────────────────────
    hokuLicht.ts schreibt sie jedes Bild, in dem Hoku sich bewegt, an jede
    sichtbare Fläche. Vererbt hätten sie jedes Mal den ganzen Inhalt der Karte

@@ -28,12 +28,18 @@
                 <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
             </intent-filter>
 
-            <!-- App Links: der Knopf „In Hoku öffnen“ in den Mails öffnet die App (docs/registrierung/APP-LINKS.md) -->
+            <!-- App Links: geteilte Profiladressen https://hokuhealth.app/u/<name> (Profil 2c,
+                 src/features/applinks/lib/appLinks.ts) und der Knopf „In Hoku öffnen“ in den
+                 Mails (/auth, docs/registrierung/APP-LINKS.md). Android prueft die Domain ueber
+                 public/.well-known/assetlinks.json. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="hokuhealth.app" android:path="/auth" />
+                <data android:scheme="https" />
+                <data android:host="hokuhealth.app" />
+                <data android:pathPrefix="/u/" />
+                <data android:path="/auth" />
             </intent-filter>
 
         </activity>

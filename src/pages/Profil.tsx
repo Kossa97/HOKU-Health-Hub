@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
@@ -16,7 +16,9 @@ import { useEigenesProfil, type ProfilZeile } from '../features/profil/hooks/use
 import { useFieldVisibility } from '../features/profil/hooks/useFieldVisibility'
 import { requestProfileSnapshot } from '../features/profil/hooks/useProfileSnapshotSync'
 import { GOAL_TAGS, isProfileGender, knownCountry } from '../features/profil/lib/profileFields'
-import { isMediaStatus, parseFields, profileUrl, type MediaStatus, type ProfileViewFields } from '../features/profil/lib/profileView'
+import { isMediaStatus, isWebProgress, parseFields, type MediaStatus, type ProfileViewFields } from '../features/profil/lib/profileView'
+import { hokuCodeUrl } from '../features/profil/lib/hokuCode'
+import { supabase } from '../lib/supabase'
 import { useBildPruefungNachholen } from '../features/profil/hooks/useBildPruefungNachholen'
 import { dismissRejectedMedia, type MediaKind } from '../features/profil/services/profileMedia'
 import { importWithReload } from '../lib/staleChunkReload'
@@ -24,6 +26,8 @@ import { importWithReload } from '../lib/staleChunkReload'
 // Übungskatalog und Auswahl erst beim Öffnen laden
 const ProfilBearbeiten = lazy(importWithReload(() => import('../features/profil/components/ProfilBearbeiten')
   .then(m => ({ default: m.ProfilBearbeiten }))))
+const ProfilTeilen = lazy(importWithReload(() => import('../features/profil/components/ProfilTeilen')
+  .then(m => ({ default: m.ProfilTeilen }))))
 
 const str = (v: unknown) => (typeof v === 'string' ? v : '')
 const strOrNull = (v: unknown) => (typeof v === 'string' && v ? v : null)
@@ -73,7 +77,7 @@ function fortschrittsZusammenfassung(
   if (f.status === 'ok') {
     return { total: f.state.result?.total ?? null, areas: f.state.result?.areas ?? {}, since: f.state.setup?.startOn ?? null }
   }
-  return snap ? { total: snap.total, areas: snap.areas, since: snap.since } : { total: null, areas: {}, since: null }
+  return snap && !isWebProgress(snap) ? { total: snap.total, areas: snap.areas, since: snap.since } : { total: null, areas: {}, since: null }
 }
 
 /**
@@ -86,6 +90,8 @@ export function Profil() {
   const { t } = useTranslation()
   const { state, setState } = useEigenesProfil(user?.id)
   const [bearbeiten, setBearbeiten] = useState(false)
+  const [teilenOffen, setTeilenOffen] = useState(false)
+  const teilenKnopf = useRef<HTMLButtonElement>(null)
   const geladen = state.status === 'ok' ? state : null
   const sichtbarkeit = useFieldVisibility(user?.id, geladen?.view.visibility ?? null)
   const { fortschritt } = useEigenerFortschritt(user?.id)
@@ -94,27 +100,34 @@ export function Profil() {
   // Beim Öffnen den Schnappschuss auffrischen: andere sehen dann den Stand von heute
   useEffect(() => { requestProfileSnapshot() }, [])
 
-  const teilen = async () => {
-    const name = geladen?.view.username
-    if (!name) return toast.error(t('zuerst_username'))
-    const url = profileUrl(name)
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: geladen.view.displayName ?? `@${name}`, url })
-      } else {
-        await navigator.clipboard.writeText(url)
-        toast.success(t('link_kopiert'))
-      }
-      // Abzeichen „Profil geteilt“: folgt aus keiner Messung, wird hier vergeben
-      if (user) {
-        void import('../features/profil/services/progressStore')
-          .then(m => m.awardBadge(user.id, 'profile_shared'))
-          .then(neu => { if (neu) requestProfileSnapshot() })
-          .catch(() => {}) // Chunk nicht ladbar (offline): beim nächsten Teilen erneut
-      }
-    } catch (error) {
-      if ((error as Error).name !== 'AbortError') toast.error(t('error'))
-    }
+  const teilenOeffnen = () => {
+    if (!geladen?.view.username) return void toast.error(t('zuerst_username'))
+    setTeilenOffen(true)
+    // Die Link-Karte kommt aus dem Schnappschuss: jetzt auffrischen, damit sie zur Statuszeile passt
+    requestProfileSnapshot()
+  }
+
+  // Abzeichen „Profil geteilt“: folgt aus keiner Messung, wird beim Teilen oder Kopieren vergeben
+  const geteilt = () => {
+    if (!user) return
+    void import('../features/profil/services/progressStore')
+      .then(m => m.awardBadge(user.id, 'profile_shared'))
+      .then(neu => { if (neu) requestProfileSnapshot() })
+      .catch(() => {}) // Chunk nicht ladbar (offline): beim nächsten Teilen erneut
+  }
+
+  /** Schalter „Web-Link einschalten“ im Sheet: sofort sichtbar, bei Fehler zurück. */
+  const webLinkEinschalten = async (): Promise<boolean> => {
+    if (!user) return false
+    const setze = (an: boolean) => setState(s => s.status === 'ok'
+      ? { ...s, row: { ...s.row, web_link_enabled: an }, view: { ...s.view, webLinkEnabled: an } }
+      : s)
+    setze(true)
+    const { error } = await supabase.from('profiles').update({ web_link_enabled: true }).eq('id', user.id)
+    if (!error) return true
+    setze(false)
+    toast.error(t('fehler_speichern'))
+    return false
   }
 
   const aendern = (aenderung: BearbeitenAenderung, gilt?: (row: ProfilZeile) => boolean) => setState(s => {
@@ -195,7 +208,7 @@ export function Profil() {
             bildStatus={{ avatar: geladen.view.avatarStatus, cover: geladen.view.coverStatus }}
           >
             <div className="mt-4 grid grid-cols-2 gap-2.5">
-              <button type="button" className="lg-btn lg-btn-primary !min-h-11" onClick={() => void teilen()} data-profile-share>
+              <button ref={teilenKnopf} type="button" className="lg-btn lg-btn-primary !min-h-11" aria-haspopup="dialog" onClick={teilenOeffnen} data-profile-share>
                 <Link2 size={16} aria-hidden="true" /> {t('profil_teilen')}
               </button>
               <button type="button" className="lg-gray-btn !min-h-11" onClick={() => setBearbeiten(true)} data-profile-edit>
@@ -245,6 +258,27 @@ export function Profil() {
           <p className="mt-5 px-4 text-center text-[13px] leading-snug text-[var(--lg-text-3)]" data-profile-note>
             {t('profil_hinweis_freunde')} {t('profil_hinweis_privat')}
           </p>
+
+          {teilenOffen && geladen.view.username && (
+            <Suspense fallback={null}>
+              <ProfilTeilen
+                url={hokuCodeUrl(geladen.view.username)}
+                name={geladen.view.displayName || geladen.view.username}
+                username={geladen.view.username}
+                webLink={geladen.row.web_link_enabled === true}
+                privat={geladen.row.profile_private === true}
+                progressVisibility={visibilityOf(sichtbarkeit.map, 'progress')}
+                progress={fortschrittsZusammenfassung(fortschritt, geladen.view.fields.progress)}
+                onClose={() => {
+                  setTeilenOffen(false)
+                  // Fokus zurück auf den Knopf, der das Sheet geöffnet hat
+                  window.requestAnimationFrame(() => teilenKnopf.current?.focus({ preventScroll: true }))
+                }}
+                onGeteilt={geteilt}
+                onWebLinkEinschalten={webLinkEinschalten}
+              />
+            </Suspense>
+          )}
 
           {bearbeiten && (
             <Suspense fallback={null}>

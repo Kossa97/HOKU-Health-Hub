@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
@@ -21,9 +21,10 @@ import { HokuEintrag } from '../features/dot/HokuEintrag'
 import { BlockiertListe } from '../features/profil/components/BlockiertListe'
 import { WerSiehtWas } from '../features/profil/components/WerSiehtWas'
 import { useBlockiert } from '../features/profil/hooks/useBlockiert'
+import { useEinstellungen } from '../features/profil/hooks/useEinstellungen'
 import { useFieldVisibility } from '../features/profil/hooks/useFieldVisibility'
+import { useWebSettings } from '../features/profil/hooks/useWebSettings'
 import { profileUrl } from '../features/profil/lib/profileView'
-import { parseVisibilityMap } from '../features/profil/lib/profileVisibility'
 
 /**
  * Einstellungen hinter ⚙︎ im Profil (Teilprojekt 2a): oben Profil &
@@ -32,36 +33,6 @@ import { parseVisibilityMap } from '../features/profil/lib/profileVisibility'
  * Benachrichtigungen, Passkey, Sicherheit, Hilfe, Abmelden, Konto löschen,
  * Rechtliches). Dazu die Unterseiten „Wer sieht was“ und „Blockiert“.
  */
-
-interface Einstellungen {
-  username: string
-  privat: boolean
-  webLink: boolean
-  isAdmin: boolean
-  visibility: ReturnType<typeof parseVisibilityMap>
-}
-
-function useEinstellungen(userId: string | undefined) {
-  const [werte, setWerte] = useState<Einstellungen | null>(null)
-  const [fehler, setFehler] = useState(false)
-  useEffect(() => {
-    if (!userId) return
-    let aktiv = true
-    void supabase.from('profiles').select('*').eq('id', userId).single().then(({ data, error }) => {
-      if (!aktiv) return
-      if (error || !data) { setFehler(true); return }
-      setWerte({
-        username: typeof data.username === 'string' ? data.username : '',
-        privat: data.profile_private === true,
-        webLink: data.web_link_enabled === true,
-        isAdmin: data.is_admin === true,
-        visibility: parseVisibilityMap(data.field_visibility),
-      })
-    })
-    return () => { aktiv = false }
-  }, [userId])
-  return { werte, setWerte, fehler }
-}
 
 /** Kopfzeile der Unterseiten: Zurück + großer Titel. */
 function Leiste({ titel, zurueck }: { titel: string; zurueck: string }) {
@@ -145,6 +116,11 @@ export function ProfilEinstellungen() {
   }
 
   const link = werte?.username ? profileUrl(werte.username) : null
+  // „In Suchmaschinen auffindbar“ wirkt nur bei Web-Link an und nicht privat (Spec 7.2)
+  const web = useWebSettings(user?.id, { badges: werte?.webBadges ?? null, indexable: werte?.webIndexable ?? null })
+  const indexWirkt = !!werte && werte.webLink && !werte.privat
+  // ohne Spalte (vor der Migration 2c) nicht schaltbar
+  const indexBereit = !!werte && werte.webIndexable !== null
 
   return (
     <div data-profile-settings-page>
@@ -183,6 +159,20 @@ export function ProfilEinstellungen() {
             disabled={!werte}
             onClick={() => void schalte('web_link_enabled', 'webLink')}
             data-setting-weblink
+          />
+          <Link to="/profil/web-abzeichen" className={zeile} data-setting-web-badges>
+            <Unterzeile titel={t('profil_webabz_titel')} sub={t('profil_webabz_sub')} />
+            <Weiter />
+          </Link>
+          <SchalterZeile
+            titel={t('profil_web_indexable')}
+            sub={indexWirkt || !werte ? t('profil_web_indexable_sub') : t('profil_web_indexable_gesperrt')}
+            an={web.indexable}
+            // Ausschalten geht immer: sonst bliebe ein altes „an“ stehen und wirkte
+            // still wieder, sobald der Web-Link später an geht
+            disabled={!indexBereit || (!indexWirkt && !web.indexable)}
+            onClick={() => void web.setIndexable(!web.indexable)}
+            data-setting-indexable
           />
         </div>
       </section>

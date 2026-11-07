@@ -10,9 +10,14 @@
       "schedule": "0 2 * * *"
     }
   ],
+  "functions": {
+    "api/u.js": { "includeFiles": "dist/index.html" },
+    "api/og.js": { "includeFiles": "api/_assets/profile-card/**" }
+  },
   "routes": [
     { "src": "/.well-known/apple-app-site-association", "headers": { "Content-Type": "application/json" }, "continue": true },
     { "handle": "filesystem" },
+    { "src": "/u/([^/]+)/?", "dest": "/api/u?name=$1" },
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]

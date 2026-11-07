@@ -120,9 +120,10 @@ export function tileText(field: ProfileField, fields: ProfileViewFields, t: Tran
       return top ? { label, value: `${shownExerciseName(top, locale)} ${n(top.v)}`, unit: 'kg' } : null
     }
     case 'reviews':
-      return fields.reviews
-        ? { label: t('profil_berichte_anzahl', { count: fields.reviews.count }), value: `★ ${n(fields.reviews.avgRating)}`, sub: t('profil_berichte_sub') }
-        : null
+      if (!fields.reviews) return null
+      // Stufe web: nur die Anzahl, ohne Bewertung
+      if (fields.reviews.avgRating === undefined) return { label, value: n(fields.reviews.count), sub: t('profil_berichte_sub') }
+      return { label: t('profil_berichte_anzahl', { count: fields.reviews.count }), value: `★ ${n(fields.reviews.avgRating)}`, sub: t('profil_berichte_sub') }
     default:
       return null
   }

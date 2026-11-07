@@ -16,6 +16,7 @@ import { SeitenSilhouette } from './components/ui/Silhouette'
 import { silhouetteFuerPfad } from './components/ui/silhouetteTakt'
 import { FehlerGrenze } from './components/FehlerGrenze'
 import { VerbindungsHinweis } from './components/VerbindungsHinweis'
+import { AppLinkListener } from './features/applinks/AppLinkListener'
 import { AppLinks } from './lib/appLinks'
 
 const Home = lazyPage(() => import('./pages/Home'), 'Home')
@@ -29,6 +30,7 @@ const ProfilSichtbarkeit = lazyPage(() => import('./pages/ProfilEinstellungen'),
 const ProfilBlockiert = lazyPage(() => import('./pages/ProfilEinstellungen'), 'ProfilBlockiert')
 const ProfilFortschritt = lazyPage(() => import('./pages/ProfilFortschritt'), 'ProfilFortschritt')
 const ProfilAbzeichen = lazyPage(() => import('./pages/ProfilAbzeichen'), 'ProfilAbzeichen')
+const ProfilWebAbzeichen = lazyPage(() => import('./pages/ProfilWebAbzeichen'), 'ProfilWebAbzeichen')
 const HokuSeite = lazyPage(() => import('./pages/HokuSeite'), 'HokuSeite')
 const PublicProfile = lazyPage(() => import('./pages/PublicProfile'), 'PublicProfile')
 const FAQ = lazyPage(() => import('./pages/FAQ'), 'FAQ')
@@ -118,6 +120,7 @@ function PersonalApp() {
             <Route path="profil/blockiert" element={<LazyPage><ProfilBlockiert /></LazyPage>} />
             <Route path="profil/fortschritt" element={<LazyPage><ProfilFortschritt /></LazyPage>} />
             <Route path="profil/abzeichen" element={<LazyPage><ProfilAbzeichen /></LazyPage>} />
+            <Route path="profil/web-abzeichen" element={<LazyPage><ProfilWebAbzeichen /></LazyPage>} />
             <Route path="profil/hoku" element={<LazyPage><HokuSeite /></LazyPage>} />
             <Route path="faq" element={<LazyPage><FAQ /></LazyPage>} />
             <Route path="injektionen" element={<LazyPage><InjektionsTracker /></LazyPage>} />
@@ -138,7 +141,7 @@ function PersonalApp() {
 
 export default function App() {
   // Äußerste Grenze: was keine Seite abfängt, endet hier statt weiß
-  return <FehlerGrenze ort="app"><BrowserRouter><ReloadOnUpdate /><AppLinks /><VerbindungsHinweis /><AppBackNavigation><Routes>
+  return <FehlerGrenze ort="app"><BrowserRouter><ReloadOnUpdate /><AppLinkListener /><AppLinks /><VerbindungsHinweis /><AppBackNavigation><Routes>
       {publicPeptipediaRoutes()}
       <Route path="*" element={<PersonalApp />} />
     </Routes></AppBackNavigation></BrowserRouter></FehlerGrenze>

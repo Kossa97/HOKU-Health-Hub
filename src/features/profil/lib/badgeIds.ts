@@ -43,3 +43,64 @@ export const BADGES_NEED_FRIENDS: readonly BadgeId[] = ['first_friend', 'friends
 
 export const isBadgeId = (v: unknown): v is BadgeId =>
   typeof v === 'string' && (BADGE_IDS as readonly string[]).includes(v)
+
+// ─── Abzeichen im Web (Teilprojekt 2c, Spec 2.1 und 6.1) ──────────────────────
+//
+// Dieselben Listen stehen in `supabase-profil-p2c-web.sql`
+// (`profile_badge_web_sensitive`, `profile_badge_web_borderline`); ein Test
+// prueft Gleichheit. Was im Web wirklich erscheint, entscheidet allein
+// `profile_view` auf dem Server — die Listen hier dienen der Einstellung.
+
+/** Verraten Blut, Zyklen, Einnahmen oder Koerperwerte: ab Werk aus, mit „verrät Gesundheitsdaten“. */
+export const BADGES_WEB_SENSITIVE: readonly BadgeId[] = [
+  'first_bloodwork', 'bloodwork_3', 'all_markers_in_range',
+  'first_cycle_done',
+  'intake_all_30',
+  'body_fat_5', 'body_fat_10', 'body_fat_20', 'weight_5', 'resting_hr_5',
+]
+
+/** Grenzfaelle: ab Werk ebenfalls aus, ohne den Hinweis (Nutzer 04.11., Spec-Frage 7). */
+export const BADGES_WEB_BORDERLINE: readonly BadgeId[] = [
+  'weighed_weeks_8', 'first_measurement', 'first_progress_photo',
+  'wearable_connected', 'steps_week_10k',
+  'progress_10', 'progress_25', 'progress_50',
+]
+
+/** `profiles.web_badges`: nur Abweichungen vom Standard (`true` = zeigen, `false` = verbergen). */
+export type WebBadgeOverrides = Partial<Record<BadgeId, boolean>>
+
+/** Standard ohne Abweichung: heikle und Grenzfaelle aus, alles andere an. */
+export const webBadgeDefault = (id: BadgeId): boolean =>
+  !BADGES_WEB_SENSITIVE.includes(id) && !BADGES_WEB_BORDERLINE.includes(id)
+
+/** Wirksam im Web, wie `profile_web_badge_on` in SQL: Abweichung, sonst Standard. */
+export function webBadgeOn(id: BadgeId, overrides: WebBadgeOverrides): boolean {
+  const v = Object.hasOwn(overrides, id) ? overrides[id] : undefined
+  return typeof v === 'boolean' ? v : webBadgeDefault(id)
+}
+
+/**
+ * Setzt ein Abzeichen fuers Web und haelt dabei nur Abweichungen: Entspricht
+ * der neue Wert dem Standard, faellt der Schluessel weg. „Auf Standard
+ * zuruecksetzen“ ist `{}`.
+ */
+export function withWebBadge(overrides: WebBadgeOverrides, id: BadgeId, on: boolean): WebBadgeOverrides {
+  const next = { ...overrides }
+  if (on === webBadgeDefault(id)) delete next[id]
+  else next[id] = on
+  return next
+}
+
+/**
+ * Liest `web_badges` aus der Datenbank: nur bekannte IDs mit `true`/`false`,
+ * dabei nur echte Abweichungen (ein Eintrag gleich dem Standard aendert nichts).
+ * Alles andere faellt weg — wie `profile_web_badges_ok`, nur nachsichtig.
+ */
+export function parseWebBadges(raw: unknown): WebBadgeOverrides {
+  const out: WebBadgeOverrides = {}
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out
+  for (const [k, v] of Object.entries(raw)) {
+    if (isBadgeId(k) && typeof v === 'boolean' && v !== webBadgeDefault(k)) out[k] = v
+  }
+  return out
+}
