@@ -3,6 +3,10 @@ import type { Ref } from 'react'
 import { buildLiquid, LIQUID_VB_H, LIQUID_VB_W } from './liquidGeometry'
 import { useSloshSubscribe } from '../../../components/SloshContext'
 import { REST_ENERGY, type SloshState } from '../../../components/sloshEngine'
+import { LIQUID_BUBBLES } from './liquidBubbles'
+
+/** Schritte je Sekunde beim Aufstieg der Bläschen: jede Änderung malt die Flüssigkeit neu */
+const BLASEN_SCHRITTE_JE_S = 30
 
 function clamp01(wert: number): number {
   return Number.isFinite(wert) ? Math.max(0, Math.min(1, wert)) : 0
@@ -46,23 +50,6 @@ function levelChangeDurationMs(from: number, to: number): number {
   return Math.round(600 + Math.abs(to - from) * 2200)
 }
 
-// A few rising bubbles give the liquid life. Positions are in viewBox units and
-// the body clip-path makes them pop out of existence at the waterline.
-// `phase`: wie weit jede Blase beim Einhaengen schon aufgestiegen ist (Anteil
-// ihrer Dauer). Frueher starteten alle unten, einige erst nach bis zu 3 s —
-// nach dem Auffuellen stand die Fluessigkeit noch sekundenlang still, bis die
-// Blasen oben ankamen. Mit negativem `begin` laufen sie ab dem ersten Bild,
-// ueber die Hoehe verteilt.
-/** Schritte je Sekunde beim Aufstieg der Bläschen: jede Änderung malt die Flüssigkeit neu */
-const BLASEN_SCHRITTE_JE_S = 30
-
-const LIQUID_BUBBLES = [
-  { cx: 24, r: 1.5, dur: 5.4, phase: 0.62 },
-  { cx: 46, r: 1.0, dur: 6.6, phase: 0.3 },
-  { cx: 63, r: 1.9, dur: 5.0, phase: 0.08 },
-  { cx: 82, r: 1.1, dur: 7.2, phase: 0.46 },
-  { cx: 98, r: 1.4, dur: 5.9, phase: 0.8 },
-]
 
 // The liquid's own share of the stage light. The surrounding form calls this
 // from its applyStageLight so both move in the same frame.

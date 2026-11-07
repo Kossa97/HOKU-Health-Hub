@@ -37,6 +37,7 @@ applyLook(getLook())
   if (pruef.has('schwappen') || pruef.has('buehne')) d.schwappenAus = ''
   if (pruef.has('blasen')) d.blasenAus = ''
   if (pruef.has('fluessigalt')) d.fluessigAlt = ''
+  if (pruef.has('fluessigneu')) d.fluessigNeu = ''
   if (pruef.has('buehne')) d.buehneStill = ''
   if (pruef.has('messen')) installMessAnzeige()
 }

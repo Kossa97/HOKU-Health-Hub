@@ -3,6 +3,7 @@ import type { CSSProperties, Ref, RefObject } from 'react'
 import { usePrefersReducedMotion } from '../features/my-stack/stage/usePrefersReducedMotion'
 import { useStageLight, type StageLightHandle } from '../features/my-stack/stage/useStageLight'
 import { LiquidGraphic, type LiquidGraphicHandle } from '../features/my-stack/stage/LiquidGraphic'
+import { LiquidCanvas } from '../features/my-stack/stage/LiquidCanvas'
 import { VIAL_CAP_COLLAR, VIAL_CAP_HEIGHT, VIAL_CAP_TOP_PATH, VIAL_INNER_PATH, VIAL_LABEL_INSET_PCT, VIAL_OUTER_PATH, VIAL_SPEC } from '../features/my-stack/extensions/peptide/vialShape'
 import { StageLabel } from '../features/my-stack/stage/StageLabel'
 
@@ -125,6 +126,9 @@ function VialTop({
 // Die Kammer liegt jetzt in den Formdaten, damit Innenkontur und
 // Fluessigkeitsfenster nicht auseinanderlaufen koennen.
 const VIAL_CHAMBER = VIAL_SPEC.chamber!
+
+/** Prüfschalter „Flüssigkeit neu gezeichnet" (lib/pruef.ts): Zeichenfläche statt SVG */
+const fluessigNeu = () => typeof document !== 'undefined' && 'fluessigNeu' in document.documentElement.dataset
 
 export function PeptideVialVisual({
   name,
@@ -428,51 +432,88 @@ export function PeptideVialVisual({
             className={`pointer-events-none absolute inset-0 ${viewportRevealClass}`.trim()}
             style={viewportRevealStyle}
           >
-            <svg
-              data-vial-detail="liquid-vial-chamber"
-              className="absolute inset-0 h-full w-full overflow-visible"
-              viewBox="0 0 120 294"
-              preserveAspectRatio="none"
-              aria-hidden="true"
-            >
-              <defs>
-                {/* Die Fluessigkeit wird von der INNEN-Kontur beschnitten, nie
-                    von der aeusseren: sonst fehlt der Glasboden und sie klebt
-                    an der Aussenwand. */}
-                <clipPath id={`${uid}-liquidChamberClip`}>
-                  <path d={VIAL_INNER_PATH} />
-                </clipPath>
-              </defs>
-              <g data-vial-detail="liquid-glass-window" clipPath={`url(#${uid}-liquidChamberClip)`}>
-                <LiquidGraphic
-                  uid={uid}
+            {fluessigNeu() ? (
+              <>
+                <LiquidCanvas
                   fill={fillFrac}
                   tilt={tilt}
+                  vbW={120}
+                  vbH={294}
                   x={VIAL_CHAMBER.x}
                   y={VIAL_CHAMBER.y}
                   width={VIAL_CHAMBER.width}
                   height={VIAL_CHAMBER.height}
                   chamberAspect={VIAL_CHAMBER.aspect}
+                  clipPath={VIAL_INNER_PATH}
                   color={color}
                   reducedMotion={reducedMotion}
                   seedFocus={visualFocus}
                   seedLightOffset={visualLightOffset}
                   handleRef={liquidRef}
                 />
-              </g>
+                <svg
+                  className="absolute inset-0 h-full w-full overflow-visible"
+                  viewBox="0 0 120 294"
+                  preserveAspectRatio="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    data-vial-detail="inner-contour"
+                    d={VIAL_INNER_PATH}
+                    fill="none"
+                    stroke="rgba(226,232,240,0.34)"
+                    strokeWidth="0.9"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </svg>
+              </>
+            ) : (
+              <svg
+                data-vial-detail="liquid-vial-chamber"
+                className="absolute inset-0 h-full w-full overflow-visible"
+                viewBox="0 0 120 294"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <defs>
+                  {/* Die Fluessigkeit wird von der INNEN-Kontur beschnitten, nie
+                      von der aeusseren: sonst fehlt der Glasboden und sie klebt
+                      an der Aussenwand. */}
+                  <clipPath id={`${uid}-liquidChamberClip`}>
+                    <path d={VIAL_INNER_PATH} />
+                  </clipPath>
+                </defs>
+                <g data-vial-detail="liquid-glass-window" clipPath={`url(#${uid}-liquidChamberClip)`}>
+                  <LiquidGraphic
+                    uid={uid}
+                    fill={fillFrac}
+                    tilt={tilt}
+                    x={VIAL_CHAMBER.x}
+                    y={VIAL_CHAMBER.y}
+                    width={VIAL_CHAMBER.width}
+                    height={VIAL_CHAMBER.height}
+                    chamberAspect={VIAL_CHAMBER.aspect}
+                    color={color}
+                    reducedMotion={reducedMotion}
+                    seedFocus={visualFocus}
+                    seedLightOffset={visualLightOffset}
+                    handleRef={liquidRef}
+                  />
+                </g>
 
-              {/* Die Wandstaerke. Sie liegt in diesem SVG und damit ueber der
-                  Fluessigkeit — im Glas-SVG darunter waere sie verdeckt.
-                  Non-scaling, damit sie die Karussellbreite ueberlebt. */}
-              <path
-                data-vial-detail="inner-contour"
-                d={VIAL_INNER_PATH}
-                fill="none"
-                stroke="rgba(226,232,240,0.34)"
-                strokeWidth="0.9"
-                vectorEffect="non-scaling-stroke"
-              />
-            </svg>
+                {/* Die Wandstaerke. Sie liegt in diesem SVG und damit ueber der
+                    Fluessigkeit — im Glas-SVG darunter waere sie verdeckt.
+                    Non-scaling, damit sie die Karussellbreite ueberlebt. */}
+                <path
+                  data-vial-detail="inner-contour"
+                  d={VIAL_INNER_PATH}
+                  fill="none"
+                  stroke="rgba(226,232,240,0.34)"
+                  strokeWidth="0.9"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </svg>
+            )}
           </div>
 
           <div className="vial-shimmer pointer-events-none absolute inset-y-[24%] left-[24%] w-[32%] rotate-6 rounded-full bg-white/10 blur-[6px]" />

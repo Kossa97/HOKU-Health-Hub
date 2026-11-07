@@ -52,6 +52,12 @@ export interface LiquidGeometry {
   highlightY: number
   leftWallY: number // where the meniscus meets the left glass wall
   rightWallY: number // where the meniscus meets the right glass wall
+  // Ausmaße der Flächen (viewBox), für Verläufe in der Zeichenfläche
+  // (LiquidCanvas): SVG legt sie über den Umriss der Fläche, Canvas braucht sie ausdrücklich
+  bodyTop: number // höchster Punkt der vorderen Wasserlinie
+  surfaceTop: number // höchster Punkt der hinteren Linie des Oberflächenbands
+  surfaceBottom: number // tiefster Punkt der vorderen Wasserlinie
+  glowBottom: number // tiefster Punkt des Leuchtbands unter der Oberfläche
 }
 
 const clamp = (v: number, lo: number, hi: number) =>
@@ -174,5 +180,9 @@ export function buildLiquid({
     highlightY,
     leftWallY: near[0][1],
     rightWallY: near[near.length - 1][1],
+    bodyTop: Math.min(...near.map(p => p[1])),
+    surfaceTop: Math.min(...back.map(p => p[1])),
+    surfaceBottom: Math.max(...near.map(p => p[1])),
+    glowBottom: Math.max(...glowBottom.map(p => p[1])),
   }
 }
