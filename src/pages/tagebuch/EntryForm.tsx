@@ -4,8 +4,10 @@ import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 import { Info, Search } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { enqueue, isNetworkError, newEntryId } from '../../lib/tagebuch/offlineQueue'
+import { stoerungsZustand } from '../../lib/stoerung'
 import { getDateLocale } from '../../i18n/dateLocales'
-import { INTAKE_OPTIONS, intakeDose, type IntakeOption } from './intake'
+import { INTAKE_COLUMNS, INTAKE_OPTIONS, groupByDay, intakeDay, intakeDose, intakeSlot, intakeTime, intakeWhen, type IntakeOption } from './intake'
 import { SymptomChip } from './SymptomChip'
 import { ChipEditor } from './ChipEditor'
 import { ChipInfo } from './ChipInfo'
@@ -27,9 +29,17 @@ interface FormState {
   chips: ChipDraft[]
 }
 
-function initialState(entry: DiaryEntry | null): FormState {
+/** Neuer Eintrag zu einer bestimmten Einnahme (aus dem Kalender). */
+export interface EntryPrefill { stack_item_id: string; dose_log_id: string; occurred_at: Date }
+
+function initialState(entry: DiaryEntry | null, prefill?: EntryPrefill | null): FormState {
   if (!entry) {
-    return { title: '', occurred_at: format(new Date(), "yyyy-MM-dd'T'HH:mm"), stack_item_id: '', dose_log_id: '', notes: '', chips: [] }
+    // Der Eintrag liegt nie vor der Einnahme — sonst stünde sie nicht zur Wahl.
+    const at = prefill && prefill.occurred_at.getTime() > Date.now() ? prefill.occurred_at : new Date()
+    return {
+      title: '', occurred_at: format(at, "yyyy-MM-dd'T'HH:mm"),
+      stack_item_id: prefill?.stack_item_id ?? '', dose_log_id: prefill?.dose_log_id ?? '', notes: '', chips: [],
+    }
   }
   const rows = sortedChips(entry)
   // Ältere Einträge ohne Chips: ihre Wirkung wird ein eigener Chip.
@@ -51,17 +61,18 @@ function initialState(entry: DiaryEntry | null): FormState {
  * Wirkungen/Nebenwirkungen als Chips mit eigenem Editor, Notizen.
  * Planung und Entscheidungen: memory/projects/tagebuch.md.
  */
-export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
+export function EntryForm({ userId, stackItems, entry, prefill, onClose, onSaved }: {
   userId: string
   stackItems: StackItem[]
   entry: DiaryEntry | null
+  prefill?: EntryPrefill | null
   onClose: () => void
   onSaved: () => void
 }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language
   const locale = getDateLocale()
-  const [atOpen] = useState(() => initialState(entry))
+  const [atOpen] = useState(() => initialState(entry, prefill))
   const [form, setForm] = useState(atOpen)
   const [saving, setSaving] = useState(false)
   const [tab, setTab] = useState<SymptomKind>('effect')
@@ -69,6 +80,9 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
   const [editing, setEditing] = useState<{ chip: ChipDraft; index: number | null } | null>(null)
   const [infoOpen, setInfoOpen] = useState(false)
   const [intakeOptions, setIntakeOptions] = useState<IntakeOption[]>([])
+  // Die erste bestätigte Einnahme NACH dem Zeitpunkt — steht nicht zur Wahl,
+  // aber als Hinweis: oft ist nur der Tag des Eintrags verrutscht.
+  const [laterIntake, setLaterIntake] = useState<IntakeOption | null>(null)
 
   // Einnahmen zur Auswahl: bestätigte der gewählten Substanz vor dem Zeitpunkt.
   // Beim Bearbeiten bleibt die schon verknüpfte wählbar, auch wenn sie älter ist.
@@ -80,15 +94,19 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
     let cancelled = false
     // Das Formular kennt nur Minuten — eine Einnahme aus derselben Minute (mit Sekunden) zählt mit.
     const atIso = new Date(at.getTime() + 59_999).toISOString()
-    const recent = supabase.from('dose_logs').select('id, dose, unit, logged_at')
+    const recent = supabase.from('dose_logs').select(INTAKE_COLUMNS)
       .eq('user_id', userId).eq('stack_item_id', form.stack_item_id).eq('taken', true)
       .lte('logged_at', atIso).order('logged_at', { ascending: false }).limit(INTAKE_OPTIONS)
+    const later = supabase.from('dose_logs').select(INTAKE_COLUMNS)
+      .eq('user_id', userId).eq('stack_item_id', form.stack_item_id).eq('taken', true)
+      .gt('logged_at', atIso).order('logged_at', { ascending: true }).limit(1)
     const linked = linkedAtOpen
-      ? supabase.from('dose_logs').select('id, dose, unit, logged_at')
+      ? supabase.from('dose_logs').select(INTAKE_COLUMNS)
         .eq('user_id', userId).eq('id', linkedAtOpen).eq('stack_item_id', form.stack_item_id).lte('logged_at', atIso)
       : null
-    Promise.all([recent, linked]).then(([recentRes, linkedRes]) => {
+    Promise.all([recent, linked, later]).then(([recentRes, linkedRes, laterRes]) => {
       if (cancelled) return
+      setLaterIntake(((laterRes.data ?? []) as IntakeOption[])[0] ?? null)
       const options = [...((recentRes.data ?? []) as IntakeOption[])]
       for (const row of (linkedRes?.data ?? []) as IntakeOption[]) {
         if (!options.some(option => option.id === row.id)) options.push(row)
@@ -102,6 +120,8 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
     return () => { cancelled = true }
   }, [form.stack_item_id, form.occurred_at, linkedAtOpen, userId])
 
+  const selectedIntake = intakeOptions.find(option => option.id === form.dose_log_id) ?? null
+  const showDose = new Set(intakeOptions.map(option => intakeDose(option, lang))).size > 1
   const chipLabel = (chip: Pick<ChipDraft, 'key' | 'customLabel'>) => labelOf(chip, lang)
   const chipAria = (chip: ChipDraft, selected: boolean) => ariaOf(chip, selected, t, lang)
 
@@ -133,7 +153,20 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
       notes: form.notes.trim() || null,
     }
     const chips = chipPayload(form.chips)
-    const { error } = await supabase.rpc('save_diary_entry', { p_effect_id: entry?.id ?? null, p_entry: fields, p_chips: chips })
+    // Neue Einträge bekommen ihre id hier: ein späterer Versuch ohne Netz trifft
+    // dieselbe Zeile, statt eine zweite anzulegen.
+    const newId = entry ? null : newEntryId()
+    const { error } = await supabase.rpc('save_diary_entry', {
+      p_effect_id: entry?.id ?? null, p_entry: newId ? { ...fields, id: newId } : fields, p_chips: chips,
+    })
+    // Kein Netz — oder Supabase ausgefallen (502/503: stoerung.ts meldet dann „offline“)
+    if (error && (isNetworkError(error) || stoerungsZustand().verbindung === 'offline')) {
+      if (!newId) { toast.error(t('tagebuch_offline_bearbeiten')); return }
+      enqueue({ id: newId, user_id: userId, entry: fields, chips })
+      toast(t('tagebuch_offline_gemerkt'))
+      onSaved()
+      return
+    }
     if (error) {
       toast.error(t(error.message?.includes('effect_dose_log_other_substance') ? 'tagebuch_einnahme_fremd' : 'fehler_speichern'))
       return
@@ -229,7 +262,7 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
               {stackItems.find(item => item.id === form.stack_item_id)?.display_name ?? t('tagebuch_substanz_keine')}
             </span>
             <select id="tagebuch-substanz" value={form.stack_item_id}
-              onChange={e => { const value = e.target.value; setIntakeOptions([]); setForm(f => ({ ...f, stack_item_id: value, dose_log_id: '' })) }}>
+              onChange={e => { const value = e.target.value; setIntakeOptions([]); setLaterIntake(null); setForm(f => ({ ...f, stack_item_id: value, dose_log_id: '' })) }}>
               <option value="">{t('tagebuch_substanz_keine')}</option>
               {stackItems.map(item => <option key={item.id} value={item.id}>{item.display_name}</option>)}
             </select>
@@ -240,24 +273,50 @@ export function EntryForm({ userId, stackItems, entry, onClose, onSaved }: {
             <input id="tagebuch-zeitpunkt" type="datetime-local" value={form.occurred_at} required
               onChange={e => { const value = e.target.value; if (value) setForm(f => ({ ...f, occurred_at: value })) }} />
           </div>
+          {form.stack_item_id && intakeOptions.length > 0 && (
+            <div className="lg-form-row">
+              <label htmlFor="tagebuch-einnahme">{t('tagebuch_einnahme_kurz')}</label>
+              <span className="lg-form-value" aria-hidden="true">
+                {selectedIntake ? `${intakeDay(selectedIntake, locale)} ${format(intakeSlot(selectedIntake).zeit, 'HH:mm')}` : t('tagebuch_einnahme_keine')}
+              </span>
+              {/* Nach Tagen gruppiert; die Menge nur, wenn sie sich unterscheidet. */}
+              <select id="tagebuch-einnahme" aria-label={t('tagebuch_einnahme_label')} value={form.dose_log_id}
+                onChange={e => setForm(f => ({ ...f, dose_log_id: e.target.value }))}>
+                <option value="">{t('tagebuch_einnahme_keine')}</option>
+                {groupByDay(intakeOptions, locale).map(group => (
+                  <optgroup key={group.tag} label={group.tag}>
+                    {group.options.map(option => (
+                      <option key={option.id} value={option.id}>
+                        {[intakeTime(option, locale, t), showDose ? intakeDose(option, lang) : ''].filter(Boolean).join(' · ')}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Bezug zur Einnahme — freiwillig, nur mit Substanz */}
-        {form.stack_item_id && (
+        {form.stack_item_id && (intakeOptions.length === 0 || laterIntake) && (
           <div>
-            <label className="label" htmlFor="tagebuch-einnahme">{t('tagebuch_einnahme_label')}</label>
-            {intakeOptions.length > 0 ? (
-              <select id="tagebuch-einnahme" className="select" value={form.dose_log_id}
-                onChange={e => setForm(f => ({ ...f, dose_log_id: e.target.value }))}>
-                <option value="">{t('tagebuch_einnahme_keine')}</option>
-                {intakeOptions.map(option => (
-                  <option key={option.id} value={option.id}>
-                    {[format(new Date(option.logged_at), 'dd.MM. HH:mm', { locale }), intakeDose(option, lang)].filter(Boolean).join(' · ')}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <p id="tagebuch-einnahme" className="px-1 text-xs text-[var(--lg-text-3)]">{t('tagebuch_einnahme_leer')}</p>
+            {intakeOptions.length === 0 && (
+              <p id="tagebuch-einnahme-leer" className="px-1 text-xs text-[var(--lg-text-3)]">{t('tagebuch_einnahme_leer')}</p>
+            )}
+            {laterIntake && (
+              <div data-tagebuch-einnahme-spaeter className="-mt-1 flex flex-col items-start px-1">
+                <p className="text-xs text-[var(--lg-text-3)]">
+                  {t('tagebuch_einnahme_spaeter', { zeit: intakeWhen(laterIntake, locale, t) })}
+                </p>
+                <button type="button" className="-ml-1 min-h-[44px] px-1 text-sm font-semibold text-[var(--lg-accent-text)]"
+                  onClick={() => {
+                    const intake = laterIntake
+                    setLaterIntake(null)
+                    setForm(f => ({ ...f, occurred_at: format(new Date(intake.logged_at), "yyyy-MM-dd'T'HH:mm"), dose_log_id: intake.id }))
+                  }}>
+                  {t('tagebuch_einnahme_zeitpunkt_uebernehmen')}
+                </button>
+              </div>
             )}
           </div>
         )}

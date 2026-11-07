@@ -10,6 +10,9 @@ import {
   nutrientsFor, scaleNutrients,
 } from '../lib/nutrition'
 import { parseIngredients } from '../lib/recipe'
+import { type ActivityLog, parseSources } from '../lib/activity'
+import { parseMicros } from '../lib/micros'
+import { parseOwnGoals } from '../lib/nutrientTargets'
 import { type DayTotals, EMPTY_TOTALS } from '../lib/dayRings'
 import { geschlechtAusAltangabe, parseBioProfile } from '../../blutwerte/lib/bioProfile'
 
@@ -33,6 +36,7 @@ export function rowToEntry(r: Row): LogEntry {
     nutrients: {
       kcal: num(r.kcal), protein: num(r.protein_g), carbs: num(r.carbs_g), fat: num(r.fat_g),
       fiber: opt(r.fiber_g), sugar: opt(r.sugar_g), satFat: opt(r.sat_fat_g), salt: opt(r.salt_g),
+      micros: parseMicros(r.micros),
     },
     createdAt: r.created_at as string,
     sortKey: r.sort_key == null ? null : Number(r.sort_key),
@@ -54,9 +58,11 @@ export function rowToFood(r: Row): Food {
     per100: {
       kcal: num(r.kcal_100), protein: num(r.protein_100), carbs: num(r.carbs_100), fat: num(r.fat_100),
       fiber: opt(r.fiber_100), sugar: opt(r.sugar_100), satFat: opt(r.sat_fat_100), salt: opt(r.salt_100),
+      micros: parseMicros(r.micros),
     },
     serving: r.serving_amount == null ? null : { amount: num(r.serving_amount), label: str(r.serving_label) },
     favorite: r.favorite === true,
+    edited: r.edited === true,
     recipe: ingredients?.length ? { portions: num(r.portions) || 1, ingredients } : null,
     meal: isMeal(r.meal) ? r.meal : null,
   }
@@ -66,6 +72,7 @@ function nutrientColumns(n: Nutrients) {
   return {
     kcal: n.kcal, protein_g: n.protein, carbs_g: n.carbs, fat_g: n.fat,
     fiber_g: n.fiber, sugar_g: n.sugar, sat_fat_g: n.satFat, salt_g: n.salt,
+    micros: n.micros ?? null,
   }
 }
 
@@ -73,6 +80,7 @@ function per100Columns(p: Per100) {
   return {
     kcal_100: p.kcal, protein_100: p.protein, carbs_100: p.carbs, fat_100: p.fat,
     fiber_100: p.fiber, sugar_100: p.sugar, sat_fat_100: p.satFat, salt_100: p.salt,
+    micros: p.micros ?? null,
   }
 }
 
@@ -248,6 +256,8 @@ export async function saveMyFood(userId: string, food: Food): Promise<Food> {
     ...per100Columns(food.per100),
     serving_amount: food.serving?.amount ?? null, serving_label: food.serving?.label ?? null,
     favorite: food.favorite, updated_at: new Date().toISOString(),
+    // Nur schicken, wenn bekannt — ein Stern auf einem gespeicherten Produkt lässt „korrigiert“ stehen.
+    ...(food.edited !== undefined ? { edited: food.edited } : {}),
     // Spalten nur bei Gerichten schicken: gewöhnliche Lebensmittel brauchen sie nicht.
     ...(food.recipe ? { ingredients: food.recipe.ingredients, portions: food.recipe.portions, meal: food.meal ?? null } : {}),
   }
@@ -273,13 +283,20 @@ export async function loadGoals(userId: string): Promise<Goals | null> {
   return {
     kcal: num(data.kcal), proteinG: num(data.protein_g), carbsG: num(data.carbs_g), fatG: num(data.fat_g),
     waterMl: num(data.water_ml), hideKcal: data.hide_kcal === true,
+    activityMode: data.activity_mode === 'budget' ? 'budget' : 'deficit',
+    activityShare: data.activity_share === 'full' ? 'full' : 'half',
+    activitySources: parseSources(data.activity_sources),
+    nutrientGoals: parseOwnGoals(data.nutrient_goals),
   }
 }
 
 export async function saveGoals(userId: string, g: Goals): Promise<void> {
   const { error } = await supabase.from('nutrition_goals').upsert({
     user_id: userId, kcal: g.kcal, protein_g: g.proteinG, carbs_g: g.carbsG, fat_g: g.fatG,
-    water_ml: g.waterMl, hide_kcal: g.hideKcal, updated_at: new Date().toISOString(),
+    water_ml: g.waterMl, hide_kcal: g.hideKcal,
+    activity_mode: g.activityMode, activity_share: g.activityShare, activity_sources: [...g.activitySources],
+    nutrient_goals: g.nutrientGoals,
+    updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id' })
   if (error) throw error
 }
@@ -300,8 +317,21 @@ export interface BodyData {
   sex: 'male' | 'female' | null
 }
 
-/** Gewicht bevorzugt aus `weight_logs` (neuester Wert), sonst aus dem Profil. */
-export async function loadBodyData(userId: string): Promise<BodyData> {
+/**
+ * Gewicht bevorzugt aus `weight_logs` (neuester Wert), sonst aus dem Profil.
+ * Kurz gemerkt (30 s): Ziele, Aktivität und Nährstoffe fragen beim Öffnen gleichzeitig.
+ */
+let bodyCache: { userId: string; at: number; data: Promise<BodyData> } | null = null
+export function loadBodyData(userId: string): Promise<BodyData> {
+  const now = Date.now()
+  if (bodyCache && bodyCache.userId === userId && now - bodyCache.at < 30_000) return bodyCache.data
+  const data = fetchBodyData(userId)
+  bodyCache = { userId, at: now, data }
+  data.catch(() => { if (bodyCache?.data === data) bodyCache = null })
+  return data
+}
+
+async function fetchBodyData(userId: string): Promise<BodyData> {
   const [profile, weight] = await Promise.all([
     supabase.from('profiles').select('weight_kg,height_cm,birth_date,bio_sex,gender').eq('id', userId).maybeSingle(),
     supabase.from('weight_logs').select('weight_kg').eq('user_id', userId).order('logged_at', { ascending: false }).limit(1),
@@ -317,4 +347,40 @@ export async function loadBodyData(userId: string): Promise<BodyData> {
     birthDate: bio.birthDate,
     sex: bio.sex ?? geschlechtAusAltangabe(p.gender),
   }
+}
+
+// ─── Aktivität ──────────────────────────────────────────────────────────
+
+/** Selbst eingetragene Aktivität eines Tages, älteste zuerst. */
+export async function loadActivityLogs(userId: string, date: string): Promise<ActivityLog[]> {
+  const { data, error } = await supabase.from('activity_logs').select('id,label,minutes,kcal')
+    .eq('user_id', userId).eq('log_date', date).order('created_at', { ascending: true })
+  if (error) throw error
+  return (data ?? []).map((r: Row) => ({ id: String(r.id), label: String(r.label), minutes: opt(r.minutes), kcal: num(r.kcal) }))
+}
+
+export async function addActivityLog(userId: string, date: string, log: Omit<ActivityLog, 'id'>): Promise<ActivityLog> {
+  const { data, error } = await supabase.from('activity_logs')
+    .insert({ user_id: userId, log_date: date, label: log.label.trim().slice(0, 60), minutes: log.minutes, kcal: Math.round(log.kcal) })
+    .select('id,label,minutes,kcal').single()
+  if (error) throw error
+  return { id: String(data.id), label: String(data.label), minutes: opt(data.minutes), kcal: num(data.kcal) }
+}
+
+export async function deleteActivityLog(id: string): Promise<void> {
+  const { error } = await supabase.from('activity_logs').delete().eq('id', id)
+  if (error) throw error
+}
+
+/** Trainings aus der App, die an diesem (lokalen) Tag begonnen haben. */
+export async function loadDayTrainings(userId: string, date: string): Promise<{ id: string; title: string; startedAt: string; durationS: number | null; kcal: number | null }[]> {
+  const from = parseISO(date)
+  const to = addDays(from, 1)
+  const { data, error } = await supabase.from('training_sessions').select('id,title,started_at,duration_s,kcal')
+    .eq('user_id', userId).gte('started_at', from.toISOString()).lt('started_at', to.toISOString())
+    .order('started_at', { ascending: true })
+  if (error) throw error
+  return (data ?? []).map((r: Row) => ({
+    id: String(r.id), title: String(r.title ?? ''), startedAt: String(r.started_at), durationS: opt(r.duration_s), kcal: opt(r.kcal),
+  }))
 }

@@ -64,7 +64,8 @@ describe('InjectionMapCanvas external assets', () => {
     const source = readFileSync(new URL('./InjectionMapCanvas.tsx', import.meta.url), 'utf8')
 
     expect(source).toContain('sheetOpen?: boolean')
-    expect(source).toContain('focusTargetForRequest(point, normal, canvas)')
+    expect(source).toContain('focusTargetForRequest(point, normal, canvas, distance)')
+    expect(source).toContain('planCameraFlight(')
     expect(source).toContain('measureFreeViewport(canvas)')
   })
 

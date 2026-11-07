@@ -5,7 +5,9 @@ import toast from 'react-hot-toast'
 import type { TrainingSession, TrainingSet } from '../../types'
 import { useTrainingText } from '../../i18n'
 import type { ActiveWorkout, WorkoutAction } from '../../lib/activeWorkout'
-import { afterToggleDone, continuesSuperset, finishWorkout, nextOpenSet, supersetPartnerIndex } from '../../lib/activeWorkout'
+import { afterToggleDone, continuesSuperset, finishWorkout, supersetPartnerIndex } from '../../lib/activeWorkout'
+import { voiceTarget } from '../../lib/voiceCommand'
+import type { SpracheFehler } from '../../../dot/chat/useSpracheingabe'
 import { exerciseInfo, exerciseName, exerciseTracking } from '../../lib/exerciseLookup'
 import { formatClock } from '../../lib/format'
 import { prefersReducedMotion } from '../../lib/motion'
@@ -15,10 +17,12 @@ import { buildSuggestFn, routineTemplateFor } from '../../lib/suggest'
 import type { TrainingData } from '../../hooks/useTrainingData'
 import { ExercisePicker } from '../ExercisePicker'
 import { Button, TRAINING_ACCENT } from '../ui'
+import { CommandBar } from './CommandBar'
 import { ExerciseBlock } from './ExerciseBlock'
 import { FinishSheet } from './FinishSheet'
 import { describeNextSet } from './nextSet'
 import { RestTimer } from './RestTimer'
+import { runVoiceCommand, type VoiceMessage } from './voiceRun'
 
 /**
  * Das laufende Training im Vollbild. Oben Titel, Dauer und der Hinweis, dass
@@ -40,6 +44,9 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
   // Index der Uebung, die getauscht wird (Einzelauswahl in der Uebungsliste).
   const [replacing, setReplacing] = useState<number | null>(null)
   const [finishing, setFinishing] = useState(false)
+  // Bei welcher Übung gesprochene Einträge landen („nächste Übung"). Gemerkt wird die
+  // Übung, nicht die Position, damit Verschieben oder Entfernen nicht umlenkt.
+  const [focusId, setFocusId] = useState<string | null>(null)
   const mainRef = useRef<HTMLElement>(null)
 
   // Beim Bearbeiten ist „Vorher" das Training davor, nicht das bearbeitete selbst.
@@ -74,23 +81,25 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
     return ids.map((id, index) => suggest(id, routineTemplateFor(ids, routine, index)))
   }, [suggest, routine, exerciseKey])
 
-  const next = nextOpenSet(workout)
-  const nextInfo = describeNextSet(workout, lang, locale, data.settings.unit, data.customExercises)
+  // Der Ring zeigt, wohin der nächste Eintrag geht — getippt, gesprochen oder abgehakt
+  const focus = Math.max(0, focusId ? workout.exercises.findIndex(ex => ex.exerciseId === focusId) : 0)
+  const next = voiceTarget(workout.exercises, focus)
+  const nextInfo = describeNextSet(workout, lang, locale, data.settings.unit, data.customExercises, next)
 
   // Der Toast zeigt den Text der Bedienung (Satz/Uebung entfernt, Uebung getauscht); die
   // Kennung des Schnappschusses kommt aus dem Zustand, sobald der Reducer ihn gesetzt hat.
-  const undoTextRef = useRef<string | null>(null)
+  const undoTextRef = useRef<{ text: string; heard?: string } | null>(null)
   // Ein Schnappschuss, der beim Oeffnen schon da ist (minimiert, Neustart), bekommt keinen Toast.
   const shownUndoRef = useRef<number | null>(workout.undo?.id ?? null)
   const undoId = workout.undo?.id ?? null
   useEffect(() => {
     if (undoId == null || shownUndoRef.current === undoId) return
     shownUndoRef.current = undoId
-    const text = undoTextRef.current ?? tt(workout.undo?.label === 'set' ? 'set_removed' : 'exercise_removed')
+    const { text, heard } = undoTextRef.current ?? { text: tt(workout.undo?.label === 'set' ? 'set_removed' : 'exercise_removed') }
     undoTextRef.current = null
     toast(t => (
       <span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <span style={{ flex: 1, fontWeight: 700 }}>{text}</span>
+        <ToastText heard={heard} text={text} />
         <button
           type="button"
           className="tyd-train-press"
@@ -104,8 +113,37 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
   }, [undoId, workout.undo?.label, dispatch, tt])
 
   const withUndoToast = (text: string, action: WorkoutAction) => {
-    undoTextRef.current = text
+    undoTextRef.current = { text }
     dispatch(action)
+  }
+
+  const scrollToExercise = (index: number) => requestAnimationFrame(() => {
+    const target = mainRef.current?.querySelector<HTMLElement>(`[data-exercise-index="${index}"]`)
+    target?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' })
+  })
+
+  /** Hinweis ohne Rückgängig (nicht verstanden, Fokus, Rückgängig selbst). */
+  const voiceNote = (heard: string, message: VoiceMessage, ok: boolean) => {
+    toast(() => <ToastText heard={heard} text={tt(message.key, message.vars)} warn={!ok} />, { id: 'training-undo', duration: ok ? 3000 : 4000 })
+  }
+
+  /** Gesprochen oder getippt: als ein Eintrag mit Rückgängig, oder ein Hinweis, dass nichts geschah. */
+  const handleCommand = (heard: string, now: number) => {
+    const result = runVoiceCommand(heard, {
+      workout, focus, lang, locale, unit: data.settings.unit, customExercises: data.customExercises,
+      defaultRestS: data.settings.defaultRestS, now, history, suggest,
+    })
+    if (result.type === 'none') { voiceNote(heard, result.message, false); return }
+    if (result.type === 'undo') { dispatch({ type: 'undo', id: result.id }); voiceNote(heard, result.message, true); return }
+    if (result.type === 'focus') { setFocusId(result.focusId); scrollToExercise(result.scrollTo); voiceNote(heard, result.message, true); return }
+    undoTextRef.current = { text: tt(result.message.key, result.message.vars), heard }
+    dispatch({ type: 'batch', actions: result.actions })
+    if (result.focusId != null) setFocusId(result.focusId)
+    if (result.scrollTo != null) scrollToExercise(result.scrollTo)
+  }
+
+  const micError = (error: SpracheFehler) => {
+    toast(tt(error === 'verweigert' ? 'voice_mic_denied' : error === 'nichts' ? 'voice_mic_nothing' : 'voice_mic_error'), { id: 'training-undo' })
   }
 
   const toggleDone = (index: number, setIndex: number, now: number) => {
@@ -242,14 +280,16 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
         </div>
       </main>
 
+      {(workout.restEndsAt != null || !editing) && (
+      <footer
+        style={{
+          padding: '8px calc(10px + env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) calc(10px + env(safe-area-inset-left, 0px))',
+          borderTop: '0.5px solid var(--lg-separator)', background: 'var(--lg-sheet-solid)',
+          display: 'flex', flexDirection: 'column', gap: 8,
+        }}
+      >
       {workout.restEndsAt != null && (
-        <div
-          className="tyd-train-pop"
-          style={{
-            padding: '8px calc(10px + env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) calc(10px + env(safe-area-inset-left, 0px))',
-            borderTop: '0.5px solid var(--lg-separator)', background: 'var(--lg-sheet-solid)',
-          }}
-        >
+        <div className="tyd-train-pop">
           <div style={{ maxWidth: 640, margin: '0 auto' }}>
             <RestTimer
               endsAt={workout.restEndsAt}
@@ -263,11 +303,20 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
           </div>
         </div>
       )}
+      {!editing && (
+        <div style={{ maxWidth: 640, width: '100%', margin: '0 auto' }}>
+          <CommandBar onCommand={text => handleCommand(text, Date.now())} onMicError={micError} />
+        </div>
+      )}
+      </footer>
+      )}
 
       {picker && (
         <ExercisePicker
           sessions={data.sessions}
           customExercises={data.customExercises}
+          favorites={data.settings.favoriteExercises}
+          onToggleFavorite={data.toggleFavorite}
           onAddCustom={data.addCustomExercise}
           onClose={() => setPicker(false)}
           onPick={ids => {
@@ -281,6 +330,8 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
         <ExercisePicker
           sessions={data.sessions}
           customExercises={data.customExercises}
+          favorites={data.settings.favoriteExercises}
+          onToggleFavorite={data.toggleFavorite}
           onAddCustom={data.addCustomExercise}
           multiple={false}
           onClose={() => setReplacing(null)}
@@ -305,6 +356,16 @@ export function LiveWorkout({ workout, dispatch, data, onMinimize, onDiscard, on
       )}
     </div>,
     document.body,
+  )
+}
+
+/** Text im Hinweis unten: was gehört wurde (klein) und was passiert ist. */
+function ToastText({ heard, text, warn = false }: { heard?: string; text: string; warn?: boolean }) {
+  return (
+    <span style={{ display: 'block', flex: 1, minWidth: 0 }}>
+      {heard && <span style={{ display: 'block', fontSize: 13, color: 'var(--lg-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>„{heard}“</span>}
+      <span style={{ display: 'block', fontWeight: 700, color: warn ? 'var(--lg-warn-text, #ffd60a)' : undefined }}>{text}</span>
+    </span>
   )
 }
 

@@ -1,10 +1,16 @@
-import type { TrainingRoutine, TrainingSession } from '../types'
+import type { PlanSchedule, TrainingRoutine, TrainingSession } from '../types'
 import { isoWeekday } from './stats'
+import { DEFAULT_SCHEDULE, scheduleStatus, type ScheduleStatus } from './planSchedule'
 
 /**
  * Ordner = Plan. „Als Naechstes" ergibt sich aus dem Verlauf, ohne eigenen
  * Zustand: die Routine nach der zuletzt trainierten im selben Ordner, in der
  * Reihenfolge der Routinen (Rotation). Was fuer heute geplant ist, geht vor.
+ *
+ * Heute geplant heisst je nach Zeitplan des Plans (`planSchedule.ts`): bei
+ * festen Wochentagen ein Workout mit dem heutigen Tag; bei „X-mal pro Woche"
+ * und „alle X Tage" das naechste Workout der Rotation, wenn der Plan heute
+ * dran ist.
  */
 
 export interface PlanGroup {
@@ -45,8 +51,11 @@ export interface NextInPlan {
   rotation: TrainingRoutine[]
   /** Wann diese Routine zuletzt trainiert wurde; null = noch nie. */
   lastTrainedAt: string | null
-  /** Die Routine steht fuer heute im Plan (Wochentag). */
+  /** Die Routine steht fuer heute im Plan (Wochentag bzw. Zeitplan). */
   plannedToday: boolean
+  /** Zeitplan des Plans und sein Stand; „weekdays" ohne eigenen Plan. */
+  schedule: PlanSchedule
+  status: ScheduleStatus | null
 }
 
 /** Juengste Einheit je Routine (ISO-Zeit). */
@@ -66,6 +75,8 @@ export function nextInPlan(
   routines: readonly TrainingRoutine[],
   sessions: readonly TrainingSession[],
   now: Date,
+  /** Zeitplan je Plan-Name; fehlt einer, gilt „weekdays". */
+  schedules: ReadonlyMap<string, PlanSchedule> = new Map(),
 ): NextInPlan | null {
   if (routines.length === 0) return null
   const groups = groupByFolder(routines)
@@ -82,17 +93,37 @@ export function nextInPlan(
   }
 
   const today = isoWeekday(now)
+  const scheduleOf = (group: PlanGroup) => (group.folder != null ? schedules.get(group.folder) : undefined) ?? DEFAULT_SCHEDULE
+  const statusOf = (group: PlanGroup) => {
+    const schedule = scheduleOf(group)
+    return schedule.mode === 'weekdays' ? null : scheduleStatus(schedule, group.routines, sessions, now)
+  }
   const result = (routine: TrainingRoutine, group: PlanGroup, plannedToday: boolean): NextInPlan => ({
     routine, folder: group.folder, rotation: group.routines,
     lastTrainedAt: last.get(routine.id) ?? null, plannedToday,
+    schedule: scheduleOf(group), status: statusOf(group),
   })
 
+  // Rotation: nach der zuletzt trainierten Routine des Ordners weiter, am Ende von vorn.
+  const rotationNext = (group: PlanGroup) => {
+    let lastIndex = -1
+    let lastAt = -Infinity
+    group.routines.forEach((routine, index) => {
+      const at = last.get(routine.id)
+      if (at && Date.parse(at) > lastAt) { lastAt = Date.parse(at); lastIndex = index }
+    })
+    return group.routines[(lastIndex + 1) % group.routines.length]
+  }
+
   // Fuer heute geplant und heute noch nicht trainiert — zuerst im aktiven Ordner suchen.
-  const openToday = (group: PlanGroup) => group.routines.find(r => {
-    if (!r.weekdays.includes(today)) return false
-    const at = last.get(r.id)
-    return !at || !sameLocalDay(at, now)
-  })
+  const openToday = (group: PlanGroup) => {
+    if (scheduleOf(group).mode !== 'weekdays') return statusOf(group)?.dueToday ? rotationNext(group) : undefined
+    return group.routines.find(r => {
+      if (!r.weekdays.includes(today)) return false
+      const at = last.get(r.id)
+      return !at || !sameLocalDay(at, now)
+    })
+  }
   const inActive = openToday(active)
   if (inActive) return result(inActive, active, true)
   for (const group of groups) {
@@ -101,14 +132,5 @@ export function nextInPlan(
     if (hit) return result(hit, group, true)
   }
 
-  // Rotation: nach der zuletzt trainierten Routine des Ordners weiter, am Ende von vorn.
-  const rotation = active.routines
-  let lastIndex = -1
-  let lastAt = -Infinity
-  rotation.forEach((routine, index) => {
-    const at = last.get(routine.id)
-    if (at && Date.parse(at) > lastAt) { lastAt = Date.parse(at); lastIndex = index }
-  })
-  const next = rotation[(lastIndex + 1) % rotation.length]
-  return result(next, active, false)
+  return result(rotationNext(active), active, false)
 }

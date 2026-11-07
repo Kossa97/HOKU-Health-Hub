@@ -47,6 +47,7 @@ vi.mock('../features/profil/services/profileSnapshotStore', () => ({ loadProfile
 vi.mock('../features/training/services/trainingRepo', () => ({
   loadSessions: vi.fn(async () => []), loadRoutines: vi.fn(async () => []), loadCustomExercises: vi.fn(async () => []),
   insertCustomExercise: vi.fn(), isMissingTable: () => false,
+  loadSettings: vi.fn(async () => ({ favoriteExercises: [] })), saveSettings: vi.fn(async () => undefined),
 }))
 vi.mock('../features/training/components/ExercisePicker', () => ({ ExercisePicker: () => null }))
 

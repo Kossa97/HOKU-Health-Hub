@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Play, Settings } from 'lucide-react'
 import type { TrainingRoutine, TrainingSession } from './types'
 import { useTrainingText } from './i18n'
@@ -9,7 +9,7 @@ import { useHealthConsentAsk } from './hooks/useHealthConsentAsk'
 import { startWorkout, workoutFromSession, type ActiveWorkout } from './lib/activeWorkout'
 import { formatClock } from './lib/format'
 import { buildSuggestFn } from './lib/suggest'
-import { Button, Card, TRAINING_ACCENT, TRAINING_CSS } from './components/ui'
+import { accentMix, Button, Card, TRAINING_ACCENT, TRAINING_CSS } from './components/ui'
 import { TodayTab } from './components/today/TodayTab'
 import { HistoryTab } from './components/history/HistoryTab'
 import { SessionDetailSheet } from './components/history/SessionDetailSheet'
@@ -19,6 +19,8 @@ import { LiveWorkout } from './components/live/LiveWorkout'
 import { describeNextSet } from './components/live/nextSet'
 import { QuickLogSheet } from './components/QuickLogSheet'
 import { RoutineEditor } from './components/RoutineEditor'
+import { HokuPlanPreview } from './components/plan/HokuPlanPreview'
+import { liesGesichertenPlan, type HokuPlan } from './lib/hokuPlan'
 import { KurvenUmriss, Silhouette } from '../../components/ui/Silhouette'
 import { useAuth } from '../../context/AuthContext'
 import { HealthStoreConsentSheet } from '../wearables/components/HealthStoreConsentSheet'
@@ -91,6 +93,21 @@ export function TrainingPage() {
     }, 0)
     return () => window.clearTimeout(id)
   }, [data.state, params, setParams, startEmpty])
+
+  // Ein Plan aus dem Hoku-Chat („Plan ansehen"): Vorschau öffnen, den Zustand der URL leeren
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [hokuPlan, setHokuPlan] = useState<HokuPlan | null>(null)
+  useEffect(() => {
+    if (data.state !== 'ready') return
+    const plan = liesGesichertenPlan((location.state as { hokuPlan?: unknown } | null)?.hokuPlan)
+    if (!plan) return
+    const id = window.setTimeout(() => {
+      navigate(location.pathname + location.search, { replace: true, state: null })
+      setHokuPlan(plan)
+    }, 0)
+    return () => window.clearTimeout(id)
+  }, [data.state, location.state, location.pathname, location.search, navigate])
 
   const editSession = (session: TrainingSession) => {
     setDetail(null)
@@ -203,6 +220,9 @@ export function TrainingPage() {
           onStart={routine => { setRoutineEdit(null); startRoutine(routine) }}
         />
       )}
+      {hokuPlan && (
+        <HokuPlanPreview data={data} plan={hokuPlan} onClose={() => setHokuPlan(null)} onSaved={() => setHokuPlan(null)} />
+      )}
       {detail && <SessionDetailSheet session={detail} data={data} onEdit={() => editSession(detail)} onClose={() => setDetail(null)} />}
       {settingsOpen && <SettingsSheet data={data} onClose={() => setSettingsOpen(false)} />}
       <HealthStoreConsentSheet
@@ -236,7 +256,7 @@ function RunningBanner({ workout, data, onResume }: { workout: ActiveWorkout; da
   return (
     <Card onClick={onResume} style={{ padding: '12px 16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <span aria-hidden="true" style={{ width: 10, height: 10, borderRadius: 5, flexShrink: 0, background: TRAINING_ACCENT, boxShadow: `0 0 0 4px ${TRAINING_ACCENT}33` }} />
+        <span aria-hidden="true" style={{ width: 10, height: 10, borderRadius: 5, flexShrink: 0, background: TRAINING_ACCENT, boxShadow: `0 0 0 4px ${accentMix(20)}` }} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 17, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{workout.title || tt('running_banner')}</div>
           {sub && <div style={{ fontSize: 13, color: restLeftS != null ? TRAINING_ACCENT : 'var(--lg-text-3)', fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub}</div>}

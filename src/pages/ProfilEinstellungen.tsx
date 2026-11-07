@@ -17,6 +17,7 @@ import { PhotoConsentProfile } from '../features/ernaehrung/components/PhotoCons
 import { HealthStoreProfile } from '../features/wearables/components/HealthStoreProfile'
 import { BioProfilKarte } from '../features/blutwerte/components/BioProfil'
 import { LanguageSwitcher, LookSwitcher, PushSettings, StoerungsSchalter } from '../features/profil/components/AppEinstellungen'
+import { HokuEintrag } from '../features/dot/HokuEintrag'
 import { BlockiertListe } from '../features/profil/components/BlockiertListe'
 import { WerSiehtWas } from '../features/profil/components/WerSiehtWas'
 import { useBlockiert } from '../features/profil/hooks/useBlockiert'
@@ -196,7 +197,9 @@ export function ProfilEinstellungen() {
 
       {/* ── Konto & App ── */}
       <LanguageSwitcher />
-      <LookSwitcher />
+      <LookSwitcher vorschau={werte?.isAdmin || import.meta.env.DEV} />
+      {/* Hoku: Farbe, Bewegung und Hinweise auf eigener Seite mit Bühne */}
+      <HokuEintrag />
       <PushSettings />
       {PASSKEY_AN && <PasskeyEinstellung />}
 

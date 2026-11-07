@@ -284,3 +284,17 @@ describe('Einnahmeeinheit je Darreichungsform', () => {
   })
 })
 
+
+describe('kombiPlanEinheiten', () => {
+  it('bietet bei Kombipräparaten nur Stück oder ml an, die Bezugseinheit vorn', async () => {
+    const { kombiPlanEinheiten, getIntakePlanUnitSuggestions } = await import('./dosageForms')
+    expect(kombiPlanEinheiten('tablet')).toEqual(['tablet'])
+    expect(kombiPlanEinheiten('capsule')).toEqual(['capsule'])
+    expect(kombiPlanEinheiten('vial', 'peptide')[0]).toBe('ml')
+    expect(kombiPlanEinheiten('vial', 'peptide')).not.toContain('mcg')
+    expect(kombiPlanEinheiten('drops')[0]).toBe('ml')
+    expect(kombiPlanEinheiten('powder')).toEqual(['g', 'portion'])
+    expect(getIntakePlanUnitSuggestions('tablet', ['mg'], { category: null })).toEqual(['tablet'])
+    expect(getIntakePlanUnitSuggestions('tablet', ['mg'])).toContain('mg')
+  })
+})

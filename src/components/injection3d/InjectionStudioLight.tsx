@@ -3,8 +3,7 @@ import { useEffect } from 'react'
 import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
-import { injectionStudioLightsFor } from '../../lib/injectionStudioLook'
-import { useActiveLook } from '../../lib/look'
+import { INJECTION_STUDIO_LIGHTS } from '../../lib/injectionStudioLook'
 
 function RoomReflections({ intensity }: { intensity: number }) {
   const get = useThree(state => state.get)
@@ -31,7 +30,7 @@ function RoomReflections({ intensity }: { intensity: number }) {
 }
 
 export function InjectionStudioLight() {
-  const { environmentIntensity, key, fill, rimLeft, rimRight } = injectionStudioLightsFor(useActiveLook())
+  const { environmentIntensity, key, fill, rimLeft, rimRight } = INJECTION_STUDIO_LIGHTS
   return (
     <>
       <RoomReflections intensity={environmentIntensity} />

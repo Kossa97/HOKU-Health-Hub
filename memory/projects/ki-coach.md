@@ -475,6 +475,30 @@ von 40 Fragen bleibt. Pro einschalten = beide auf `true`, deployen, die e2e-Test
 - Folgenabschätzung: `docs/datenschutz/dsfa-ki.md` (Entwurf). Vor
   „Blutwerte-Hinweisen“ MDR neu prüfen.
 
+## Hokus Auge und Farbwahl (02.11.2026)
+Mockup „Hoku Varianten“ (https://claude.ai/artifact/Ra2CfkyYfG73VCYGfYPQvb), sieben Runden.
+- **Auge:** Pupille aus D3 als Irisblende (Punkte weichen an den Rand, dahinter liegende
+  verschwinden), Augapfel: der ganze Körper dreht sich zum Blick, kleine Blicke ruhig (D10,
+  k 70, ζ 1), große Bewegungen mit Masse (D11, k 46, ζ 0,72). Punkte rollen langsam um die
+  Blickachse. Blinzeln mit Lid aus Punkten (zu 90 ms, 50 ms zu, auf 170 ms, manchmal doppelt),
+  danach Pupille kurz weiter. Code: `engine/auge.ts`, angewendet in `shapeTarget` (Kugel).
+- **Regel:** Auge nur als Kugel (und bei „augen“), groß genug (r ≥ 16), nicht an der Wand,
+  nicht im Haus/Portal/Eröffnung. Verlässt er die Kugel, schließt er vorher das Auge (`wechsel`).
+- **Blickziel:** gezogen → Zugrichtung, Flug → Flugrichtung, sonst zuletzt getippt/fokussiert
+  (2,5–3 s), sonst Blicksprünge. Aufprall > 320 px/s → Blinzeln.
+- **Zuhören = Zuhören 4:** Kugel statt Ring; Pupille ×1,12, 10 % der Punkte lösen sich als
+  heller Irisring, der im Takt der Stimme dreht (`stimme()`: je gehörtem Wort im Chat 0,6, je
+  Tastendruck im Passwort 0,5).
+- **Herz = Herz 2:** Auge zu, Herz wie bisher (Gesten haben ohnehin kein Auge).
+- **Farbe:** Nutzer wählt im Profil (`HokuFarbAuswahl`, `lib/hokuFarbe.ts`, localStorage
+  `tyd.hoku.farbe`); Standard „Passend zum Design“: Schwarz Cyan-Weiß, Satin Schneeweiß,
+  Licht Weißlicht, Nacht Cyan-Violett (heute), Instrument Eiscyan, Soft Dark Schneeweiß.
+  Kräftige Farben halten hintere Punkte sichtbar (Handy, Sonne). Logo in der Leiste folgt.
+- **Login-Gesten** (Winken, Herz, Freude, Haken, Nicken …) laufen bisher nur auf der Anmeldung;
+  welche appweit kommen, wird später geplant (Nutzer 02.11.2026).
+- **Offen:** Auge in Gesten mit Kugelkörper (Freude F1–F3, Nicken, Kopfschütteln, Warten über
+  `kugelBild` in `gesten.ts`), Blick zu neuen Karten, Prüfung auf dem iPhone.
+
 ## Vorschlag (noch nicht bestätigt)
 - Name „Dot“ (passt zu „1 Punkt = 1 kcal“, de/en gleich).
 - Zustände: Ruhe (Drehen, Atmen), Zuhören, Denken (Wirbeln), Sprechen (Pulsieren),
@@ -498,3 +522,33 @@ von 40 Fragen bleibt. Pro einschalten = beide auf `true`, deployen, die e2e-Test
 - Seite: `ernaehrung/lib/dotRundflug.ts` (Bahn, Texte, Abstand), `hooks/useDotRundflug.ts`; Kugel über `orbBridge` (`setOrbBuehne`: `koerper()`, stiller Fokus ohne Etikett und Haptik). Antippen kürzt ab; „Bewegung reduzieren“: nur der Satz. Nur heute, nur wenn er heraus darf.
 - Texte in `dot/texte.ts` (`rf_*`, de/en). Über dem Ziel neutral, Freude-Haken nur bei „Alles erledigt“.
 - **Umlauf bei jedem Öffnen (Nutzer 30.10.):** sonst immer Variante A (eine Runde um die Kugel, ohne Daten, hinten verdeckt per Maske auf Dots Flächen, `hinter` in `Rundflug.pos`). Nach 2 h oder beim 3. Öffnen Variante B mit Halten und Sätzen (nur heute). Draußen startet er an seinem Platz, sonst am linken Rand.
+
+### Nachträge 02.11.2026 (Nutzer)
+- „Augen zuhalten“ (Login, Passwort einblenden) komplett entfernt: Geste `augen`, Armpunkte, Satz `login_sehe_nichts`.
+- Irisring beim Zuhören: jeder zehnte Punkt über die ganze Kugel (`Punkt.iris`), nicht mehr eine Polkappe; die Kappe ließ ein Loch im Körper.
+- Blick folgt auf dem Handy auch beim Wischen (touch*-Ereignisse) und dem nachgleitenden Inhalt (scroll).
+- Schreiben überall in der App (input/textarea/contenteditable, kein Passwort): Hoku hört zu (1,8 s nach dem letzten Zeichen) und schaut auf die Schreibmarke (`engine/schreibmarke.ts`, Spiegel-Div). Zuhören deutlicher: Pupille ×1,22, Ring `HOER_RING` (1,32 / Puls 0,16 / heb 1,15), heller, schneller.
+- Passwort: Hoku dreht sich weg (Pupille hinter den Rand, `wegsehen()`, `WEG` in auge.ts), Blase weg_1…3 einmal je 8 s; zurück beim Verlassen (120 ms Puffer für das zweite Feld) und beim Verlassen der Anmeldung.
+- Anmeldung: Fokus in einem Feld der Karte (`data-dot-kante`) → er rutscht immer; ist über der Karte kein Platz (Tastatur schiebt sie hoch, iPhone als App), bleibt er IMMER gleich groß auf der Kante, auch beim Passwort, wenn die Tastatur das Formular noch höher schiebt (Hin und Her: #148 gleich groß, #149 kleiner; endgültig Nutzer 03.11.2026: „genau so groß lassen wie bei E-Mail, sieht flüssiger aus“). Liegt die Karte ganz oben, ragt er oben etwas aus dem Bild; kein Verkleinern, keine Ecke (die Ecke rechts in der Kopfzeile ist entfernt, er sprang auf dem iPhone manchmal hinein) (sichtbarer Bereich in der Ebene: visualViewport.offsetTop + Statusleiste, NICHT zusätzlich URS abziehen) (nicht nur wenn er oben verdeckt wäre; visualViewport auf dem iPhone unzuverlässig) mit einer Feder (k 90, ζ 0,78) nach und setzt sich auf die Oberkante der Karte (ragt höchstens 0,55 r über die Kante und endet 3 px über der Kartenüberschrift `data-dot-frei`, damit „Anmelden“ lesbar bleibt; Nutzer: 0,15 und 0,45 zu tief).
+- Auge in allen Gesten mit Kugelkörper (Nutzer 02.11.2026): `gesten.ts` meldet je Bild `GestenBild.K` (Mitte, Maße, Blick); die Engine setzt das Auge auf die Punkte dieser Kugel (`formMitAuge`). Blick je Geste: Nicken schaut mit nach unten, Kopfschütteln schwingt mit, Freude schaut nach oben (Funken nach), Warten folgt dem Lichtband bzw. schaut zu den Wolken, Fehler-Kugel schaut nach unten, Winken normal. Ohne Auge (keine Kugel): Herz (Herz 2), Haken, X, WLAN, Sanduhr, Brief, Schrift, Denken (Ringe), Sprechen (Welle), Freude-Haken.
+- Denken und Sprechen mit Auge (Nutzer 02.11.2026): beide sind jetzt die Kugel (vorher Ringe/Welle). Denken: Blick nach oben, wandert langsam, Pupille 15 % enger, Irisring mit 60 % Deutlichkeit dreht ruhig (`DENKEN`). Sprechen: Pupille weitet sich mit jedem Wort um bis zu 35 % (`SPRECHEN`, B.voice aus `stimme()`), fällt danach zurück.
+- Fokus in einem Feld der Anmeldung setzt keine Stimmung mehr (bräche laufende Gesten ab); Rutschen weicher (k 40, ζ 0,88).
+- Versteckte Messanzeige auf der Anmeldung (`dot.diagnose()`, fünfmal auf die Fußzeile tippen): am 02.11.2026 nach Bestätigung des Nutzers wieder entfernt.
+- Ursache „Hoku verschwindet bei offener Tastatur“ (iPhone-App, Messanzeige 02.11.2026): die feste Hoku-Ebene liegt dann um den Scrollweg höher (ebeneTop −316 bei scrollY 316), DOM-Rechtecke kommen in Bildschirmkoordinaten. Fix: `URS` (Lage der Zeichenfläche) je Bild messen, Bühne, Karte, Überschrift und Blickziele mit `inEbene()` umrechnen. Danach (Nutzer 02.11.: „immer das gesamte Bild des Geräts ausnutzen“, oben und unten kam er nicht mehr an den Rand): die Zeichenfläche ist nur bildschirmgroß, verschoben deckte sie einen Streifen nicht ab. `messeBuehne` schiebt die Ebene deshalb je Bild per CSS `translate` zurück an den Bildschirm (URS danach 0); `oben` in `rutschZiel` ist jetzt `-URS.y` statt `vv.offsetTop`. E2E: Ebene per `transform` verschoben, Hoku erreicht trotzdem oben und unten den Rand.
+- Anmeldung nach Abmelden (Nutzer 02.11.2026: „im Login nur oben an den Rand, das Tor wird im Login gerendert“): `setSeite` läuft nur in der App; auf der Anmeldung galten deshalb noch Leiste, Kapsel (unsichtbare Wand) und Tor der App. `loginBetreten` setzt jetzt `NAV.on = false` und misst neu; zurück in der App setzt `setSeite` die Leiste wieder. E2E in `dot.spec.ts`.
+- Passwort sichtbar (Nutzer 03.11.2026): Hoku schaut weg, solange das Passwortfeld den Fokus hat ODER das Passwort lesbar ist (`zeigePw`), auch nach Verlassen des Felds und beim Tippen in ein anderes Feld; Verbergen dreht ihn zurück. Ablesbar an `data-dot-weg="an"` auf der Trefferfläche. Keine neue Blase beim Einblenden.
+
+## Seite „Hoku“ mit Bühne (Nutzer 03.11.2026)
+- Profil → Zeile „Hoku“ (`HokuEintrag`) → `/profil/hoku` (`src/pages/HokuSeite.tsx`). Oben eine Bühne (`data-hoku-buehne`), Hoku kommt aus dem Haus darauf (`klingeln` + `oeffneBuehne`) und geht beim Verlassen zurück, wenn er drinnen war. Die Bühne heftet sich beim Scrollen oben an (JS, weil `main` mit overflow-x hidden CSS-sticky verhindert). Darunter Farbe (`HokuFarbAuswahl`, vorher direkt im Profil) und „Verhalten“.
+- Einstellungen nur auf dem Gerät (`lib/hokuEinstellungen.ts`, `tyd.hoku.ruhig|raus|hinweise`, Standard ruhig aus, raus an, hinweise an):
+  - **Ruhig bewegen:** kein Rundflug, keine Eröffnung, keine Auftritte (klopfen/umkreisen), kein Portal. Bei „Bewegung reduzieren“ am Gerät an und gesperrt.
+  - **Kommt für Hinweise heraus:** nur zwei Ausnahmen (Seiten ohne Leiste: /injektionen, /ernaehrung; Rundflug im Kalorientracker aus dem Haus). Aus = bleibt im Haus bis Logo-Tipp.
+  - **Hinweise:** Seitenhinweis, Rundflug samt Satz, „automatisch eingetragen“, Hinweise auf der Anmeldung, Gruß beim Von-selbst-Herauskommen (er winkt nur). Chat bleibt; Reaktionen auf eigene Handlungen (Passwort-Blase) bleiben.
+- Sprechblase ist jetzt auch im Modus `stage` erlaubt (Vorführung „So sage ich dir Bescheid.“).
+
+## Glasgehäuse auf der Seite „Hoku“ (Nutzer 04.11.2026, Vorschau-Artefakt „Hoku Aquarium“)
+- Statt Bühne ein Glasgehäuse ohne Hintergrund; Glas wie die Glaslinse der Tab-Leiste (Branch claude/glas-linse): `src/lib/glasKante.ts` unverändert von dort übernommen (gleicher Inhalt → beim Merge kein Konflikt), Kantenschatten der Linse, Farbsaum halbiert (`--hoku-farbe` 0,05). Das Glas (`.tyd-hoku-glas`, z-index 45) liegt ÜBER der Hoku-Ebene (44), das Gehäuse (`.tyd-hoku-buehne`, Bühne der Engine) darunter; angeheftet deckt das Gehäuse die Seite mit `--c-bg` ab.
+- Engine: `dot.gehege(el | null)` nutzt den Login-Modus (`B.gehege`), aber mit `GEHEGE` als Wänden: `bounds()` = Innenkante, unten Bodenplatte (`data-dot-boden`, 0,82), `rund()` statt `CR`, keine Insel/Leiste (`navOn` aus). Kleben 3,4–4,8 s (Anmeldung 1,2 s), dann lösen und zur Mitte. In Ecken nur eine Auflage: unten Boden (1,5 r vor der Scheibe, sonst schaukelt er an ihr), oben die nähere Fläche — sonst „L“ um die kleine Ecke. Punkte werden im Gehäuse auf die Innenkante geklemmt.
+- Zeichnen (nur WebGL): `gehegeAbbilder` – Spiegelbild auf der Bodenplatte (0,42 gestaucht, blasser je höher) und Randbrechung: was bis 46 px an der Scheibe ist, erscheint gestaucht (0,36) in der Glaskante. Die Ringe der Tab-Linse (verkleinerte Kopie) taugen im leeren Gehäuse nicht: dort liegt hinter der Kante nichts.
+- Schalter: `GlasSchalter.tsx` (Linse nach Glisse auf der Spur, angehoben Glaskante).
+- Farbwahl als Karussell (Nutzer 04.11.2026): `HokuFarbAuswahl` ist ein waagerechtes Band (scroll-snap, Mitte = Wahl nach 110 ms Ruhe, Antippen zentriert sanft, Pfeiltasten), darunter der volle Name der Wahl. Hoku im Glas färbt sich beim Wischen mit.

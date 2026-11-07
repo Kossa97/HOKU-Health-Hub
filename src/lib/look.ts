@@ -15,13 +15,23 @@ import { useCallback, useEffect, useState } from 'react'
  *   Haarlinie, kein Glas, weißer Hauptknopf, Cyan nur für Daten
  * - `softdark`: weiches Anthrazit, erhabene Flächen mit weichem Schatten,
  *   blaue, leicht leuchtende Bedienung; Gedrücktes gibt sichtbar nach
+ * - `frost`: dunkles Cyan, mattiertes Glas, feines Korn; Hoku ist das Licht —
+ *   Kanten und Knöpfe in seiner Nähe leuchten (src/lib/hokuLicht.ts)
+ * - `labor`: Messgerät im Labor — Raster, eckige Rahmen mit Eckwinkeln, Maschinenschrift
+ * - `neon`: tiefes Schwarz, Kanten wie Leuchtröhren
+ * - `tiefsee`: Biolumineszenz in dunklem Petrol, weiche Formen
+ * - `obsidian`: schwarzes Vulkanglas, Hoku spiegelt sich als Reflex
+ *   (alle vier mit Hoku-Licht)
+ * - `papier` (Vorschau): hell, nur Schwarz und Weiß wie das Logo. Stellt die
+ *   Farbkanäle um (--ink-rgb, --slate-*); noch nicht überall vollständig,
+ *   deshalb im Profil nur für Admins (Prüfung: `npm run looks:audit`)
  *
  * Gesetzt wird nur `data-look` am `<html>`; was sich ändert, steht in
  * liquid-glass.css unter `html[data-look='…']`.
  */
-export type Look = 'schwarz' | 'satin' | 'licht' | 'nacht' | 'instrument' | 'softdark'
+export type Look = 'schwarz' | 'satin' | 'licht' | 'nacht' | 'instrument' | 'softdark' | 'frost' | 'labor' | 'neon' | 'tiefsee' | 'obsidian' | 'papier'
 
-export const LOOKS: readonly Look[] = ['schwarz', 'satin', 'licht', 'nacht', 'instrument', 'softdark']
+export const LOOKS: readonly Look[] = ['schwarz', 'satin', 'licht', 'nacht', 'instrument', 'softdark', 'frost', 'labor', 'neon', 'tiefsee', 'obsidian', 'papier']
 
 const STORAGE_KEY = 'tyd_look'
 

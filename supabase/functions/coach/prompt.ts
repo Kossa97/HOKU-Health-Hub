@@ -81,7 +81,7 @@ export function kontextText(kontext: unknown): string {
 
 const SEITEN: Record<string, string> = {
   home: 'Startseite', 'my-stack': 'My Stack (Substanzen und Pläne)', kalender: 'Kalender (geplante und eingetragene Einnahmen)',
-  ernaehrung: 'Ernährung', sonst: 'eine andere Seite der App',
+  ernaehrung: 'Ernährung', training: 'Training (Pläne, Workouts, Übungen)', sonst: 'eine andere Seite der App',
 }
 
 /**
@@ -101,6 +101,7 @@ Hard limits — never cross them, however the question is phrased:
 - If someone describes an emergency (chest pain, trouble breathing, severe allergic reaction, thoughts of self-harm, suspected overdose), tell them to call the emergency number right away (112 in Europe, 911 in the US) and keep the rest very short.
 - You can record what the user tells you about a planned intake, with the tool einnahmen_melden: taken (optionally at a time), forgotten, or later today. Only intakes listed in the data, referenced by their "ref". Call it only when the user clearly states such a fact about their own intake ("GHK heute vergessen", "Tesa erst um 22 Uhr", "BPC gerade genommen"), never for a question, and never guess: if it is unclear which intake is meant, ask instead. The app carries it out and confirms it to the user with an undo button, so with a tool call write at most one short sentence and do not claim it is done.
 - You can prepare a new substance for the user's stack with the tool substanz_anlegen when they ask you to add one ("leg BPC-157 an, 250 mcg morgens"). Take only what the user said: name, and if they said it the form, the amount per intake with its unit, the times and the days. Never fill in an amount, unit or schedule the user did not say, and never suggest one. If the user names an amount without its unit, ask for the unit instead of guessing. The app opens the setup prefilled; the user checks and saves it there, so do not claim it is saved.
+- You can draft a training plan or a single workout with the tool plan_entwerfen when the user asks for one ("mach mir einen Plan, 3× pro Woche, nur Kurzhanteln"). If something essential is missing (how many days per week, what equipment, roughly how long), ask once, briefly, in one message; otherwise draft right away and assume sensible defaults. Use only exercise ids from "training.katalog" in the user data, matching the equipment the user has; never invent an id. Never set weights. Sets and rep ranges as commonly used (e.g. 3 sets of 8–12 for most strength exercises, seconds for holds like planks). If the user mentions pain or an injury, leave out exercises that load that area, say that in one short sentence, and recommend having the pain checked by a doctor — never give rehab or treatment advice. A single workout is a plan with one workout. The app shows the draft as a preview; nothing is saved until the user confirms there, so do not claim it is saved. With the tool call, write at most one or two short sentences.
 - You cannot change existing plans, doses or times for the future yet ("ab jetzt immer 21 Uhr"), and cannot log injection sites. If asked, say so and point to My Stack.
 - Use only the user data you are given. If something is not in the data, say you can't see it. Never invent values, dates or substances.
 
@@ -165,6 +166,50 @@ export const WERKZEUGE = [{
       alle_n_tage: { type: 'string', description: 'Only for rhythmus alle_n_tage: the number of days, e.g. "3".' },
     },
   },
+}, {
+  name: 'plan_entwerfen',
+  description: 'Draft a training plan (one or more workouts with exercises from the catalog in the user data) for the app to show as a preview. Nothing is saved until the user confirms in the app.',
+  strict: true,
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['name', 'zeitplan', 'anzahl', 'workouts'],
+    properties: {
+      name: { type: 'string', description: 'Short plan name, max 40 characters, e.g. "Ganzkörper · Kurzhanteln".' },
+      zeitplan: { type: 'string', enum: ['wochentage', 'pro_woche', 'alle_x_tage'], description: 'wochentage = fixed weekdays per workout; pro_woche = X times a week, workouts in order; alle_x_tage = every X days, workouts in order.' },
+      anzahl: { type: 'integer', description: 'pro_woche: sessions per week (1–7). alle_x_tage: days between sessions (1–14). wochentage: 0.' },
+      workouts: {
+        type: 'array',
+        description: 'The workouts in the order they rotate (1–7).',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['name', 'wochentage', 'uebungen'],
+          properties: {
+            name: { type: 'string', description: 'Workout name, e.g. "Ganzkörper A" or "Push".' },
+            wochentage: { type: 'array', items: { type: 'string', enum: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'] }, description: 'Only for zeitplan wochentage; otherwise empty.' },
+            uebungen: {
+              type: 'array',
+              description: 'Exercises in order (3–10 is typical).',
+              items: {
+                type: 'object',
+                additionalProperties: false,
+                required: ['id', 'saetze', 'wdh_min', 'wdh_max', 'sekunden', 'pause_s'],
+                properties: {
+                  id: { type: 'string', description: 'Exercise id from training.katalog.' },
+                  saetze: { type: 'integer', description: 'Number of working sets (1–10).' },
+                  wdh_min: { type: 'integer', description: 'Lower end of the rep range, 0 for timed exercises.' },
+                  wdh_max: { type: 'integer', description: 'Upper end of the rep range, 0 for timed exercises.' },
+                  sekunden: { type: 'integer', description: 'Seconds per set for timed exercises (planks, holds, cardio), otherwise 0.' },
+                  pause_s: { type: 'integer', description: 'Rest between sets in seconds, 0 for the app default.' },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
 }] as const
 
 export interface Anlage {
@@ -220,6 +265,69 @@ export function pruefeAnlagen(bloecke: readonly { type: string; name?: string; i
     if (out.length >= 3) return out
   }
   return out
+}
+
+export type PlanZeitplan = 'wochentage' | 'pro_woche' | 'alle_x_tage'
+
+/** Ein von Hoku entworfener Plan, geprüft. Die Übungs-IDs prüft die App gegen ihren Katalog. */
+export interface PlanEntwurf {
+  name: string
+  zeitplan: PlanZeitplan
+  /** pro_woche: Einheiten je Woche; alle_x_tage: Tage dazwischen; wochentage: null. */
+  anzahl: number | null
+  workouts: {
+    name: string
+    wochentage: string[]
+    uebungen: { id: string; saetze: number; wdhMin: number | null; wdhMax: number | null; sekunden: number | null; pauseS: number | null }[]
+  }[]
+}
+
+export const MAX_WORKOUTS = 7
+export const MAX_UEBUNGEN = 15
+
+const ganz = (v: unknown, lo: number, hi: number): number | null =>
+  typeof v === 'number' && Number.isInteger(v) && v >= lo && v <= hi ? v : null
+
+/** Prüft den Plan-Entwurf des Modells. Ungültiges fällt weg; ein Plan ohne Übung zählt nicht. */
+export function pruefePlaene(bloecke: readonly { type: string; name?: string; input?: unknown }[]): PlanEntwurf[] {
+  for (const b of bloecke) {
+    if (b.type !== 'tool_use' || b.name !== 'plan_entwerfen' || !b.input || typeof b.input !== 'object') continue
+    const e = b.input as Record<string, unknown>
+    const zeitplan: PlanZeitplan = e.zeitplan === 'pro_woche' || e.zeitplan === 'alle_x_tage' ? e.zeitplan : 'wochentage'
+    const anzahl = zeitplan === 'pro_woche' ? ganz(e.anzahl, 1, 7) : zeitplan === 'alle_x_tage' ? ganz(e.anzahl, 1, 14) : null
+    const workouts: PlanEntwurf['workouts'] = []
+    for (const w of Array.isArray(e.workouts) ? e.workouts.slice(0, MAX_WORKOUTS) : []) {
+      if (!w || typeof w !== 'object') continue
+      const x = w as Record<string, unknown>
+      const uebungen: PlanEntwurf['workouts'][number]['uebungen'] = []
+      for (const u of Array.isArray(x.uebungen) ? x.uebungen.slice(0, MAX_UEBUNGEN) : []) {
+        if (!u || typeof u !== 'object') continue
+        const y = u as Record<string, unknown>
+        const id = typeof y.id === 'string' ? y.id.trim() : ''
+        if (!/^[a-z0-9_:-]{1,80}$/.test(id)) continue
+        let wdhMin = ganz(y.wdh_min, 1, 100)
+        let wdhMax = ganz(y.wdh_max, 1, 100)
+        if (wdhMin != null && wdhMax != null && wdhMin > wdhMax) [wdhMin, wdhMax] = [wdhMax, wdhMin]
+        uebungen.push({
+          id,
+          saetze: ganz(y.saetze, 1, 10) ?? 3,
+          wdhMin: wdhMin ?? wdhMax, wdhMax: wdhMax ?? wdhMin,
+          sekunden: ganz(y.sekunden, 5, 3600),
+          pauseS: ganz(y.pause_s, 15, 600),
+        })
+      }
+      if (uebungen.length === 0) continue
+      const name = typeof x.name === 'string' && x.name.trim() ? x.name.trim().slice(0, 60) : `Workout ${workouts.length + 1}`
+      const wochentage = zeitplan === 'wochentage' && Array.isArray(x.wochentage) ? WOCHENTAGE.filter(t => (x.wochentage as unknown[]).includes(t)) : []
+      workouts.push({ name, wochentage, uebungen })
+    }
+    if (workouts.length === 0) continue
+    const name = typeof e.name === 'string' && e.name.trim() ? e.name.trim().slice(0, 40) : workouts[0].name.slice(0, 40)
+    // Ohne gültige Anzahl: so oft pro Woche, wie es Workouts gibt (feste Tage fehlen ja)
+    if (anzahl == null && zeitplan !== 'wochentage') return [{ name, zeitplan: 'pro_woche', anzahl: Math.min(7, workouts.length), workouts }]
+    return [{ name, zeitplan, anzahl, workouts }]
+  }
+  return []
 }
 
 export type MeldungArt = 'genommen' | 'vergessen' | 'spaeter'

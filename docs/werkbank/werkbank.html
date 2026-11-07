@@ -1,0 +1,495 @@
+<title>Hoku Notizen</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Notizen, Ideen und To-dos in vier Feldern nach Wichtigkeit und Dringlichkeit.
+   Handy: alles untereinander. PC: links Eingabe und Erledigtes, rechts die vier Felder bildschirmfüllend. */
+/* Nur dunkel: fast schwarzer Grund wie Hokus Erscheinungsbild, Hoku-Blau als Akzent */
+:root{
+  --bg:#050607; --surface:#0e1012; --surface-2:#15181b; --line:#23272b; --line-2:#30363b;
+  --fg:#eef1f3; --muted:#8a939b; --accent:#7ab8ff; --accent-soft:rgba(122,184,255,.12); --on-accent:#04121f;
+  --run:#4fd1b5; --pause:#aab0cc; --warn:#f2c453; --star:#f2c453; --hot:#ff7a6b;
+  --ease-out:cubic-bezier(0.23,1,0.32,1);
+  --font-ui:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font-size:24px;font-weight:700;margin:0;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+h1 .ic{width:22px;height:22px;color:var(--accent)}
+.sub{color:var(--muted);font-size:14px;margin:2px 0 0}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.k{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--bg);border:1px solid var(--line-2);border-radius:10px;padding:10px 12px;width:100%;min-height:72px;resize:vertical}
+button,select{font:inherit;cursor:pointer}
+select{font-size:13px;font-weight:600;color:var(--fg);background:var(--bg);border:1px solid var(--line-2);border-radius:8px;padding:5px 8px;max-width:100%}
+button:focus-visible,textarea:focus-visible,summary:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.primary{font-weight:600;background:var(--accent);color:var(--on-accent);border:0;border-radius:10px;padding:9px 18px;display:inline-flex;align-items:center;gap:6px;margin-left:auto;box-shadow:0 6px 20px -8px rgba(122,184,255,.6)}
+.ghost{font-size:13px;font-weight:600;background:var(--surface-2);color:var(--fg);border:1px solid var(--line-2);border-radius:8px;padding:6px 12px;display:inline-flex;align-items:center;gap:6px}
+.ic{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Wahlknöpfe: Art und Gewichtung */
+.seg{display:inline-flex;background:var(--bg);border:1px solid var(--line-2);border-radius:999px;padding:2px}
+.seg button{border:0;background:none;color:var(--muted);border-radius:999px;padding:4px 10px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:5px;transition:background-color 150ms ease,color 150ms ease}
+.seg button[aria-pressed="true"]{background:var(--surface-2);color:var(--fg)}
+/* Schalter zwischen deiner und Claudes Liste */
+.wer{margin-top:10px;display:flex;width:100%}
+.wer button{flex:1;justify-content:center;padding:7px 10px;font-size:14px}
+.wer button b{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:600}
+.tog{font-size:13px;font-weight:600;border:1px solid var(--line-2);background:var(--bg);color:var(--muted);border-radius:999px;padding:4px 10px;display:inline-flex;align-items:center;gap:5px;transition:transform 120ms var(--ease-out),background-color 150ms ease,color 150ms ease,border-color 150ms ease}
+.tog[aria-pressed="true"]{color:var(--c);border-color:var(--c);background:color-mix(in srgb,var(--c) 12%,transparent)}
+.tog[aria-pressed="true"] .ic{fill:currentColor}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:6px 12px;font-size:13px;display:inline-flex;gap:6px;align-items:center}
+.chip b{font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+
+/* Die vier Felder */
+.matrix{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.feld{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--c);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0;transition:background-color 150ms ease,border-color 150ms ease}
+.feld.over{background:color-mix(in srgb,var(--c) 10%,var(--surface));border-color:var(--c)}
+.feld-h{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;min-width:0}
+.feld-h .ic{color:var(--c);width:18px;height:18px}
+.feld-h small{color:var(--muted);font-weight:500;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feld-h .count{margin-left:auto;background:var(--surface-2);border-radius:999px;padding:0 9px;font-size:12px}
+.nrows{display:flex;flex-direction:column;gap:4px;min-height:0}
+.nleer{color:var(--muted);font-size:12px;border:1px dashed var(--line-2);border-radius:10px;padding:10px;text-align:center;margin:0}
+.nrow{position:relative;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:6px 6px 6px 10px;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:grab;
+  transition:transform 200ms var(--ease-out),opacity 150ms ease,border-color 150ms ease}
+.nrow.hold{opacity:0}
+.nrow.settling{transition:transform 220ms var(--ease-out)}
+.nrow.leaving{opacity:0;transform:translateX(16px);transition:opacity 180ms var(--ease-out),transform 180ms var(--ease-out)}
+.nrow:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.nrow>.ic{margin-top:2px;color:var(--ac)}
+.nrow .t{flex:1;min-width:0}
+.nrow .txt{display:block;font-size:14px;line-height:1.35;overflow-wrap:anywhere}
+.nrow .meta{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* der angehobene Eintrag schwebt als Kopie über allem, damit kein Feldrand ihn abschneidet */
+.ghostrow{position:fixed;z-index:50;margin:0;pointer-events:none;cursor:grabbing;border-color:var(--line-2);box-shadow:0 18px 40px -12px rgba(0,0,0,.9);transition:none}
+.iconbtn{flex:none;width:28px;height:28px;display:grid;place-items:center;border-radius:8px;background:var(--bg);border:1px solid var(--line-2);color:var(--run);transition:transform 120ms var(--ease-out),border-color 150ms ease}
+.iconbtn:active,.tog:active,.ghost:active,.chip:active,.primary:active{transform:scale(.97)}
+.ghost,.chip,.primary{transition:transform 120ms var(--ease-out),background-color 150ms ease,border-color 150ms ease}
+.nedit{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-top:8px;border-top:1px solid var(--line);animation:fadeIn 200ms var(--ease-out) both}
+.nedit .del{margin-left:auto;color:var(--muted)}
+.nedit .del[data-armed]{color:var(--hot);border-color:var(--hot)}
+
+/* Erledigt */
+details.ndone>summary{cursor:pointer;color:var(--muted);font-size:14px;font-weight:600;padding:4px 0}
+details.ndone .nrows{margin-top:8px}
+.ndone .nrow{cursor:default}
+.ndone .nrow .txt{text-decoration:line-through;color:var(--muted)}
+.hinweis{color:var(--muted);font-size:13px;margin:0}
+
+.split{display:none}
+@media (hover:hover) and (pointer:fine){.nrow:hover{border-color:var(--line-2)}.ghost:hover{border-color:var(--muted)}.chip:hover{border-color:var(--line-2)}}
+
+/* Großer Bildschirm: links Eingabe, Filter und Erledigtes; rechts die vier Felder füllen den Rest.
+   Jedes Feld scrollt für sich. Die Grenze dazwischen lässt sich ziehen. */
+@media (min-width:1000px){
+  html,body{height:100%}
+  body{padding-block:16px}
+  .wrap{max-width:none;height:100%;display:grid;grid-template-columns:var(--w-seite,380px) 20px minmax(0,1fr);
+    grid-template-rows:auto auto minmax(0,1fr);grid-template-areas:"head sl main" "form sl main" "done sl main";gap:16px 0}
+  .wrap>header{grid-area:head}
+  #eingabe{grid-area:form}
+  #erledigt{grid-area:done;overflow-y:auto;min-height:0;padding-right:4px}
+  main{grid-area:main;min-height:0;container-type:inline-size;display:flex;flex-direction:column;overflow-y:auto}
+  .matrix{flex:1;min-height:0;grid-template-rows:minmax(0,1fr) minmax(0,1fr)}
+  .feld .nrows{overflow-y:auto;flex:1;padding:2px;margin:-2px}
+  textarea{min-height:120px;font-size:17px}
+  .split{display:block;grid-area:sl;position:relative;cursor:col-resize;touch-action:none}
+  .split::after{content:"";position:absolute;inset:0 9px;border-radius:1px;background:var(--line);transition:background-color 150ms ease,transform 150ms var(--ease-out)}
+  .split:hover::after,.split.active::after,.split:focus-visible::after{background:var(--accent);transform:scaleX(1.5)}
+  .split:focus-visible{outline:none}
+  body.resizing{cursor:col-resize;-webkit-user-select:none;user-select:none}
+}
+/* Felder als 2×2, sobald genug Breite da ist; sehr schmal untereinander (dann scrollt die Seite) */
+@container (min-width:560px){.matrix{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container (max-width:559px){.matrix{grid-template-rows:none;flex:none}.feld .nrows{overflow:visible}}
+@media (min-width:600px) and (max-width:999px){.matrix{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Bewegung */
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.enter{animation:rise 300ms var(--ease-out) backwards;animation-delay:calc(var(--i,0) * 40ms)}
+@media (prefers-reduced-motion: reduce){
+  .enter,.nedit{animation:fadeIn 150ms ease both;animation-delay:0s}
+  .nrow,.nrow.settling{transition:opacity 150ms ease}
+  .nrow.leaving{transform:none}
+  .iconbtn:active,.tog:active,.ghost:active,.chip:active,.primary:active{transform:none}
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1><span class="h-ic" data-ic="note"></span>Hoku Notizen</h1>
+    <p class="sub" id="status">Lade …</p>
+    <div class="seg wer" id="wer" role="group" aria-label="Welche Liste"></div>
+  </header>
+
+  <section id="eingabe" class="section" style="display:flex;flex-direction:column;gap:12px">
+    <form class="box" id="quick">
+      <label class="k" for="q-text" id="q-label">Neuer Eintrag</label>
+      <textarea id="q-text" placeholder="Notiz, Idee oder To-do …"></textarea>
+      <div class="row" id="q-opts"></div>
+      <div class="row"><select id="q-fenster" aria-label="Für welches Fenster"></select><button class="primary" type="submit"><span class="h-ic" data-ic="plus"></span>Speichern</button></div>
+    </form>
+    <div class="chips" id="chips" role="group" aria-label="Nach Art filtern"></div>
+  </section>
+
+  <div class="split" id="split" role="separator" aria-orientation="vertical" aria-label="Breite der linken Spalte" tabindex="0" title="Ziehen zum Anpassen, Doppelklick setzt zurück"></div>
+
+  <main><div class="matrix" id="matrix"></div></main>
+
+  <section id="erledigt">
+    <div id="done"></div>
+    <p class="hinweis">Eintrag gedrückt halten und ziehen: verschieben, auch in ein anderes Feld. Antippen: Art und Gewichtung ändern oder löschen.</p>
+  </section>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const el=(t,props={},...kids)=>{const e=document.createElement(t);for(const[k,v]of Object.entries(props)){if(k==="class")e.className=v;else if(k==="text")e.textContent=v;else e.setAttribute(k,v)}for(const k of kids)if(k!=null&&k!==false)e.append(k);return e};
+// Symbole: schlichte Linien-Icons (24er Raster, Strichstärke 2), Farbe vom Text
+const ICONS={
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  bulb:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9V16h7v-2.1A6 6 0 0 0 12 3z"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H12"/>',
+  note:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>',
+  todo:'<rect x="3" y="3" width="18" height="18" rx="4"/><path d="m8 12 3 3 5-6"/>',
+  flag:'<path d="M5 21V4M5 4h12l-2.5 4L17 12H5"/>',
+  flame:'<path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 2.5-5 .3 1.5 1 2.5 2 3 0-3-.5-5.5.5-8z"/>',
+  later:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+  trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'
+};
+function ic(name){
+  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("viewBox","0 0 24 24");svg.setAttribute("aria-hidden","true");svg.setAttribute("class","ic");
+  svg.innerHTML=ICONS[name];return svg;
+}
+const lbl=(name,text)=>[ic(name),el("span",{text})];
+const reduceMotion=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
+function ago(iso){if(!iso)return"";const d=(Date.now()-new Date(iso))/60000;if(d<1)return"gerade eben";if(d<60)return`vor ${Math.round(d)} Min.`;const h=d/60;if(h<24)return`vor ${Math.round(h)} Std.`;const t=Math.round(h/24);return t===1?"gestern":`vor ${t} Tagen`}
+
+let ideen=[],fenster=[],db=null,readOnly=false,dragging=false,renderPending=false,animateIn=false;
+async function save(id,data){if(!db||readOnly)return;try{await db.doc(`ideen/${id}`).update(data)}catch(e){fail(e)}}
+function fail(e){if(e&&e.code==="invalid_argument"){readOnly=true;render()}$("#status").textContent="Speichern hat nicht geklappt. Bitte die Seite neu laden und noch einmal versuchen."}
+
+// Gewichtung wie die Eisenhower-Matrix: zwei Fragen (wichtig? dringend?) ergeben vier Felder.
+const FELDER=[
+  {key:"wd",label:"Wichtig & dringend",sub:"Zuerst",icon:"flame",c:"--hot"},
+  {key:"w",label:"Wichtig",sub:"Einplanen",icon:"flag",c:"--accent"},
+  {key:"d",label:"Dringend",sub:"Schnell erledigen",icon:"clock",c:"--warn"},
+  {key:"s",label:"Später",sub:"Irgendwann",icon:"later",c:"--pause"}
+];
+const ARTEN={notiz:{label:"Notiz",mehr:"Notizen",icon:"note",c:"--muted"},idee:{label:"Idee",mehr:"Ideen",icon:"bulb",c:"--star"},todo:{label:"To-do",mehr:"To-dos",icon:"todo",c:"--run"}};
+const artOf=i=>ARTEN[i.art]?i.art:"idee";
+const feldOf=i=>FELDER.some(f=>f.key===i.feld)?i.feld:"s";
+const feldAus=(w,d)=>w&&d?"wd":w?"w":d?"d":"s";
+// eigene Reihenfolge über "pos"; ohne pos: neueste oben
+const rang=i=>typeof i.pos==="number"?i.pos:-Date.parse(i.am||0)/1000;
+let artFilter=null,openNote=null,openDone=false;
+// Zwei Listen: deine und die, in der Claude-Fenster selbst mitschreiben (wer:"claude")
+let wer="du";
+try{if(localStorage.getItem("notizen-liste")==="claude")wer="claude"}catch(e){}
+const werOf=i=>i.wer==="claude"?"claude":"du";
+const liste=()=>ideen.filter(i=>werOf(i)===wer);
+const sichtbar=feld=>liste().filter(i=>!i.erledigt&&feldOf(i)===feld&&(!artFilter||artOf(i)===artFilter)).sort((x,y)=>rang(x)-rang(y));
+
+// Fenster: jedes Claude-Fenster trägt sich in "fenster" ein. Zur Wahl stehen die der letzten 14 Tage.
+const fensterTitel=id=>fenster.find(f=>f.id===id)?.titel;
+function fensterWahl(wert,onchange){
+  const sel=el("select",{"aria-label":"Für welches Fenster"},el("option",{value:"",text:"Kein Fenster"}));
+  const grenze=Date.now()-14*864e5;
+  for(const f of [...fenster].sort((x,y)=>(y.am||"").localeCompare(x.am||"")))
+    if(f.id===wert||Date.parse(f.am||0)>=grenze)sel.append(el("option",{value:f.id,text:f.titel||f.id}));
+  sel.value=fensterTitel(wert)?wert:"";
+  sel.addEventListener("change",()=>onchange(sel.value));
+  return sel;
+}
+
+function render(){
+  if(dragging){renderPending=true;return}
+  const focusId=document.activeElement?.id;
+  drawWer();drawChips();drawMatrix();drawDone();drawStatus();
+  if(focusId&&focusId!=="q-text")document.getElementById(focusId)?.focus();
+  if(animateIn){
+    document.querySelectorAll("#matrix .feld").forEach((n,i)=>{n.classList.add("enter");n.style.setProperty("--i",i)});
+    animateIn=false;
+  }
+}
+
+function drawStatus(){
+  if(!db)return;
+  const offen=liste().filter(i=>!i.erledigt),zuerst=offen.filter(i=>feldOf(i)==="wd").length;
+  $("#status").textContent=`${offen.length} offen${zuerst?` · ${zuerst} wichtig und dringend`:""}`;
+}
+
+function drawWer(){
+  const box=$("#wer");box.replaceChildren();
+  for(const[k,label]of[["du","Deine Liste"],["claude","Claudes Liste"]]){
+    const n=ideen.filter(i=>werOf(i)===k&&!i.erledigt).length;
+    const b=el("button",{type:"button","aria-pressed":String(wer===k)},el("span",{text:label}),el("b",{text:String(n)}));
+    b.addEventListener("click",()=>{if(wer===k)return;wer=k;openNote=null;try{localStorage.setItem("notizen-liste",k)}catch(e){}render()});
+    box.append(b);
+  }
+  $("#q-label").textContent=wer==="claude"?"Neuer Eintrag in Claudes Liste":"Neuer Eintrag";
+}
+
+function drawChips(){
+  const box=$("#chips");box.replaceChildren();
+  const offen=liste().filter(i=>!i.erledigt);
+  const add=(key,label,n,icon,c)=>{
+    const b=el("button",{class:"chip",type:"button","aria-pressed":String(artFilter===key)});
+    if(icon){const i=ic(icon);i.style.color=`var(${c})`;b.append(i)}
+    b.append(el("span",{text:label}),el("b",{text:String(n)}));
+    b.addEventListener("click",()=>{artFilter=artFilter===key?null:key;render()});box.append(b);
+  };
+  add(null,"Alle",offen.length);
+  for(const[k,a]of Object.entries(ARTEN))add(k,a.mehr,offen.filter(i=>artOf(i)===k).length,a.icon,a.c);
+}
+
+function drawMatrix(){
+  const matrix=$("#matrix");matrix.replaceChildren();
+  for(const f of FELDER){
+    const items=sichtbar(f.key);
+    const rows=el("div",{class:"nrows"});
+    if(!items.length)rows.append(el("p",{class:"nleer",text:readOnly?"Leer":"Leer – Einträge hierher ziehen"}));
+    for(const i of items)rows.append(noteRow(i));
+    const s=el("section",{class:"feld","aria-label":f.label},el("div",{class:"feld-h"},ic(f.icon),el("span",{text:f.label}),el("small",{text:f.sub}),el("span",{class:"count",text:String(items.length)})),rows);
+    s.dataset.feld=f.key;s.style.setProperty("--c",`var(${f.c})`);
+    matrix.append(s);
+  }
+}
+
+// Erledigtes eingeklappt, neuestes oben
+function drawDone(){
+  const box=$("#done");box.replaceChildren();
+  const done=liste().filter(i=>i.erledigt).sort((x,y)=>(y.erledigtAm||y.am||"").localeCompare(x.erledigtAm||x.am||""));
+  if(!done.length)return;
+  const det=el("details",{class:"ndone"},el("summary",{text:`Erledigt (${done.length})`}));
+  if(openDone)det.open=true;det.addEventListener("toggle",()=>{openDone=det.open});
+  const rows=el("div",{class:"nrows"});
+  for(const i of done){
+    const back=el("button",{type:"button",class:"ghost"},...lbl("undo","Zurückholen"));back.disabled=readOnly;
+    back.addEventListener("click",()=>save(i.id,{erledigt:false,erledigtAm:null}));
+    const r=el("div",{class:"nrow"},ic(ARTEN[artOf(i)].icon),el("div",{class:"t"},el("span",{class:"txt",text:i.text}),el("span",{class:"meta",text:metaText(i)})),back);
+    r.style.setProperty("--ac",`var(${ARTEN[artOf(i)].c})`);rows.append(r);
+  }
+  det.append(rows);box.append(det);
+}
+
+const metaText=i=>{const f=fensterTitel(i.arbeit);return[ARTEN[artOf(i)].label,f&&`für „${f}“`,i.erledigt&&i.erledigtAm?`erledigt ${ago(i.erledigtAm)}`:ago(i.am)].filter(Boolean).join(" · ")};
+
+function noteRow(i){
+  const art=artOf(i),feld=feldOf(i);
+  const row=el("div",{class:"nrow",id:`n-${i.id}`});row.dataset.id=i.id;
+  row.style.setProperty("--ac",`var(${ARTEN[art].c})`);
+  const t=el("div",{class:"t"},el("span",{class:"txt",text:i.text}),el("span",{class:"meta",text:metaText(i)}));
+  const done=el("button",{type:"button",class:"iconbtn","aria-label":"Erledigt",title:"Erledigt"},ic("check"));done.disabled=readOnly;
+  // kurz wegschieben, dann speichern: man sieht, dass der Klick angekommen ist
+  done.addEventListener("click",()=>{row.classList.add("leaving");setTimeout(()=>save(i.id,{erledigt:true,erledigtAm:new Date().toISOString()}),reduceMotion()?0:180)});
+  row.append(ic(ARTEN[art].icon),t,done);
+  if(readOnly)return row;
+
+  // Antippen klappt Einstellungen auf, gedrückt halten hebt den Eintrag zum Verschieben an
+  row.tabIndex=0;row.setAttribute("aria-expanded",String(openNote===i.id));
+  row.setAttribute("aria-label",`${i.text}. Antippen für Einstellungen, Pfeil hoch oder runter zum Verschieben.`);
+  row.addEventListener("click",ev=>{if(ev.target.closest("button,select"))return;openNote=openNote===i.id?null:i.id;render()});
+  row.addEventListener("keydown",ev=>{
+    if(ev.target!==row)return;
+    if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();openNote=openNote===i.id?null:i.id;render();return}
+    const d=ev.key==="ArrowUp"?-1:ev.key==="ArrowDown"?1:0;if(!d)return;ev.preventDefault();
+    const list=sichtbar(feld),k=list.findIndex(x=>x.id===i.id)+d;if(k<0||k>=list.length)return;
+    placeNote(i.id,feld,k);render();
+  });
+  if(openNote===i.id)row.append(noteEdit(i));
+  enableDrag(row);
+  return row;
+}
+
+function noteEdit(i){
+  const art=artOf(i),feld=feldOf(i),w=feld==="wd"||feld==="w",d=feld==="wd"||feld==="d";
+  const box=el("div",{class:"nedit"});
+  const seg=el("div",{class:"seg",role:"group","aria-label":"Art"});
+  for(const[k,a]of Object.entries(ARTEN)){
+    const b=el("button",{type:"button","aria-pressed":String(k===art)},...lbl(a.icon,a.label));
+    b.addEventListener("click",()=>save(i.id,{art:k}));seg.append(b);
+  }
+  const rm=el("button",{class:"ghost del",type:"button"},...lbl("trash","Löschen"));
+  rm.addEventListener("click",async()=>{
+    if(!rm.dataset.armed){rm.dataset.armed="1";rm.lastChild.textContent="Wirklich löschen?";setTimeout(()=>{delete rm.dataset.armed;rm.lastChild.textContent="Löschen"},3000);return}
+    try{await db.doc(`ideen/${i.id}`).delete()}catch(e){fail(e)}
+  });
+  box.append(seg,toggle("flag","Wichtig","--accent",w,()=>setFeld(i,feldAus(!w,d))),toggle("flame","Dringend","--hot",d,()=>setFeld(i,feldAus(w,!d))),
+    fensterWahl(i.arbeit,v=>save(i.id,{arbeit:v})));
+  if(werOf(i)==="claude"){
+    const mine=el("button",{class:"ghost",type:"button"},...lbl("undo","In meine Liste"));
+    mine.addEventListener("click",()=>{openNote=null;save(i.id,{wer:null,pos:-Date.now()/1000})});
+    box.append(mine);
+  }
+  box.append(rm);
+  return box;
+}
+
+function toggle(icon,label,c,on,onclick){
+  const b=el("button",{type:"button",class:"tog","aria-pressed":String(on)},...lbl(icon,label));
+  b.style.setProperty("--c",`var(${c})`);b.addEventListener("click",onclick);return b;
+}
+
+// Wechsel des Feldes: der Eintrag kommt dort ganz nach oben
+function setFeld(i,feld){const top=sichtbar(feld)[0];save(i.id,{feld,pos:top?rang(top)-1:0})}
+
+// Eintrag an Stelle "to" im Feld setzen. Nur der bewegte Eintrag bekommt einen neuen Rang
+// zwischen seinen Nachbarn, alle anderen bleiben unverändert.
+function placeNote(id,feld,to){
+  const it=ideen.find(i=>i.id===id);if(!it)return;
+  const list=sichtbar(feld).filter(i=>i.id!==id);
+  const prev=list[to-1],next=list[to];
+  const pos=prev&&next?(rang(prev)+rang(next))/2:prev?rang(prev)+1:next?rang(next)-1:0;
+  it.feld=feld;it.pos=pos;
+  save(id,{feld,pos});
+}
+
+// Gedrückt halten (350 ms) hebt den Eintrag an. Eine schwebende Kopie folgt dem Finger, auch in
+// andere Felder; die übrigen Einträge machen Platz. Beim Loslassen gleitet er an seinen neuen Platz.
+const GAP=6;
+function enableDrag(row){
+  let timer=null,sx=0,sy=0,pid=null,fields=[],src=null,tgt=null,from=0,to=0,h=0,ghost=null,r0=null;
+  const cancelWait=()=>{clearTimeout(timer);timer=null};
+  row.addEventListener("pointerdown",ev=>{
+    if(ev.button!==0||dragging)return;
+    if(ev.target.closest("button,select"))return;
+    sx=ev.clientX;sy=ev.clientY;pid=ev.pointerId;
+    timer=setTimeout(lift,350);
+  });
+  row.addEventListener("pointermove",ev=>{
+    if(ev.pointerId!==pid)return;
+    if(timer&&Math.hypot(ev.clientX-sx,ev.clientY-sy)>8){cancelWait();return}
+    if(!ghost)return;
+    ghost.style.transform=`translate(${ev.clientX-sx}px,${ev.clientY-sy}px) scale(1.03)`;
+    const f=fields.find(f=>ev.clientX>=f.r.left&&ev.clientX<=f.r.right&&ev.clientY>=f.r.top&&ev.clientY<=f.r.bottom)||tgt;
+    const t=f.rows.filter(r=>r.el!==row&&r.top+r.h/2<ev.clientY).length;
+    if(f===tgt&&t===to)return;
+    tgt=f;to=t;
+    for(const x of fields){
+      x.el.classList.toggle("over",x===tgt&&x!==src);
+      x.rows.forEach((r,i)=>{
+        if(r.el===row)return;
+        let s=0;
+        if(x===src&&x===tgt){const j=i<from?i:i-1;s=(j<to?j:j+1)-i}
+        else if(x===src)s=i>from?-1:0;
+        else if(x===tgt)s=i>=to?1:0;
+        r.el.style.transform=s?`translateY(${s*h}px)`:"";
+      });
+    }
+  });
+  const end=ev=>{
+    if(ev&&ev.pointerId!==pid)return;
+    cancelWait();
+    if(!ghost)return;
+    // ein Klick nach dem Ziehen soll nichts aufklappen
+    row.addEventListener("click",e=>{e.preventDefault();e.stopPropagation()},{capture:true,once:true});
+    const before=ghost.getBoundingClientRect(),id=row.dataset.id;
+    ghost.remove();ghost=null;
+    if(tgt!==src||to!==from)placeNote(id,tgt.feld,to);
+    dragging=false;renderPending=false;render();
+    // vom Loslass-Punkt an den neuen Platz gleiten
+    const n=document.getElementById(`n-${id}`);
+    if(n){
+      n.scrollIntoView({block:"nearest"});
+      if(reduceMotion())return;
+      const a=n.getBoundingClientRect();
+      n.style.transition="none";n.style.transform=`translate(${before.left-a.left}px,${before.top-a.top}px)`;
+      n.getBoundingClientRect();
+      n.style.transition="";n.classList.add("settling");n.style.transform="";
+      setTimeout(()=>n.classList.remove("settling"),240);
+    }
+  };
+  row.addEventListener("pointerup",end);
+  row.addEventListener("pointercancel",end);
+  row.addEventListener("contextmenu",ev=>{if(timer||dragging)ev.preventDefault()});
+  row.addEventListener("touchmove",ev=>{if(dragging)ev.preventDefault()},{passive:false});
+  function lift(){
+    timer=null;dragging=true;
+    fields=[...document.querySelectorAll("#matrix .feld")].map(el=>({el,feld:el.dataset.feld,r:el.getBoundingClientRect(),
+      rows:[...el.querySelectorAll(".nrow")].map(e=>{const r=e.getBoundingClientRect();return{el:e,top:r.top,h:r.height}})}));
+    src=tgt=fields.find(f=>f.rows.some(r=>r.el===row));
+    from=to=src.rows.findIndex(r=>r.el===row);h=src.rows[from].h+GAP;
+    r0=row.getBoundingClientRect();
+    ghost=row.cloneNode(true);ghost.removeAttribute("id");ghost.classList.add("ghostrow");
+    Object.assign(ghost.style,{left:`${r0.left}px`,top:`${r0.top}px`,width:`${r0.width}px`,transform:"scale(1.03)"});
+    document.body.append(ghost);
+    row.classList.add("hold");
+    try{row.setPointerCapture(pid)}catch(e){}
+    navigator.vibrate?.(10);
+  }
+}
+
+// Eingabe: Art und Gewichtung gleich mit wählen
+let qArt="idee",qW=false,qD=false;
+function drawQuickOpts(){
+  const box=$("#q-opts");box.replaceChildren();
+  const seg=el("div",{class:"seg",role:"group","aria-label":"Art"});
+  for(const[k,a]of Object.entries(ARTEN)){
+    const b=el("button",{type:"button","aria-pressed":String(k===qArt)},...lbl(a.icon,a.label));
+    b.addEventListener("click",()=>{qArt=k;drawQuickOpts()});seg.append(b);
+  }
+  box.append(seg,toggle("flag","Wichtig","--accent",qW,()=>{qW=!qW;drawQuickOpts()}),toggle("flame","Dringend","--hot",qD,()=>{qD=!qD;drawQuickOpts()}));
+}
+$("#quick").addEventListener("submit",async ev=>{
+  ev.preventDefault();const text=$("#q-text").value.trim();if(!text||!db)return;$("#q-text").value="";
+  const feld=feldAus(qW,qD),top=sichtbar(feld)[0];
+  const neu={text,arbeit:$("#q-fenster").value,art:qArt,feld,pos:top?rang(top)-1:0,am:new Date().toISOString(),erledigt:false,uebernehmen:false};
+  if(wer==="claude")neu.wer="claude";
+  try{await db.collection("ideen").add(neu)}catch(e){fail(e)}
+});
+function drawFensterSel(){const alt=$("#q-fenster");alt.replaceWith(Object.assign(fensterWahl(alt.value,()=>{}),{id:"q-fenster"}))}
+
+// Breite der linken Spalte am PC: Rand ziehen, Pfeiltasten, Doppelklick setzt zurück.
+// Gespeichert nur in diesem Browser.
+const STANDARD=380,GRENZEN=[300,640];
+let seite=STANDARD;
+try{const v=Number(localStorage.getItem("notizen-seite"));if(v)seite=v}catch(e){}
+const klemme=v=>Math.max(GRENZEN[0],Math.min(GRENZEN[1],v));
+function applySize(){
+  seite=klemme(seite);
+  $(".wrap").style.setProperty("--w-seite",`${seite}px`);$("#split").setAttribute("aria-valuenow",String(seite));
+}
+function merke(){try{localStorage.setItem("notizen-seite",String(seite))}catch(e){}}
+const split=$("#split");
+split.addEventListener("pointerdown",ev=>{
+  if(ev.button!==0)return;ev.preventDefault();
+  const x0=ev.clientX,start=seite;
+  split.setPointerCapture(ev.pointerId);split.classList.add("active");document.body.classList.add("resizing");
+  const move=e=>{seite=klemme(start+e.clientX-x0);applySize()};
+  const up=()=>{split.removeEventListener("pointermove",move);split.classList.remove("active");document.body.classList.remove("resizing");merke()};
+  split.addEventListener("pointermove",move);
+  split.addEventListener("pointerup",up,{once:true});split.addEventListener("pointercancel",up,{once:true});
+});
+split.addEventListener("keydown",ev=>{const d=ev.key==="ArrowRight"?1:ev.key==="ArrowLeft"?-1:0;if(!d)return;ev.preventDefault();seite=klemme(seite+d*24);applySize();merke()});
+split.addEventListener("dblclick",()=>{seite=STANDARD;applySize();merke()});
+applySize();
+
+document.querySelectorAll(".h-ic").forEach(n=>n.replaceWith(ic(n.dataset.ic)));
+drawQuickOpts();drawFensterSel();render();
+(async()=>{
+  db=await window.claude?.use?.("db");
+  if(!db){$("#status").textContent="Die Notizen sind in dieser Ansicht nicht erreichbar. Öffne die Seite angemeldet in claude.ai.";$("#quick").hidden=true;return}
+  const timer=setTimeout(()=>{$("#status").textContent="Die Notizen sind gerade nicht erreichbar. Was du siehst, ist vielleicht nicht aktuell."},10000);
+  let loaded=false;
+  db.collection("fenster").onSnapshot(s=>{fenster=s.docs.map(d=>({id:d.id,...d.data()}));drawFensterSel();render()},()=>{});
+  db.collection("ideen").onSnapshot(s=>{
+    ideen=s.docs.map(d=>({id:d.id,...d.data()}));
+    if(!s.metadata.fromCache){clearTimeout(timer);if(!loaded)animateIn=true;loaded=true}
+    render();
+  },()=>{clearTimeout(timer);$("#status").textContent="Die Notizen konnten nicht geladen werden. Bitte die Seite neu laden."});
+})();
+</script>

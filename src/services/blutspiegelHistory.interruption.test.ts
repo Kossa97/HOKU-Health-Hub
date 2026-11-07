@@ -361,3 +361,20 @@ describe('calculateHistoryBlutspiegelCurve: Einnahme zwischen zwei Rasterpunkten
     expect(curve.filter(p => p.time.getTime() === zweimal.timestamp.getTime())).toHaveLength(1)
   })
 })
+
+describe('nachRouteSchneiden', () => {
+  const event = (iso: string, method?: string) => ({ timestamp: new Date(iso), dose: 1, unit: 'mg', status: 'taken' as const, method })
+
+  it('beendet den Verlauf eines Profils bei der ersten Route, fuer die es nicht gilt', async () => {
+    const { nachRouteSchneiden } = await import('./blutspiegelHistory')
+    const history = { events: [event('2026-08-01T08:00:00Z', 'Subkutan'), event('2026-08-02T08:00:00Z', 'Oral')], interruptedAt: null }
+    expect(nachRouteSchneiden(history, null, ['Subkutan'])).toEqual({
+      events: [history.events[0]], interruptedAt: '2026-08-02T08:00:00.000Z',
+    })
+    // Ein Profil, das beide Routen abdeckt, behaelt alles.
+    expect(nachRouteSchneiden(history, null, ['Subkutan', 'Oral'])).toBe(history)
+    // Alte Zeilen ohne Route bleiben stehen.
+    const alt = { events: [event('2026-08-01T08:00:00Z')], interruptedAt: null }
+    expect(nachRouteSchneiden(alt, null, ['Subkutan'])).toBe(alt)
+  })
+})

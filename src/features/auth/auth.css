@@ -32,8 +32,8 @@
 
 .tyd-auth-karte {
   border-radius: 24px; padding: 16px; overflow: hidden;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 18px 40px rgba(0, 0, 0, 0.7);
+  background: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.05), rgb(var(--ink-rgb) / 0.015));
+  box-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.22), 0 18px 40px rgba(0, 0, 0, 0.7);
 }
 .tyd-auth-ansicht { display: flex; flex-direction: column; gap: 10px; animation: tyd-auth-rein 0.38s cubic-bezier(0.23, 1, 0.32, 1); }
 .tyd-auth-ansicht[data-von='links'] { animation-name: tyd-auth-rein-links; }
@@ -56,6 +56,15 @@
 .tyd-auth-feld input::placeholder { color: var(--lg-text-3); }
 .tyd-auth-feld input:focus { border-color: rgba(0, 204, 245, 0.5); box-shadow: 0 0 0 3px rgba(0, 204, 245, 0.14); }
 .tyd-auth-feld input[aria-invalid='true'] { border-color: rgba(255, 69, 58, 0.7); box-shadow: 0 0 0 3px rgba(255, 69, 58, 0.15); }
+/* Geburtsdatum: Datumsfelder zeigen keinen Platzhalter, deshalb steht die Beschriftung links im Feld
+   und das gewählte Datum rechts (wie eine Zeile in den iOS-Einstellungen) */
+.tyd-auth-datum label {
+  position: absolute; left: 14px; top: 0; height: 48px; display: flex; align-items: center;
+  color: var(--lg-text-3); font-size: 16px; pointer-events: none;
+}
+.tyd-auth-datum input { padding: 0 14px 0 140px; text-align: right; -webkit-appearance: none; appearance: none; }
+.tyd-auth-datum input::-webkit-date-and-time-value { text-align: right; }
+.tyd-auth-datum input[data-leer] { color: var(--lg-text-3); }
 .tyd-auth-auge {
   position: absolute; right: 4px; top: 4px; width: 40px; height: 40px; border: 0; border-radius: 10px;
   background: transparent; color: var(--lg-text-3); display: grid; place-items: center; cursor: pointer;
@@ -68,10 +77,10 @@
 .tyd-auth-knopf:active { transform: scale(0.985); }
 .tyd-auth-knopf[data-art='haupt'] {
   background: var(--lg-primary-fill); color: var(--accent-contrast, #00141c);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 10px 30px rgba(0, 204, 245, 0.25);
+  box-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.35), 0 10px 30px rgba(0, 204, 245, 0.25);
 }
 .tyd-auth-knopf[data-art='haupt'][data-ok='true'] { background: var(--lg-good); box-shadow: 0 10px 30px rgba(48, 209, 88, 0.25); }
-.tyd-auth-knopf[data-art='glas'] { background: var(--lg-fill); color: var(--lg-text); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12); }
+.tyd-auth-knopf[data-art='glas'] { background: var(--lg-fill); color: var(--lg-text); box-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.12); }
 .tyd-auth-knopf:disabled { cursor: default; }
 .tyd-auth :is(button, input):focus-visible { outline: 2px solid var(--lg-accent); outline-offset: 2px; }
 
@@ -108,7 +117,7 @@
 .tyd-auth-knopf[data-art='apple'] { background: #fff; color: #000; }
 .tyd-auth-knopf[data-art='google'] { background: #131314; color: #e3e3e3; border: 1px solid #8e918f; font-family: Roboto, var(--font-ui, system-ui), sans-serif; font-weight: 500; }
 .tyd-auth-oder { display: flex; align-items: center; gap: 12px; margin: 2px 0; font-size: 13px; color: var(--lg-text-3); }
-.tyd-auth-oder::before, .tyd-auth-oder::after { content: ''; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.1); }
+.tyd-auth-oder::before, .tyd-auth-oder::after { content: ''; flex: 1; height: 1px; background: rgb(var(--ink-rgb) / 0.1); }
 /* Startseite: die beiden Knöpfe mit Abstand und „oder", damit Hokus Flug um den einen den anderen nicht schneidet */
 .tyd-auth-ansicht[data-start] .tyd-auth-oder { margin: 10px 0; }
 
@@ -130,3 +139,24 @@
   background: rgba(118, 118, 128, 0.16); color: var(--lg-text-2); cursor: pointer; transition: background 0.2s, color 0.2s;
 }
 .tyd-auth-chips button[aria-checked='true'] { background: var(--lg-fill-selected); color: var(--lg-text); border-color: rgba(0, 204, 245, 0.5); }
+
+/* Code aus der Mail, Passwort vergessen (docs/registrierung/PLAN.md) */
+.tyd-auth-text { margin: 0; font-size: 15px; line-height: 1.45; color: var(--lg-text-2); overflow-wrap: anywhere; }
+.tyd-auth-text[data-leise] { font-size: 13px; color: var(--lg-text-3); }
+.tyd-auth-link {
+  align-self: flex-start; min-height: 44px; padding: 0 2px; border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: 15px; color: var(--lg-accent-text, #00ccf5);
+}
+.tyd-auth-link:disabled { color: var(--lg-text-3); cursor: default; }
+.tyd-auth-zeile[data-art='links'] { justify-content: space-between; flex-wrap: wrap; gap: 0 16px; }
+.tyd-auth-code input {
+  height: 60px; padding: 0 96px 0 14px; text-align: center; font-size: 28px; font-weight: 600;
+  letter-spacing: 0.35em; font-variant-numeric: tabular-nums;
+}
+.tyd-auth-code input::placeholder { letter-spacing: 0.35em; }
+.tyd-auth-einfuegen {
+  position: absolute; right: 8px; top: 10px; height: 40px; padding: 0 12px; border: 0; border-radius: 10px;
+  background: rgba(118, 118, 128, 0.24); color: var(--lg-text); font: inherit; font-size: 14px; cursor: pointer;
+}
+.tyd-auth-zeile[data-art='schalter'] { align-items: center; justify-content: space-between; gap: 8px; }
+.tyd-auth-zeile[data-art='schalter'] .tyd-auth-link { align-self: center; flex: none; font-size: 14px; margin: -11px 0; } /* 44 px Tippfläche, ohne die Zeile höher zu machen */

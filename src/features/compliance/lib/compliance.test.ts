@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { TERMS_VERSION, zustimmungAusMetadaten, zustimmungFehlt, zustimmungsZeile } from './consent'
+import { TERMS_VERSION, geburtsdatumAusMetadaten, geburtsdatumZeile, heuteLokal, pruefeGeburtsdatum, zustimmungAusMetadaten, zustimmungFehlt, zustimmungsZeile } from './consent'
 import { filterFehlerSchluessel } from './moderation'
 
 describe('Zustimmung', () => {
@@ -45,5 +45,28 @@ describe('Textfilter-Fehler', () => {
   it('laesst andere Fehler durch', () => {
     expect(filterFehlerSchluessel('duplicate key')).toBeNull()
     expect(filterFehlerSchluessel(undefined)).toBeNull()
+  })
+})
+
+describe('Geburtsdatum', () => {
+  const heute = '2026-11-03'
+  it('ab dem 18. Geburtstag, nicht früher', () => {
+    expect(pruefeGeburtsdatum('2008-11-03', heute)).toBeNull()
+    expect(pruefeGeburtsdatum('2008-11-04', heute)).toBe('login_err_birth_young')
+    expect(pruefeGeburtsdatum('', heute)).toBe('login_err_birth_empty')
+    expect(pruefeGeburtsdatum('1899-12-31', heute)).toBe('login_err_birth_bad')
+    expect(pruefeGeburtsdatum('17.05.1990', heute)).toBe('login_err_birth_bad')
+  })
+  it('aus den Metadaten nur gültig und volljährig', () => {
+    expect(geburtsdatumAusMetadaten({ birth_date: '1990-05-17' }, heute)).toBe('1990-05-17')
+    expect(geburtsdatumAusMetadaten({ birth_date: '2015-01-01' }, heute)).toBeNull()
+    expect(geburtsdatumAusMetadaten({ birth_date: 19900517 }, heute)).toBeNull()
+    expect(geburtsdatumAusMetadaten(undefined, heute)).toBeNull()
+  })
+  it('Profilzeile führt das alte Feld age mit', () => {
+    expect(geburtsdatumZeile('1990-05-17', heute)).toEqual({ birth_date: '1990-05-17', age: 36 })
+  })
+  it('heute in Ortszeit', () => {
+    expect(heuteLokal(new Date(2026, 0, 5, 23, 30))).toBe('2026-01-05')
   })
 })

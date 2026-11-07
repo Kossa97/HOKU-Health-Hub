@@ -262,4 +262,37 @@ describe('RoutineConfirmationSheet', () => {
     expect(onConfirm).toHaveBeenCalledTimes(1)
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Bestand erneut versuchen' })).toBeNull())
   })
+
+  it('fragt Datum und Uhrzeit ab: vorbelegt mit jetzt, geplant per Knopf, beides geht an onConfirm', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 10, 4, 0, 30))
+    const onConfirm = vi.fn(async (_entries: RoutineConfirmationEntry[], _time?: string, _date?: string) => ['log-d3', 'log-zinc', 'log-testosterone'])
+    render(<RoutineConfirmationSheet group={group()} onClose={() => undefined} onConfirm={onConfirm}
+      initialTime="00:30" plannedTime="20:00" plannedDate="2026-11-03" />)
+
+    const datum = screen.getByLabelText('Datum') as HTMLInputElement
+    expect(datum.value).toBe('2026-11-04')
+    fireEvent.click(screen.getByRole('button', { name: 'Geplant · 20:00' }))
+    expect(datum.value).toBe('2026-11-03')
+    expect((screen.getByLabelText('Uhrzeit') as HTMLInputElement).value).toBe('20:00')
+    fireEvent.click(screen.getByRole('button', { name: 'Eingenommen' }))
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith(expect.any(Array), '20:00', '2026-11-03'))
+    vi.useRealTimers()
+  })
+
+  it('warnt, wenn der Zeitpunkt für eine Einnahme außerhalb ihres Zyklus liegt, und speichert dann nicht', () => {
+    const onConfirm = vi.fn(async () => ['x'])
+    render(<RoutineConfirmationSheet group={group()} onClose={() => undefined} onConfirm={onConfirm}
+      initialTime="12:00" initialDate="2026-11-04" plannedTime="08:00" plannedDate="2026-11-03" zyklusVorbei
+      ausserhalbZyklus={(entries, date) => date === '2026-11-04' ? entries.filter(entry => entry.key === 'zinc') : []} />)
+    expect(screen.getByRole('alert').textContent).toContain('läuft der Zyklus nicht für: Zink')
+    const knopf = screen.getByRole('button', { name: 'Eingenommen' })
+    expect(knopf.getAttribute('aria-disabled')).toBe('true')
+    fireEvent.click(knopf)
+    expect(onConfirm).not.toHaveBeenCalled()
+    // Geplant liegt im Zyklus: die Warnung geht, der Hinweis bleibt.
+    fireEvent.click(screen.getByRole('button', { name: 'Geplant · 08:00' }))
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(document.querySelector('[data-confirm-zyklus-vorbei]')).toBeTruthy()
+  })
 })

@@ -70,3 +70,20 @@ describe('parseIngredients', () => {
     expect(list[1]).toMatchObject({ source: 'custom', unit: 'g', per100: { kcal: 63, fiber: null } })
   })
 })
+
+describe('Gericht: Vitamine und Mineralstoffe', () => {
+  it('summiert die bekannten Werte der Zutaten und rechnet sie auf 100 g', () => {
+    const base = { brand: null, source: 'bls' as const, sourceRef: null, unit: 'g' as const }
+    const dish = recipeFood({
+      itemId: null, name: 'Porridge', portions: 1, favorite: false,
+      ingredients: [
+        { ...base, name: 'Hafer', amount: 50, per100: { kcal: 348, protein: 13, carbs: 53, fat: 7, fiber: null, sugar: null, satFat: null, salt: null, micros: { mg: 120, b1: 0.5 } } },
+        { ...base, name: 'Milch', amount: 150, per100: { kcal: 64, protein: 3.3, carbs: 4.8, fat: 3.5, fiber: null, sugar: null, satFat: null, salt: null, micros: { mg: 12, ca: 120 } } },
+      ],
+    })!
+    // 200 g: Magnesium 60 + 18 = 78 mg → 39 je 100 g; Calcium 180 → 90; B1 0,25 → 0,125
+    expect(dish.per100.micros).toEqual({ b1: 0.125, ca: 90, mg: 39 })
+    // Und zurück aus der Datenbank gelesen, bleiben sie erhalten.
+    expect(parseIngredients(JSON.parse(JSON.stringify(dish.recipe!.ingredients)))![0].per100.micros).toEqual({ mg: 120, b1: 0.5 })
+  })
+})
