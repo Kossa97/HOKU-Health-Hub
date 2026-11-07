@@ -1504,9 +1504,10 @@ const EXPECTED_MY_STACK_KEYS = [
 // report_web_too_many, report_email_invalid, moderation_source_web,
 // moderation_contact; de/en echt, sonst englischer Platzhalter.
 // Bewusst geaendert (November 2026): profil_web_link_sub beschreibt die Web-Seite aus 2c (nur de/en).
+// Bewusst geaendert (07.11.2026): titel_sicht_all_persoenlich, titel_persoenlich_web — persoenliche Titel im Web wie gekennzeichnet (nur de/en).
 const MANUAL_OUTSIDE_OVERLAY_HASHES = {
-  de: 'ac9264a55d5f97b2ef0e2e91dd194a0afbc6019e739346028704cc14f61cf7ed',
-  en: 'ab76a2dfec601ff51c5734542d4565011f8b14886658feb6f88722cb54a80a56',
+  de: '02ec4df354d1f5167fa54ccdf4288681a6f52440252451efa6eeb6a92f83ce6e',
+  en: '0764cc7583223f55f060be9718001cf5d3ea3a027e7874686b656e296f3db42d',
 } as const
 // Die zwoelf weiteren Sprachen erhalten fuer neue Texte (Kalender,
 // Erscheinungsbild look_*, bw_view_aria, tagebuch_substanz_keine, Ernaehrung

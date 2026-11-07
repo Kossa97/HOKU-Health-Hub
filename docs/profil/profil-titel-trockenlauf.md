@@ -48,9 +48,10 @@ Titel für irgendwen, solange die App keine Ränge geschrieben hat und `title` a
 - **T6** Leiter: Wahl `run_10`, verdient `run_10` + `run_50` → `run_50`.
 - **T7** Wahl nicht verdient (`streak_365`) → Rang. **T8** Wahl verdient ohne Leiter (`streak_100`) → `streak_100`.
 - **T9** Persönlich `body_fat_5`: ohne Schalter → Rang; Schalter ohne Einwilligung → Rang.
-- **T10** Mit Einwilligung, `body_fat` auf „Alle“: cleo sieht `body_fat_5`; anon (Web) nie → Rang.
+- **T10** Mit Einwilligung, `body_fat` auf „Alle“: cleo sieht `body_fat_5`; anon (Web) ohne Web-Freigabe des heiklen
+  Abzeichens → Rang. **T10b** Mit Web-Freigabe von `body_fat_5` sieht anon `body_fat_5` (wie gekennzeichnet).
 - **T11** Deckel durch das Quellfeld: `body_fat` auf „Freunde“ → cleo und „Ansehen als Alle“ sehen den Rang,
-  „Ansehen als Freunde“ und die eigene Sicht `body_fat_5`.
+  „Ansehen als Freunde“ und die eigene Sicht `body_fat_5`; anon sieht trotz Web-Freigabe den Rang.
 - **T12** `title_choice`, `personal_titles`, `title_consents` nur in der Eigentümer-Sicht.
 - **T13** Ein `title` im Schnappschuss wird nie übernommen (eigene Sicht und anon).
 - **T14** Genau 6 erwartete Fehler: Rang bzw. Unbekanntes als Wahl, Einwilligung für Nicht-Persönliches,
@@ -65,4 +66,5 @@ Titel für irgendwen, solange die App keine Ränge geschrieben hat und `title` a
 Verdiente Abzeichen und Ränge rechnet das Gerät (wie in 2b); der Server prüft nur bekannte IDs und
 gültige Tage. Ein manipuliertes Gerät könnte sich also einen Rang „verdienen“ — wie jedes Abzeichen
 aus 2b. Gesundheitsdaten verrät das nicht: persönliche Titel brauchen Schalter, Einwilligung und ein
-sichtbares Quellfeld, und im Web gibt es sie nie.
+sichtbares Quellfeld, im Web dazu das Quellfeld auf „Alle“ und die Web-Freigabe des Abzeichens
+(heikle ab Werk aus).

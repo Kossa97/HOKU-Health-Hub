@@ -111,9 +111,10 @@ Gesamtfortschritt gibt es, unter vier Bedingungen:
    „Abbrechen“. Einwilligung nach Art. 9 Abs. 2 a DSGVO, widerrufbar (anderer Titel oder Schalter aus).
 3. **Nie sichtbarer als das zugehörige Feld:** wirksame Stufe = die strengere aus Titel-Feld und
    Quellfeld (z. B. Körperfett auf „Freunde“ → „In Form“ nur für Freunde, auch wenn der Titel auf
-   „Alle“ steht). Prüfung in `profile_view`, nicht nur im Client. **Im Web und auf der Link-Karte nie**
-   **[Claude, 06.11.]**: dort steht der Fortschritt nur als Stufe mit Schutzregel; „Verwandelt“ verriete,
-   was die Stufe verbirgt. Dann zeigt das Web den Rang.
+   „Alle“ steht). Prüfung in `profile_view`, nicht nur im Client. **Im Web und auf der Link-Karte so, wie
+   die Person es kennzeichnet [Nutzer 07.11.]:** Titel-Feld auf „Alle“, Quellfeld auf „Alle“ und das
+   Abzeichen unter „Abzeichen im Web“ eingeschaltet (heikle sind ab Werk aus); sonst zeigt das Web den Rang.
+   Für jeden Abzeichen-Titel gilt im Web die Web-Freigabe des Abzeichens [Nutzer 07.11.: „richtig“].
 4. **Neutrale Namen** ohne Bezug auf Substanzen oder Körperideale (App-Store-Richtlinien zu
    Substanzen); Text und Namen juristisch prüfen lassen.
 

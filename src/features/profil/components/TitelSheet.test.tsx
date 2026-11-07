@@ -103,11 +103,11 @@ describe('TitelSheet', () => {
     expect(props.onConsent).toHaveBeenCalledWith('body_fat_5')
   })
 
-  it('schon bestätigt: kein Dialog; getragen auf „Alle“ sagt, dass das Web den Rang zeigt', () => {
+  it('schon bestätigt: kein Dialog; getragen auf „Alle“ sagt, wann das Web ihn zeigt', () => {
     const settings: TitleSettings = { choice: 'body_fat_5', personalAllowed: true, consents: { body_fat_5: '2026-09-01' } }
     const { container, props } = zeige({ settings, visibility: { body_fat: 'all', title: 'all' } })
     expect(container.querySelector('[data-title-worn]')!.getAttribute('data-title-worn')).toBe('body_fat_5')
-    expect(container.querySelector('[data-title-worn-sight]')!.textContent).toContain('Im Web und auf der Link-Karte steht dein Rang')
+    expect(container.querySelector('[data-title-worn-sight]')!.textContent).toContain('Im Web und auf der Link-Karte nur, wenn auch sein Feld auf „Alle“ steht')
     expect(container.querySelector('[data-title-consented]')).not.toBeNull()
     fireEvent.click(container.querySelector('[data-title-personal="body_fat_5"]')!)
     expect(document.querySelector('[data-title-consent]')).toBeNull()

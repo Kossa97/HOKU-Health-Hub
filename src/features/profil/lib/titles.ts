@@ -8,7 +8,8 @@
  * (`profile_title_badge_ids`, `profile_title_ladders`, `profile_title_source`);
  * ein Test prüft Gleichheit. Was andere sehen, entscheidet allein `profile_view`:
  * nur verdiente Titel, persönliche nur mit Schalter, Einwilligung und höchstens
- * so sichtbar wie ihr Quellfeld und nie im Web, sonst der höchste Rang.
+ * so sichtbar wie ihr Quellfeld (im Web: Quellfeld auf „Alle“ und Abzeichen fürs Web
+ * freigegeben), sonst der höchste Rang.
  */
 import { RANK_IDS, type BadgeId } from './badgeIds'
 import type { ProfileField } from './profileVisibility'

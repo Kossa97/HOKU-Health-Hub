@@ -145,9 +145,10 @@ describe('profile_view (Titel-Block in der Migration)', () => {
     expect(view).toContain('public.profile_rank_ids()')
   })
 
-  it('Web: title ist Web-Feld, persönliche Titel gibt es dort nie (auch nicht bei progress/reviews auf „Alle“)', () => {
+  it('Web: title ist Web-Feld; persönliche nur, wenn ihr Quellfeld auf „Alle“ steht (Nutzer 07.11.)', () => {
     expect(sqlListe('profile_web_fields')).toContain('title')
-    expect(view).toContain("and stufe <> 'web'")
+    expect(view).toContain("or (stufe = 'web' and coalesce(p.field_visibility ->> quelle = 'all', false))")
+    expect(view).not.toContain("and stufe <> 'web'")
   })
 
   it('Web: ein Abzeichen-Titel nur mit Web-Freigabe des Abzeichens (Grenzfälle wie Schlafbeobachter ab Werk nicht)', () => {

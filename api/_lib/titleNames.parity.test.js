@@ -1,9 +1,9 @@
 // Die Titelnamen der Link-Karte sind eine Abschrift aus `src/features/profil/lib/titles.ts`:
-// gleiche Ränge, gleiche tragbare Abzeichen ohne die persönlichen, gleiche Namen.
+// gleiche Ränge, gleiche tragbare und persönliche Titel, gleiche Namen.
 
 import { describe, expect, it } from 'vitest'
 import { PERSONAL_TITLE_SOURCE, RANKS, TITLE_NAMES, titleName } from '../../src/features/profil/lib/titles'
-import { BADGE_TITLE_NAMES, RANK_TITLE_NAMES, webTitleName } from './titleNames.js'
+import { BADGE_TITLE_NAMES, PERSONAL_TITLE_NAMES, RANK_TITLE_NAMES, webTitleName } from './titleNames.js'
 
 describe('Titelnamen: api/_lib ↔ src/features/profil/lib/titles.ts', () => {
   it('Ränge: gleiche IDs in gleicher Reihenfolge, gleiche Namen', () => {
@@ -17,17 +17,19 @@ describe('Titelnamen: api/_lib ↔ src/features/profil/lib/titles.ts', () => {
     expect(BADGE_TITLE_NAMES).toEqual(Object.fromEntries(web))
   })
 
-  it('kein persönlicher Titel in der Abschrift', () => {
-    for (const id of Object.keys(PERSONAL_TITLE_SOURCE)) {
-      expect(Object.hasOwn(BADGE_TITLE_NAMES, id), id).toBe(false)
-      expect(webTitleName({ kind: 'badge', id }, 'de'), id).toBeNull()
-    }
+  it('persönliche Titel: genau die mit Quellfeld, gleiche Reihenfolge und Namen', () => {
+    const personal = Object.entries(TITLE_NAMES).filter(([id]) => Object.hasOwn(PERSONAL_TITLE_SOURCE, id))
+    expect(Object.keys(PERSONAL_TITLE_NAMES)).toEqual(personal.map(([id]) => id))
+    expect(PERSONAL_TITLE_NAMES).toEqual(Object.fromEntries(personal))
   })
 
-  it('webTitleName wie titleName für alles, was das Web zeigt', () => {
+  it('webTitleName wie titleName; Art muss passen', () => {
     for (const lang of ['de', 'en']) {
       for (const id of Object.keys(RANK_TITLE_NAMES)) expect(webTitleName({ kind: 'rank', id }, lang)).toBe(titleName(id, lang))
-      for (const id of Object.keys(BADGE_TITLE_NAMES)) expect(webTitleName({ kind: 'badge', id }, lang)).toBe(titleName(id, lang))
+      for (const id of [...Object.keys(BADGE_TITLE_NAMES), ...Object.keys(PERSONAL_TITLE_NAMES)]) {
+        expect(webTitleName({ kind: 'badge', id }, lang)).toBe(titleName(id, lang))
+      }
+      expect(webTitleName({ kind: 'rank', id: 'body_fat_5' }, lang)).toBeNull()
     }
   })
 })

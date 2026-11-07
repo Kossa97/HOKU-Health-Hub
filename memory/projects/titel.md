@@ -80,8 +80,11 @@ Art der Einheit prüfen) · Motivator/Motivator (5 Freunde).
   (`docs/profil/profil-titel-trockenlauf.md`, T1–T19), NICHT gegen Produktion. Reihenfolge 2a → 2b → 2c → Titel,
   2a/2b/2c danach nicht erneut laufen lassen.
 - Chip + Sheet „Dein Titel“ + Einstellungen + Abzeichen-Seite, Moment „Neuer Rang“, Web-Chip + Link-Karten-Chip.
-- Entschieden von Claude (Nutzer bestätigen lassen): persönliche Titel nie im Web; Abzeichen-Titel im Web nur mit
-  Web-Freigabe; `steps_weeks_12` Grenzfall; bei neuer Stufe einer getragenen Leiter zeigt der Moment „Fertig“.
+- Nutzer 07.11.: Titel im Web „so, wie die Person sie kennzeichnet“: persönliche im Web, wenn Titel-Feld UND Quellfeld
+  auf „Alle“ und das Abzeichen fürs Web eingeschaltet ist (gebaut). Abzeichen-Titel im Web nur mit Web-Freigabe:
+  „richtig“. Neue Stufe einer getragenen Leiter: Frage „Wer soll sehen“ kommt trotzdem, nur „Als Titel tragen“ fällt weg.
+- Idee Nutzer 07.11. (später): Abzeichen und Titel als eigene Kategorie unter Profil; liegen offene, noch nicht
+  „abgeholte“ vor, leuchtet oder wackelt das Logo (Abhol-Mechanik).
 - Offen: Moment bei Einträgen außerhalb des Fortschritt-Sheets erst beim nächsten Lauf; Plex Mono 500 für den
   Web-Chip (index.html) falls gewünscht; juristisch: Bestätigungstext, `titel_verraet_*`, Namen, Datenschutzabsatz.
 

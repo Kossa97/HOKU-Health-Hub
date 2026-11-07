@@ -183,12 +183,12 @@ describe('PublicProfile ohne Anmeldung', () => {
     expect(chip!.compareDocumentPosition(nick) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
-  it('Titel: Rang ebenso; unbekannte oder persönliche IDs und fehlender Titel → kein Chip', async () => {
+  it('Titel: Rang ebenso; unbekannte IDs und fehlender Titel → kein Chip (persönliche zeigt die Seite, wenn der Server sie schickt)', async () => {
     db.view = { username: 'max', own: false, fields: { title: { kind: 'rank', id: 'rank_5' } } }
     const rang = renderAt('/u/max')
     await waitFor(() => expect(rang.container.querySelector('[data-profile-title="rank_5"]')?.textContent).toContain('Veteran'))
     cleanup()
-    for (const title of [undefined, { kind: 'badge', id: 'gibts_nicht' }, { kind: 'rank', id: 'run_50' }, { kind: 'badge', id: 'streak_7' }, { kind: 'badge', id: 'body_fat_10' }, 'Läufer']) {
+    for (const title of [undefined, { kind: 'badge', id: 'gibts_nicht' }, { kind: 'rank', id: 'run_50' }, { kind: 'badge', id: 'streak_7' }, 'Läufer']) {
       db.view = { username: 'max', own: false, fields: title === undefined ? {} : { title } }
       const { container } = renderAt('/u/max')
       await waitFor(() => expect(container.querySelector('[data-web-profile]')).toBeTruthy())

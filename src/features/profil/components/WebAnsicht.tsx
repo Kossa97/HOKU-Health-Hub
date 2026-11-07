@@ -27,7 +27,7 @@ import type { BadgeId } from '../lib/badgeIds'
 import { flagOf } from '../lib/profileFields'
 import { numberFormat } from '../lib/profileFormat'
 import { WEB_PROGRESS_TIERS, type ProfileView, type WebProgressTier } from '../lib/profileView'
-import { isPersonalTitle, titleName } from '../lib/titles'
+import { titleName } from '../lib/titles'
 import { firstName, memberForText, webBadgeRow } from '../lib/webProfile'
 import { useSignedUrl } from '../hooks/useSignedUrl'
 import { HokuCode } from './HokuCode'
@@ -415,7 +415,8 @@ export function WebAnsicht({ view, band }: { view: ProfileView; band?: ReactNode
   const werte = view.card?.webValueCount ?? null
   // Titel nur, wenn die Stufe web ihn liefert (Feld `title` auf „Alle“). Persönliche
   // schickt der Server im Web nie; käme doch einer, fehlt er wie auf der Link-Karte.
-  const titel = f.title && !isPersonalTitle(f.title.id) ? titleName(f.title.id, locale) : null
+  // Was im Web steht, entscheidet profile_view (Feldstufen, Einwilligung, Web-Freigabe)
+  const titel = f.title ? titleName(f.title.id, locale) : null
 
   return (
     <WebRahmen

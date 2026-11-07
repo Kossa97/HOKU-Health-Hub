@@ -1280,15 +1280,15 @@ export class MockSupabase {
         if (value !== undefined && key !== 'title' && erlaubt(key)) fields[key] = value
       }
       // Titel wie supabase-profil-titel.sql: verdiente Wahl (Leiter: hoechste Stufe),
-      // persoenliche nur mit Schalter + Einwilligung + sichtbarem Quellfeld, nie im Web; sonst Rang.
+      // persoenliche nur mit Schalter + Einwilligung + sichtbarem Quellfeld (Web: Quellfeld auf Alle); sonst Rang.
       if (erlaubt('title')) {
         const verdient = (this.table('progress_settings').find(row => row.user_id === p.id)?.earned_badges ?? {}) as Record<string, unknown>
         const hat = (id: string) => Object.hasOwn(verdient, id)
         let wahl: string | null = isTitleBadgeId(p.title_choice) ? p.title_choice as string : null
         const quelle = wahl ? personalTitleSource(wahl as never) : null
         const einw = (p.title_consents ?? {}) as Record<string, unknown>
-        if (wahl && quelle && !(p.personal_titles === true && Object.hasOwn(einw, wahl) && stufe !== 'web'
-          && (stufe === 'owner' || erlaubt(quelle)))) wahl = null
+        if (wahl && quelle && !(p.personal_titles === true && Object.hasOwn(einw, wahl)
+          && (stufe === 'owner' || erlaubt(quelle) || (stufe === 'web' && vis[quelle] === 'all')))) wahl = null
         if (wahl) {
           const leiter = ladderOf(wahl as never)
           wahl = leiter ? [...TITLE_LADDERS[leiter]].reverse().find(hat) ?? null : hat(wahl) ? wahl : null

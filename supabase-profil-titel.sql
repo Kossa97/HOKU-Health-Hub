@@ -32,9 +32,10 @@
 -- - profile_view: "title" in fields = {"kind": "rank"|"badge", "id": ...} in jeder
 --   Sicht, in der das Feld title sichtbar ist. Gewaehlt gilt nur verdient (aus
 --   progress_settings.earned_badges; bei Leitern die hoechste verdiente Stufe),
---   persoenliche nur mit Schalter + Einwilligung + Quellfeld in dieser Sicht sichtbar,
---   im Web nie; im Web ausserdem nur, wenn das Abzeichen dort freigegeben ist
---   (profile_web_badge_on); sonst der hoechste verdiente Rang. Eigentuemer zusaetzlich
+--   persoenliche nur mit Schalter + Einwilligung + Quellfeld in dieser Sicht sichtbar
+--   (im Web: Quellfeld auf "Alle"); im Web ausserdem jeder Abzeichen-Titel nur, wenn
+--   das Abzeichen dort freigegeben ist (profile_web_badge_on; heikle ab Werk aus);
+--   sonst der hoechste verdiente Rang. Eigentuemer zusaetzlich
 --   title_choice, personal_titles, title_consents. Sonst wie 2c.
 --
 -- Ausfuehren: Supabase -> SQL Editor -> diese Datei einfuegen -> Run.
@@ -406,10 +407,10 @@ begin
   -- Titel (Profil-Zusatz Titel, Spec 5 und 6): nur als bekannte ID, nie Freitext.
   -- Gewaehlt (title_choice) gilt nur, wenn verdient (bei Leitern die hoechste
   -- verdiente Stufe); ein persoenlicher Titel nur mit Schalter, Einwilligung und
-  -- wenn sein Quellfeld in dieser Sicht selbst sichtbar ist, im Web und auf der
-  -- Link-Karte nie (dort gibt es Fortschritt nur als Stufe mit Schutzregel; ein
-  -- Titel wie "Verwandelt" verriete sonst, was die Stufe verbirgt). Sonst der
-  -- hoechste Rang.
+  -- wenn sein Quellfeld in dieser Sicht selbst sichtbar ist. Im Web (Nutzer 07.11.:
+  -- "so, wie die Person es kennzeichnet") genuegt dafuer, dass das Quellfeld auf
+  -- "Alle" steht, obwohl das Feld selbst nie ins Web geht; dazu kommt unten die
+  -- Web-Freigabe des Abzeichens (heikle ab Werk aus). Sonst der hoechste Rang.
   if 'title' = any(erlaubt) then
     select ps.earned_badges into verdient from public.progress_settings ps where ps.user_id = p.id;
     verdient := coalesce(verdient, '{}'::jsonb);
@@ -418,8 +419,8 @@ begin
       quelle := public.profile_title_source(wahl);
       if quelle is not null and not (p.personal_titles
                                      and coalesce(p.title_consents ? wahl, false)
-                                     and stufe <> 'web'
-                                     and (stufe = 'owner' or quelle = any(erlaubt))) then
+                                     and (stufe = 'owner' or quelle = any(erlaubt)
+                                          or (stufe = 'web' and coalesce(p.field_visibility ->> quelle = 'all', false)))) then
         wahl := null;
       end if;
     end if;

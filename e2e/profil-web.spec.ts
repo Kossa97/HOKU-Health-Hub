@@ -167,20 +167,29 @@ test.describe('ohne Anmeldung', () => {
     })
   }
 
-  test('Titel: nie ein persönlicher im Web, auch mit Schalter, Einwilligung und Quellfeld auf „Alle“', async ({ page, mock }) => {
-    mara(mock, {
-      field_visibility: { ...FELDER_ALLE, title: 'all', body_fat: 'all', progress: 'all' },
-      title_choice: 'body_fat_10', personal_titles: true, title_consents: { body_fat_10: '2026-10-01' },
-    })
+  test('Titel: ein persönlicher im Web nur, wie die Person ihn kennzeichnet (Quellfeld auf „Alle“ und Abzeichen fürs Web an)', async ({ page, mock }) => {
+    const titel = { title_choice: 'body_fat_10', personal_titles: true, title_consents: { body_fat_10: '2026-10-01' } }
+    const chip = page.locator('[data-web-profile] [data-profile-title]')
+    // Quellfeld auf „Alle“, Abzeichen fürs Web freigegeben → der persönliche Titel
+    mara(mock, { field_visibility: { ...FELDER_ALLE, title: 'all', body_fat: 'all' }, web_badges: { body_fat_10: true }, ...titel })
     verdient(mock, ['rank_1', 'rank_2', 'rank_3', 'body_fat_5', 'body_fat_10'])
     await page.goto('/u/mara')
-    const chip = page.locator('[data-web-profile] [data-profile-title]')
-    // statt des persönlichen Titels der höchste Rang
+    await expect(chip).toHaveAttribute('data-profile-title', 'body_fat_10')
+    await expect(chip).toContainText('Formwandler')
+
+    // ohne Web-Freigabe des (heiklen) Abzeichens: der Rang
+    Object.assign(mock.table('profiles').find(r => r.username === 'mara')!, { web_badges: {} })
+    await page.reload()
     await expect(chip).toHaveAttribute('data-profile-title', 'rank_3')
-    await expect(chip).toHaveAttribute('data-profile-title-kind', 'rank')
-    await expect(chip).toContainText('Dranbleiber')
     await expect(page.locator('[data-web-profile]')).not.toContainText('Formwandler')
-    await expect(page.locator('[data-web-profile]')).not.toContainText('In Form')
+
+    // Quellfeld nur für Freunde: der Rang, auch mit Freigabe
+    Object.assign(mock.table('profiles').find(r => r.username === 'mara')!, {
+      web_badges: { body_fat_10: true }, field_visibility: { ...FELDER_ALLE, title: 'all', body_fat: 'friends' },
+    })
+    await page.reload()
+    await expect(chip).toHaveAttribute('data-profile-title', 'rank_3')
+    await expect(chip).toContainText('Dranbleiber')
   })
 
   test('Schutzregel: trägt nur Blut den Fortschritt, gibt es keine Stufe', async ({ page, mock }) => {

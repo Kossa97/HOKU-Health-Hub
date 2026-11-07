@@ -130,12 +130,13 @@ describe('toCardInput (Fixtures aus dem Trockenlauf)', () => {
     expect(toCardInput(FRIEDA_TITEL, { lang: 'de' }).title).toBe('Routinier')
     expect(toCardInput(FRIEDA_TITEL, { lang: 'en' }).title).toBe('Steady')
     expect(toCardInput(MARA, { lang: 'de' }).title).toBeNull()
+    // persönlich: schickt ihn der Server (Quellfeld auf Alle, Web-Freigabe), zeigt ihn die Karte
+    expect(toCardInput({ ...MARA, fields: { ...MARA.fields, title: { kind: 'badge', id: 'body_fat_10' } } }, { lang: 'de' }).title).toBe('Formwandler')
   })
 
   it.each([
     ['unbekannte ID', { kind: 'badge', id: 'gibts_nicht' }],
     ['Abzeichen ohne Titel', { kind: 'badge', id: 'streak_7' }],
-    ['persönlicher Titel', { kind: 'badge', id: 'body_fat_10' }],
     ['persönlicher Titel als Rang', { kind: 'rank', id: 'progress_50' }],
     ['Rang als Abzeichen', { kind: 'badge', id: 'rank_4' }],
     ['Abzeichen als Rang', { kind: 'rank', id: 'run_50' }],

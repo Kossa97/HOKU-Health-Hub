@@ -2,9 +2,10 @@
 // 2, 3.1, 3.2 und 5). `api/` kann kein TypeScript laden, daher eine Abschrift aus
 // `src/features/profil/lib/titles.ts`; `titleNames.parity.test.js` prüft Gleichheit.
 //
-// Nur, was das Web zeigen darf: die Ränge und die tragbaren Abzeichen ohne die
-// persönlichen Titel (Spec 3.3: im Web und auf der Link-Karte nie). Liefert
-// `profile_view` trotzdem eine andere ID, gibt es keinen Chip.
+// Ränge, tragbare Abzeichen und persönliche Titel. Ob ein Titel im Web steht,
+// entscheidet allein `profile_view` (Feldstufen, Einwilligung, Web-Freigabe; ein
+// persönlicher nur, wenn die Person ihn so kennzeichnet, Nutzer 07.11.). Eine
+// unbekannte ID gibt keinen Chip.
 
 /** Ränge (Spec 2), `rank_1` … `rank_6`. */
 export const RANK_TITLE_NAMES = {
@@ -16,7 +17,7 @@ export const RANK_TITLE_NAMES = {
   rank_6: { de: 'Legende', en: 'Legend' },
 }
 
-/** Tragbare Abzeichen (Spec 3.1, 3.2), ohne persönliche Titel. */
+/** Tragbare Abzeichen (Spec 3.1, 3.2). */
 export const BADGE_TITLE_NAMES = {
   streak_100: { de: 'Unaufhaltsam', en: 'Unstoppable' },
   streak_365: { de: 'Eiserner Wille', en: 'Iron Will' },
@@ -61,14 +62,34 @@ export const BADGE_TITLE_NAMES = {
   yoga_150: { de: 'Zen-Meister', en: 'Zen Master' },
 }
 
+/** Persönliche Titel (Spec 3.3). */
+export const PERSONAL_TITLE_NAMES = {
+  body_fat_5: { de: 'In Form', en: 'In Shape' },
+  body_fat_10: { de: 'Formwandler', en: 'Shape Shifter' },
+  body_fat_20: { de: 'Neu geformt', en: 'Reshaped' },
+  weight_5: { de: 'Leichter unterwegs', en: 'Lighter Steps' },
+  first_bloodwork: { de: 'Werte-Kenner', en: 'Lab Regular' },
+  all_markers_in_range: { de: 'Im grünen Bereich', en: 'In the Green' },
+  resting_hr_5: { de: 'Ruhepol', en: 'Calm Heart' },
+  intake_all_30: { de: 'Konsequent', en: 'Consistent' },
+  first_cycle_done: { de: 'Durchgezogen', en: 'Saw It Through' },
+  first_review: { de: 'Berichterstatter', en: 'Reporter' },
+  sleep_rested_30: { de: 'Ausgeschlafen', en: 'Well Rested' },
+  sleep_rested_100: { de: 'Schlafprofi', en: 'Sleep Pro' },
+  progress_10: { de: 'Auf Kurs', en: 'On Track' },
+  progress_25: { de: 'Im Aufwind', en: 'On the Rise' },
+  progress_50: { de: 'Verwandelt', en: 'Transformed' },
+}
+
 /**
  * `fields.title` aus `profile_view` (`{ kind: 'rank'|'badge', id }`) → Name in
- * `lang` (de, sonst en). Rang nur mit Rang-ID, Abzeichen nur mit tragbarer,
- * nicht persönlicher ID; alles andere → null (kein Chip).
+ * `lang` (de, sonst en). Rang nur mit Rang-ID, Abzeichen nur mit tragbarer
+ * (auch persönlicher) ID; alles andere → null (kein Chip).
  */
 export function webTitleName(raw, lang) {
   if (!raw || typeof raw !== 'object' || typeof raw.id !== 'string') return null
-  const list = raw.kind === 'rank' ? RANK_TITLE_NAMES : raw.kind === 'badge' ? BADGE_TITLE_NAMES : null
-  if (!list || !Object.hasOwn(list, raw.id)) return null
+  const lists = raw.kind === 'rank' ? [RANK_TITLE_NAMES] : raw.kind === 'badge' ? [BADGE_TITLE_NAMES, PERSONAL_TITLE_NAMES] : []
+  const list = lists.find(l => Object.hasOwn(l, raw.id))
+  if (!list) return null
   return list[raw.id][lang === 'de' ? 'de' : 'en']
 }
