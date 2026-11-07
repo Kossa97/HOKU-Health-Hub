@@ -10,7 +10,7 @@
  */
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { tileText, numberFormat, type TileText } from '../lib/profileFormat'
+import { shownExerciseName, tileText, numberFormat, type TileText } from '../lib/profileFormat'
 import { LONG_TEXT_FIELDS, PROFILE_CARDS, shownFields, type ProfileCardId, type ProfileViewFields } from '../lib/profileView'
 import { arrangeCards, tileLayout, visibilityOf, type ProfileField, type TileLayout, type Visibility, type VisibilityMap } from '../lib/profileVisibility'
 import { SichtbarkeitsChip } from './SichtbarkeitsChip'
@@ -160,7 +160,7 @@ function Training({ keys, fields, chip, text, locale }: {
           <div className={`grid gap-2.5 ${GRID[layout]}`}>
             {top.map(e => (
               <div key={`${e.id}-${e.name}`} className="min-w-0 rounded-[16px] bg-[var(--lg-surface-2)] px-2.5 py-2.5">
-                <div className="truncate text-[11.5px] text-[var(--lg-text-3)]">{e.name}</div>
+                <div className="truncate text-[11.5px] text-[var(--lg-text-3)]">{shownExerciseName(e, locale)}</div>
                 <div className="mt-1 truncate text-[21px] font-semibold leading-tight tabular-nums text-[var(--lg-text)]">
                   {n(e.v)}<small className="ml-1 text-[12px] font-medium text-[var(--lg-text-3)]">kg</small>
                 </div>

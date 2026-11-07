@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hoku Profil 2b</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Layout wie profil-v3/2a: Steuerung links, ein Handy rechts. Bewusst nur dunkel (Soft Dark). */
+:root {
+  --page: #141518; --bg: #1f2023; --bg-top: #2a2b2f; --s1: #303136; --s2: #27282c;
+  --text: #f2f4f8; --t2: rgba(235,240,255,.66); --t3: rgba(235,240,255,.45); --hair: rgba(255,255,255,.08);
+  --blue: #4ea8ff; --blue-soft: #9ccdff; --cyan: #64d2ff; --violet: #8a6bff;
+  --good: #5fe07f; --warn: #ffb340; --bad: #ff6961;
+  --ui: -apple-system, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+  --disp: "Space Grotesk", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--page); color: var(--text); font-family: var(--ui);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 48px; }
+button { font-family: var(--ui); color: inherit; }
+button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.wrap { display: flex; gap: 28px; justify-content: center; flex-wrap: wrap; align-items: flex-start; }
+.ctrl { width: 320px; max-width: 100%; }
+.ctrl h1 { font: 600 20px/1.2 var(--disp); margin: 0 0 4px; }
+.ctrl p { color: var(--t2); font-size: 13px; line-height: 1.5; margin: 0; }
+.ctrl .lbl { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--t3); margin: 18px 0 8px; }
+.views { display: grid; gap: 6px; }
+.views button { text-align: left; padding: 9px 12px; border-radius: 12px; border: 1px solid var(--hair); background: var(--s2); font: 500 14px var(--ui); cursor: pointer; }
+.views button small { display: block; color: var(--t3); font-size: 12px; font-weight: 400; margin-top: 2px; }
+.views button.on { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue) inset, 0 0 18px rgba(78,168,255,.18); }
+.formel { background: var(--s2); border: 1px solid var(--hair); border-radius: 12px; padding: 10px 12px; font-size: 12.5px; color: var(--t2); line-height: 1.55; }
+.formel b { color: var(--text); font-weight: 600; }
+.formel code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--cyan); }
+
+.phone { width: 390px; max-width: 100%; height: 844px; border-radius: 46px; background: linear-gradient(180deg, var(--bg-top), var(--bg) 30%); border: 1px solid rgba(255,255,255,.07); box-shadow: 0 30px 80px rgba(0,0,0,.6); overflow: hidden; position: relative; }
+.scroll { height: 100%; overflow-y: auto; padding: 0 16px 40px; scrollbar-width: none; }
+.scroll::-webkit-scrollbar { display: none; }
+.bar { height: 54px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 4px 8px; font-size: 15px; font-weight: 600; gap: 8px; }
+.bar .ttl { flex: 1; text-align: center; }
+.icb { width: 36px; height: 36px; border-radius: 12px; border: none; background: linear-gradient(180deg, var(--s1), var(--s2)); font-size: 16px; cursor: pointer; display: grid; place-items: center; flex: none; }
+.icb.leer { visibility: hidden; }
+.card { background: linear-gradient(180deg, var(--s1), var(--s2)); border-radius: 22px; padding: 16px; margin-top: 12px; box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 8px 24px rgba(0,0,0,.28); }
+.card h3 { margin: 0 0 12px; font: 600 15px var(--ui); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.card h3 .sub { color: var(--t3); font-size: 12px; font-weight: 400; margin-left: auto; }
+.vis { display: inline-flex; align-items: center; gap: 4px; font: 500 10px/1 var(--ui); color: var(--t3); }
+.vis .pt { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.vis.alle { color: var(--good); } .vis.freunde { color: var(--blue-soft); }
+.mini-kopf { display: flex; align-items: center; gap: 12px; padding: 6px 4px 0; }
+.mini-kopf .av { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(140deg, #6fb6ff, #8a6bff); display: grid; place-items: center; font: 700 20px var(--disp); }
+.mini-kopf b { font: 600 18px var(--disp); display: block; }
+.mini-kopf small { color: var(--t2); font-size: 13px; }
+
+/* Gesamtfortschritt */
+.total { display: flex; gap: 16px; align-items: center; cursor: pointer; background: none; border: 0; padding: 0; width: 100%; text-align: left; }
+.ring { width: 112px; height: 112px; flex: none; position: relative; }
+.ring svg { transform: rotate(-90deg); display: block; }
+.ring .num { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.ring .num b { font: 600 25px/1 var(--disp); color: var(--cyan); font-variant-numeric: tabular-nums; }
+.ring .num small { font-size: 10.5px; color: var(--t3); margin-top: 3px; display: block; }
+.parts { flex: 1; display: grid; gap: 8px; min-width: 0; }
+.part { font-size: 12px; color: var(--t2); }
+.part .row { display: flex; justify-content: space-between; margin-bottom: 4px; gap: 6px; }
+.part .row b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.track { height: 6px; border-radius: 99px; background: rgba(255,255,255,.07); position: relative; overflow: hidden; }
+.track i { position: absolute; top: 0; bottom: 0; border-radius: 99px; }
+.track .mid { position: absolute; left: 30%; top: -2px; bottom: -2px; width: 1px; background: rgba(255,255,255,.25); }
+.pos { color: var(--good); } .neg { color: var(--bad); } .nul { color: var(--t3); }
+.hint { color: var(--t3); font-size: 12px; margin-top: 12px; line-height: 1.45; }
+
+/* Abzeichen */
+.badges { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; }
+.badge { flex: none; width: 78px; text-align: center; font-size: 11px; color: var(--t2); line-height: 1.3; hyphens: auto; overflow-wrap: anywhere; }
+.badge .ic { width: 56px; height: 56px; margin: 0 auto 6px; border-radius: 18px; display: grid; place-items: center; font-size: 24px; background: linear-gradient(160deg, rgba(100,210,255,.22), rgba(138,107,255,.22)); }
+.badge.zu .ic { background: rgba(255,255,255,.04); filter: grayscale(1); opacity: .45; }
+.badge.zu { color: var(--t3); }
+.badge small { display: block; color: var(--t3); font-size: 10px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.bgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px 6px; }
+.bgrid .badge { width: auto; }
+.grp { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--t3); margin: 18px 4px 8px; display: flex; justify-content: space-between; }
+
+/* Aufschluesselung */
+.wrow { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 10px 0; border-bottom: 1px solid var(--hair); }
+.wrow:last-child { border-bottom: 0; }
+.wrow .n { font-size: 14px; }
+.wrow .d { color: var(--t3); font-size: 12px; font-variant-numeric: tabular-nums; }
+.wrow .s { font: 600 14px var(--disp); text-align: right; font-variant-numeric: tabular-nums; align-self: center; }
+.dir { grid-column: 1 / -1; display: flex; gap: 4px; }
+.dir button { flex: 1; font: 500 11px var(--ui); padding: 5px 4px; border-radius: 8px; border: 1px solid var(--hair); background: transparent; color: var(--t2); cursor: pointer; }
+.dir button.on { background: rgba(78,168,255,.18); border-color: rgba(78,168,255,.5); color: #cfe6ff; }
+.wrow.aus .n, .wrow.aus .d { opacity: .45; }
+.areamean { display: flex; justify-content: space-between; font-size: 12px; color: var(--t2); padding-top: 4px; }
+.areamean b { font-variant-numeric: tabular-nums; }
+.btn { width: 100%; padding: 11px; border-radius: 14px; border: none; font: 600 14px var(--ui); color: #fff; cursor: pointer; background: linear-gradient(180deg, #5db2ff, #3a8fe8); }
+.btn.ghost { background: linear-gradient(180deg, var(--s1), var(--s2)); box-shadow: inset 0 1px 0 rgba(255,255,255,.07); }
+.note { font-size: 12px; color: var(--t3); line-height: 1.5; margin-top: 12px; }
+.note b { color: var(--t2); }
+.start { display: flex; gap: 8px; align-items: center; justify-content: space-between; font-size: 13px; color: var(--t2); }
+.start select { background: var(--s2); color: var(--text); border: 1px solid var(--hair); border-radius: 10px; padding: 6px 8px; font: 13px var(--ui); }
+</style>
+</head>
+<body>
+
+<div class="wrap" lang="de">
+  <div class="ctrl">
+    <h1>Profil · Entwurf 2b</h1>
+    <p>Gesamtfortschritt und Abzeichen. Rechnung nach deiner Vorgabe: Prozent der positiven Veränderung vom Start bis jetzt. In der Aufschlüsselung lässt sich die Richtung je Wert ändern, der Ring rechnet mit. Daten erfunden (Mara, Start 14.03.2026).</p>
+    <div class="lbl">Bildschirm</div>
+    <div class="views" id="views">
+      <button type="button" data-s="profil" class="on">Profil<small>Ring, Bereiche, Abzeichen-Zeile</small></button>
+      <button type="button" data-s="detail">Aufschlüsselung<small>jeder Wert: Start → jetzt, Richtung, Prozent</small></button>
+      <button type="button" data-s="badges">Alle Abzeichen<small>Beständigkeit, Meilensteine, Fortschritt, Gemeinschaft</small></button>
+    </div>
+    <div class="lbl">Rechnung</div>
+    <div class="formel">
+      <b>Je Wert</b> (ab zwei Messungen):<br>
+      runter: <code>(Start − jetzt) ÷ Start</code><br>
+      hoch: <code>(jetzt − Start) ÷ Start</code><br>
+      Zielbereich: Anteil im Bereich, <code>(jetzt − Start) ÷ Start</code><br>
+      Beispiel: 120 → 100 kg, runter = <b>+16,67 %</b>.<br>
+      <b>Gesamt:</b> Mittel je Bereich, dann Mittel der Bereiche, ohne Deckel.
+    </div>
+  </div>
+
+  <div class="phone"><div class="scroll" id="scroll"></div></div>
+</div>
+
+<script>
+// Richtung: down | up | range | off. Werte: Start und jetzt; bei range Anteil im Bereich (Zaehler/Nenner).
+const BEREICHE = [
+  { id: 'koerper', t: 'Körper', w: [
+    { id: 'gewicht', n: 'Gewicht', u: 'kg', s: 84.2, j: 81.0, dir: 'off', fest: false, warum: 'aus: Ziel „Recomp“' },
+    { id: 'kfa', n: 'Körperfett', u: '%', s: 19.4, j: 15.8, dir: 'down', fest: true },
+    { id: 'muskel', n: 'Muskelmasse', u: 'kg', s: 37.5, j: 38.9, dir: 'up', fest: true },
+    { id: 'taille', n: 'Taille', u: 'cm', s: 89, j: 84, dir: 'down', fest: false, warum: 'runter: Ziel „Recomp“' },
+    { id: 'oberarm', n: 'Oberarm', u: 'cm', s: 36.5, j: 37.5, dir: 'up', fest: false, warum: 'hoch: Ziel „Kraft“' } ] },
+  { id: 'blut', t: 'Blut', w: [
+    { id: 'marker', n: 'Marker im Zielbereich', u: '', s: [12, 24], j: [19, 24], dir: 'range', fest: true } ] },
+  { id: 'training', t: 'Training', w: [
+    { id: 'proWoche', n: 'Workouts pro Woche', u: '', s: 2.0, j: 3.6, dir: 'up', fest: true },
+    { id: 'dl', n: 'Kreuzheben e1RM', u: 'kg', s: 120, j: 142, dir: 'up', fest: true },
+    { id: 'sq', n: 'Kniebeuge e1RM', u: 'kg', s: 100, j: 118, dir: 'up', fest: true },
+    { id: 'bp', n: 'Bankdrücken e1RM', u: 'kg', s: 85, j: 97, dir: 'up', fest: true } ] },
+  { id: 'einnahmen', t: 'Einnahmen', w: [
+    { id: 'adh', n: 'Adherence', u: '%', s: 81, j: 94, dir: 'up', fest: true } ] },
+  { id: 'erholung', t: 'Erholung & Fitness', w: [
+    { id: 'schritte', n: 'Schritte Ø', u: '', s: 6140, j: 9840, dir: 'up', fest: true },
+    { id: 'ruhepuls', n: 'Ruhepuls', u: 'bpm', s: 61, j: 54, dir: 'down', fest: true },
+    { id: 'schlaf', n: 'Nächte mit 7–9 h Schlaf', u: '', s: [2, 7], j: [5, 7], dir: 'range', fest: true },
+    { id: 'vo2', n: 'VO2max', u: '', s: 41, j: 46, dir: 'up', fest: true },
+    { id: 'bd', n: 'Blutdruck (systolisch)', u: 'mmHg', s: 128, j: 121, dir: 'down', fest: true },
+    { id: 'hrv', n: 'HRV', u: 'ms', s: null, j: null, dir: 'up', fest: true, warum: 'noch keine zwei Messungen' } ] },
+];
+const de = (x, d = 1) => x.toLocaleString('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d });
+const pct = x => (x > 0 ? '+' : x < 0 ? '−' : '±') + de(Math.abs(x), 1) + ' %';
+const cls = x => x > 0.05 ? 'pos' : x < -0.05 ? 'neg' : 'nul';
+
+function wert(w) {
+  if (w.dir === 'off' || w.s == null || w.j == null) return null;
+  if (w.dir === 'range') {
+    const a = w.s[0] / w.s[1], b = w.j[0] / w.j[1];
+    // Start 0 % im Bereich: Prozentpunkte statt Division durch null
+    return a === 0 ? (b - a) * 100 : (b - a) / a * 100;
+  }
+  return w.dir === 'down' ? (w.s - w.j) / w.s * 100 : (w.j - w.s) / w.s * 100;
+}
+function bereich(b) {
+  const xs = b.w.map(wert).filter(x => x !== null);
+  return xs.length ? xs.reduce((a, c) => a + c, 0) / xs.length : null;
+}
+function gesamt() {
+  const xs = BEREICHE.map(bereich).filter(x => x !== null);
+  return xs.reduce((a, c) => a + c, 0) / xs.length;
+}
+const zeigeWert = (w, x) => w.dir === 'range' ? `${x[0]}/${x[1]}` : (w.u === '' && x > 999 ? x.toLocaleString('de-DE') : de(x, Number.isInteger(x) ? 0 : 1)) + (w.u ? ' ' + w.u : '');
+
+let screen = 'profil';
+let start = '14.03.2026';
+let alt = null;
+
+function ringSvg(v) {
+  const r = 48, c = 2 * Math.PI * r;
+  // Ring fuellt sich bis +100 %, darueber voll; negative Werte rot von 0 aus
+  const f = Math.max(0, Math.min(1, Math.abs(v) / 100));
+  const col = v >= 0 ? 'url(#gr)' : 'var(--bad)';
+  return `<svg width="112" height="112" viewBox="0 0 112 112" aria-hidden="true"><defs><linearGradient id="gr" x1="0" x2="1"><stop offset="0" stop-color="#64d2ff"/><stop offset="1" stop-color="#8a6bff"/></linearGradient></defs>
+    <circle cx="56" cy="56" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="10"/>
+    <circle cx="56" cy="56" r="${r}" fill="none" stroke="${col}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${c * f} ${c}"/></svg>`;
+}
+function balken(v) {
+  // Nullpunkt bei 30 %, Skala bis +100 % rechts und −40 % links (Balken laufen darueber hinaus nicht)
+  const z = 30, scale = 70 / 100;
+  const w = Math.min(Math.abs(v) * scale, v >= 0 ? 70 : 30);
+  const left = v >= 0 ? z : z - w;
+  const col = v >= 0 ? 'var(--cyan)' : 'var(--bad)';
+  return `<div class="track"><span class="mid"></span><i style="left:${left}%;width:${w}%;background:${col}"></i></div>`;
+}
+
+const ABZ = [
+  { k: 'Beständigkeit', b: [
+    ['🔥', '7 Tage ohne Lücke', 1], ['🔥', '30 Tage ohne Lücke', 1], ['🔥', '100 Tage ohne Lücke', 0, '41/100'], ['🔥', '365 Tage ohne Lücke', 0, '41/365'],
+    ['🏋️', '4 Wochen Training in Folge', 1], ['🏋️', '12 Wochen Training in Folge', 1], ['🏋️', '52 Wochen Training in Folge', 0, '19/52'],
+    ['💊', '30 Tage alle Einnahmen bestätigt', 0, '22/30'], ['⚖️', '8 Wochen jede Woche gewogen', 1] ] },
+  { k: 'Meilensteine', b: [
+    ['✍️', 'Erster Tageseintrag', 1], ['📏', 'Erste Umfangsmessung', 1], ['🩸', 'Erstes Blutbild', 1], ['🩸', '3 Blutbilder', 1],
+    ['🏋️', '10 Workouts', 1], ['🏋️', '50 Workouts', 1], ['🏋️', '100 Workouts', 0, '86/100'], ['🏋️', '250 Workouts', 0, '86/250'],
+    ['🔁', 'Erster Zyklus abgeschlossen', 1], ['⌚', 'Wearable verbunden', 1], ['🪪', 'Profil vollständig', 0, '7/9'], ['📸', 'Erstes Fortschrittsfoto', 0] ] },
+  { k: 'Fortschritt', b: [
+    ['📉', '−5 % Körperfett', 1], ['📉', '−10 % Körperfett', 1], ['📉', '−20 % Körperfett', 0, '−18,6 %'],
+    ['⚖️', '−5 % Gewicht', 0, 'aus'], ['🏆', 'Neue Bestleistung', 1], ['🏆', '3 Bestleistungen in einem Monat', 0, '1/3'],
+    ['🎯', 'Alle Blutwerte im Zielbereich', 0, '19/24'], ['❤️', 'Ruhepuls −5 bpm', 1], ['🚶', 'Eine Woche Ø 10.000 Schritte', 0, '9.840'],
+    ['📈', 'Gesamtfortschritt +10 %', 1], ['📈', 'Gesamtfortschritt +25 %', 1], ['📈', 'Gesamtfortschritt +50 %', 0] ] },
+  { k: 'Gemeinschaft', b: [
+    ['📝', 'Erster Erfahrungsbericht', 1], ['📝', '5 Erfahrungsberichte', 1], ['📝', '25 Erfahrungsberichte', 0, '12/25'],
+    ['🔗', 'Profil geteilt', 1], ['👥', 'Erster Freund', 0, 'ab Freunde'], ['👥', '10 Freunde', 0, 'ab Freunde'] ] },
+];
+const badge = ([ic, n, ok, info]) => `<div class="badge ${ok ? '' : 'zu'}"><div class="ic">${ic}</div>${n}${!ok && info ? `<small>${info}</small>` : ''}</div>`;
+
+function renderProfil() {
+  const g = gesamt();
+  let h = `<div class="bar"><span class="icb leer"></span><span class="ttl">Profil</span><span class="icb">⚙︎</span></div>
+    <div class="mini-kopf"><div class="av">M</div><div><b>Mara K. ♀ 🇩🇪 DE</b><small>@mara.lifts · Über mich, Bio, Ziele wie in 2a</small></div></div>`;
+  h += `<div class="card"><h3>Gesamtfortschritt <span class="vis alle"><i class="pt"></i>Alle</span><span class="sub">seit ${start}</span></h3>
+    <button type="button" class="total" data-go="detail" aria-label="Aufschlüsselung öffnen">
+      <div class="ring">${ringSvg(g)}<div class="num"><b>${pct(g)}</b><small>positive<br>Veränderung</small></div></div>
+      <div class="parts">${BEREICHE.map(b => { const v = bereich(b); return v === null ? '' : `<div class="part"><div class="row"><span>${b.t}</span><b class="${cls(v)}">${pct(v)}</b></div>${balken(v)}</div>`; }).join('')}</div>
+    </button>
+    <div class="hint">Gegenüber deinem eigenen Start, nie gegenüber anderen. Tippen für jeden Wert und seine Richtung.</div></div>`;
+  h += `<div class="card"><h3>Abzeichen <span class="vis alle"><i class="pt"></i>Alle</span><span class="sub">${ABZ.flatMap(a => a.b).filter(b => b[2]).length} von ${ABZ.flatMap(a => a.b).length}</span></h3>
+    <div class="badges">${ABZ.flatMap(a => a.b).filter(b => b[2]).slice(-6).reverse().map(badge).join('')}</div>
+    <button type="button" class="btn ghost" style="margin-top:12px" data-go="badges">Alle Abzeichen</button></div>`;
+  h += `<div class="card" style="opacity:.55"><h3>Körper, Einnahmen, Blutwerte … <span class="sub">wie in 2a</span></h3></div>`;
+  return h;
+}
+
+function renderDetail() {
+  const g = gesamt();
+  let h = `<div class="bar"><button type="button" class="icb" data-go="profil" aria-label="Zurück">‹</button><span class="ttl">Gesamtfortschritt</span><span class="icb leer"></span></div>
+    <div class="card"><div class="start"><span>Start</span><b>${start}</b></div>${alt ? `<div class="start" style="margin-top:6px"><span>Vorheriger Start</span><button type="button" class="btn ghost" style="width:auto;padding:6px 10px;font-size:12px" id="zurueck">${alt.start} wieder nutzen</button></div>` : ''}
+    <div class="areamean" style="margin-top:10px;font-size:14px"><span>Gesamt (Mittel der Bereiche)</span><b class="${cls(g)}">${pct(g)}</b></div></div>`;
+  for (const b of BEREICHE) {
+    const v = bereich(b);
+    h += `<div class="grp"><span>${b.t}</span><span class="${v === null ? 'nul' : cls(v)}">${v === null ? 'zählt nicht' : 'Mittel ' + pct(v)}</span></div><div class="card" style="margin-top:0;padding:4px 14px">`;
+    for (const w of b.w) {
+      const x = wert(w);
+      const opts = w.dir === 'range' ? [['range', 'Zielbereich'], ['off', 'aus']] : [['down', '↓ runter'], ['up', '↑ hoch'], ['off', 'aus']];
+      h += `<div class="wrow ${x === null ? 'aus' : ''}"><div><div class="n">${w.n}</div><div class="d">${w.s == null ? (w.warum || '') : `${zeigeWert(w, w.s)} → ${zeigeWert(w, w.j)}`}${w.s != null && w.warum && w.dir !== 'off' ? ' · ' + w.warum : ''}${w.dir === 'off' && w.warum ? ' · ' + w.warum : ''}</div></div>
+        <div class="s ${x === null ? 'nul' : cls(x)}">${x === null ? '–' : pct(x)}</div>
+        ${w.s == null ? '' : `<div class="dir">${opts.map(([k, l]) => `<button type="button" class="${w.dir === k ? 'on' : ''}" data-w="${w.id}" data-dir="${k}">${l}</button>`).join('')}</div>`}</div>`;
+    }
+    h += '</div>';
+  }
+  h += `<button type="button" class="btn" style="margin-top:16px" id="neustart">Neuen Start setzen (heute)</button>
+    <p class="note"><b>So rechnet Hoku:</b> Je Wert die Veränderung seit Start, geteilt durch den Startwert. 120 → 100 kg mit Richtung „runter“ sind +16,67 %. Das ist die Veränderung dieses Werts selbst — nicht automatisch des Körperfetts oder deiner Gesundheit. Ein Wert zählt ab zwei Messungen. Bereiche zählen gleich viel, egal wie viele Werte sie haben. Ein neuer Start ersetzt nichts: der alte bleibt im Verlauf.</p>
+    <p class="note">Richtungen kommen fest (Körperfett runter, Bestleistungen hoch), aus deinen Zielen (Gewicht, Umfänge) oder als Zielbereich (Blutwerte, Schlaf). Du kannst jede ändern oder den Wert ausschließen.</p>`;
+  return h;
+}
+
+function renderBadges() {
+  let h = `<div class="bar"><button type="button" class="icb" data-go="profil" aria-label="Zurück">‹</button><span class="ttl">Abzeichen</span><span class="icb leer"></span></div>`;
+  for (const a of ABZ) {
+    h += `<div class="grp"><span>${a.k}</span><span>${a.b.filter(b => b[2]).length}/${a.b.length}</span></div><div class="card" style="margin-top:0"><div class="bgrid">${a.b.map(badge).join('')}</div></div>`;
+  }
+  h += `<p class="note">Andere sehen nur verdiente Abzeichen, und nur bei „Freunde“ oder „Alle“. Noch nicht verdiente mit Stand sieht nur du.</p>`;
+  return h;
+}
+
+function render() {
+  const sc = document.getElementById('scroll');
+  const y = sc.scrollTop;
+  sc.innerHTML = screen === 'detail' ? renderDetail() : screen === 'badges' ? renderBadges() : renderProfil();
+  sc.scrollTop = y;
+  document.querySelectorAll('#views button').forEach(b => b.classList.toggle('on', b.dataset.s === screen));
+}
+function go(s) { screen = s; render(); document.getElementById('scroll').scrollTop = 0; }
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.s) return go(t.dataset.s);
+  if (t.dataset.go) return go(t.dataset.go);
+  if (t.dataset.w) {
+    for (const b of BEREICHE) for (const w of b.w) if (w.id === t.dataset.w) { w.dir = t.dataset.dir; if (!w.fest) w.warum = 'von dir gewählt'; }
+    return render();
+  }
+  if (t.id === 'zurueck') {
+    start = alt.start; alt.werte.forEach(([w, v]) => { w.s = v; }); alt = null;
+    return render();
+  }
+  if (t.id === 'neustart') {
+    alt = { start, werte: BEREICHE.flatMap(b => b.w).filter(w => w.s != null).map(w => [w, w.s]) };
+    start = new Date(2026, 10, 1).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    for (const b of BEREICHE) for (const w of b.w) if (w.s != null) { w.s = w.j; }
+    return render();
+  }
+});
+render();
+</script>
+</body>
+</html>

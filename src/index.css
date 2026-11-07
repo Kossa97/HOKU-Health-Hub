@@ -1966,6 +1966,30 @@ body[data-zieht] [data-abgelehnt] [data-periode-sperre] { color: var(--lg-warn);
 }
 @keyframes tyd-wackeln { from { transform: rotate(-0.35deg); } to { transform: rotate(0.35deg); } }
 
+/* ── Gesamtfortschritt (Profil 2b): Farben der fünf Bereiche ────────────────
+   Aus der dataviz-Referenzpalette (dunkel, Slots 1–5), gegen die Kartenflächen
+   geprüft (scripts/validate_palette.js: alle Checks bestanden). Jede Farbe
+   steht nie allein: Name und Zahl stehen immer daneben. Alle Looks sind heute
+   dunkel (html data-theme="dark"); ein heller (data-theme="light") bekommt die
+   hellen Stufen derselben Rampen. */
+:root {
+  --pf-koerper: #3987e5;
+  --pf-blut: #d95926;
+  --pf-training: #199e70;
+  --pf-einnahmen: #c98500;
+  --pf-erholung: #d55181;
+  --pf-badge: #f5b942;
+}
+html[data-theme='light'] {
+  --pf-koerper: #2a78d6;
+  --pf-blut: #eb6834;
+  --pf-training: #1baf7a;
+  --pf-einnahmen: #eda100;
+  --pf-erholung: #e87ba4;
+}
+/* Nur das Diagramm der Zeitreise nimmt den Finger ganz: die Seite scrollt sonst normal */
+[data-zeitreise-plot] { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+
 /* ── Hoku-Licht: Werte je Fläche, NICHT vererbt ───────────────────────────
    hokuLicht.ts schreibt sie jedes Bild, in dem Hoku sich bewegt, an jede
    sichtbare Fläche. Vererbt hätten sie jedes Mal den ganzen Inhalt der Karte

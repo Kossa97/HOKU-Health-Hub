@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { hoursMinutes, monthYear, tileText } from './profileFormat'
+import { hoursMinutes, monthYear, shownExerciseName, tileText } from './profileFormat'
 
 const t = (key: string, vars?: Record<string, unknown>) => vars ? `${key}:${JSON.stringify(vars)}` : key
 
@@ -23,6 +23,24 @@ describe('tileText', () => {
 
   it('Bestleistung als halbe Karte: beste Übung mit Wert', () => {
     expect(tileText('e1rm', { e1rm: { unit: 'kg', top: [{ id: 'a', name: 'Kreuzheben', v: 142 }] } }, t, 'de')).toMatchObject({ value: 'Kreuzheben 142', unit: 'kg' })
+  })
+
+  it('Übungsnamen in der Sprache des Betrachters, nicht der beim Speichern', () => {
+    const fields = {
+      e1rm: { unit: 'kg' as const, top: [{ id: 'deadlift_barbell', name: 'Kreuzheben (Langhantel)', v: 142 }] },
+      favorite_exercise: { id: 'deadlift_barbell', name: 'Kreuzheben (Langhantel)' },
+    }
+    expect(tileText('e1rm', fields, t, 'en-US')?.value).toBe('Deadlift (Barbell) 142')
+    expect(tileText('favorite_exercise', fields, t, 'en')?.value).toBe('Deadlift (Barbell)')
+    expect(tileText('favorite_exercise', fields, t, 'de-DE')?.value).toBe('Kreuzheben (Langhantel)')
+  })
+})
+
+describe('shownExerciseName', () => {
+  it('Katalog-Übung neu aufgelöst, eigene Übung mit gespeichertem Namen', () => {
+    expect(shownExerciseName({ id: 'deadlift_barbell', name: 'x' }, 'de')).toBe('Kreuzheben (Langhantel)')
+    expect(shownExerciseName({ id: 'deadlift_barbell', name: 'x' }, 'fr')).toBe('Deadlift (Barbell)')
+    expect(shownExerciseName({ id: 'custom:0b6d1c2e-1111-4222-8333-444455556666', name: 'Meine Übung' }, 'en')).toBe('Meine Übung')
   })
 })
 

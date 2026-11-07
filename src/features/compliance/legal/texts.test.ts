@@ -74,6 +74,18 @@ describe('Rechtstexte', () => {
     for (const wert of ['“Only me”', '“Friends”', '“Everyone”', 'signed-in Hoku users', 'friends feature', 'profile picture', 'private', 'never their names', 'Menstrual cycle, blood sugar and medications', 'Profile values snapshot', 'deleted with your account', 'off by default', 'Experience reports and all other values are never visible without signing in']) expect(enText).toContain(wert)
   })
 
+  it('beschreibt Gesamtfortschritt und Abzeichen: auf dem Gerät, Baseline aus Health, im Konto, für andere nur Gesamt, Bereiche, Abzeichen', () => {
+    const absatz = (lang: 'de' | 'en', anfang: string) =>
+      LEGAL_DOCS.datenschutz[lang].sections.find(s => s.id === PROFILE_SECTION_ID)?.paragraphs.find(p => p.startsWith(anfang)) ?? ''
+    const de = absatz('de', 'Gesamtfortschritt und Abzeichen:')
+    const en = absatz('en', 'Overall progress and badges:')
+    for (const wert of ['berechnet dein Gerät', 'bis zu 60 Tage vor dem Start', 'Apple Health / Health Connect', 'siehe Abschnitt 4', 'Baseline', 'Richtungen', 'frühere Starts', 'Wochenverlauf', 'verdienten Abzeichen', 'Lesen kannst das nur du', 'mit deinem Konto gelöscht', 'nie einzelne Werte oder deinen Verlauf']) expect(de).toContain(wert)
+    for (const wert of ['your device calculates', 'up to 60 days before the start', 'Apple Health / Health Connect', 'see section 4', 'baseline', 'directions', 'earlier starts', 'weekly history', 'badges you have earned', 'Only you can read this', 'deleted with your account', 'never individual values or your history']) expect(en).toContain(wert)
+    // gleich aufgebaut: Abschnitt 6 hat in beiden Sprachen gleich viele Absätze
+    const anzahl = (lang: 'de' | 'en') => LEGAL_DOCS.datenschutz[lang].sections.find(s => s.id === PROFILE_SECTION_ID)?.paragraphs.length
+    expect(anzahl('de')).toBe(anzahl('en'))
+  })
+
   it('nennt den Bild-Check ueber Anthropic (USA) als Empfaenger', () => {
     const empfaenger = (lang: 'de' | 'en') => LEGAL_DOCS.datenschutz[lang].sections[4].paragraphs
     const de = empfaenger('de').find(p => p.startsWith('Anthropic (Bild-Check')) ?? ''

@@ -65,7 +65,12 @@ eine neue Bibliothek), gilt das Projekt. Sprache der App-Texte bleibt de/en.
   `PostToolUse` auf `Write|Edit` meldet sich direkt nach einer geschriebenen
   Quelldatei; der `Stop`-Hook blockt am Ende der Runde, wenn eine Datei unter
   `src/` oder `scripts/` jünger ist als `graphify-out/manifest.json` (das schreibt jeder `graphify update`-Lauf neu, auch ohne Änderung am Graphen) — der fängt
-  auch Änderungen über die Shell (sed, heredoc, Skript).
+  auch Änderungen über die Shell (sed, heredoc, Skript). Der Stop-Hook liegt in
+  `.claude/hooks/graphify-stop.sh` und blockt **höchstens einmal pro Runde**
+  (bei `stop_hook_active` nicht erneut, sonst Endlosschleife, wenn der Lauf
+  scheitert). In Cloud-Sitzungen (`CLAUDE_CODE_REMOTE=true`) gibt er nur einen
+  Hinweis: dort fehlen lokale Dateien, `graphify update` lehnt ab und wird lokal
+  nachgezogen.
 - Alles in `.claude/settings.json`. Die Regel gilt auch für Subagenten — sie
   gehört in jeden Subagenten-Prompt, der Code erkundet.
 

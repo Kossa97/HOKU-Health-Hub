@@ -61,9 +61,84 @@ Nutzer 02.11.: Schlaf = Methode A (Anteil Nächte 7–9 h im Bereich, Start gege
 Schritte [Nutzer]: Methode A (Ø, Richtung hoch, relativ), aber Startwert = Baseline aus den 1–2 Monaten vor dem
 Start aus Apple Health / Health Connect, wenn verfügbar (sonst erste 7 Tage).
 Nutzer 02.11.: Baseline gilt für ALLE Wearable-Werte (Schlaf, Ruhepuls, kcal, VO2max, Blutdruck); „jetzt“ = letzte 28 Tage.
-Nächster Schritt: Spec + Plan 2b schreiben (Branch profil-p2b-fortschritt, gestapelt auf 2a).
+Nutzer 02.11.: Werte zählen erst mit belastbarer Baseline (Schwellen bestätigt): Wearables ≥14 Tage in 60 Tagen vor
+Start, sonst erste 28 Tage nach Start = Baseline, zählt ab Tag 29; Schlaf ≥14 Nächte bzw. 28; Körperwerte ab 2. Messung
+≥14 Tage nach der ersten; Blut ab 2. Befund; e1RM ab 3 Einheiten; Workouts/Woche und Adherence ab 4 Wochen.
+Kein Fallback „erste 7 Tage“. Untergrenze C verworfen (+600 % ist echter Fortschritt); Start 0 % → Prozentpunkte.
+Anteilswerte (Schlaf, Blut) [Nutzer 02.11.]: „Lücke geschlossen“ = (jetzt − Start) ÷ (100 % − Start), −100…+100 %;
+übrige Werte relativ ohne Deckel. Darstellung: statt Ring Varianten-Mockup (Leitzahl+Nulllinien-Balken, Zeitreise,
+Turm, Höhenprofil); Nutzer 02.11.: Variante 1 (Leitzahl + Balken) als Karte, Antippen öffnet 2 (Zeitreise). Mockup: https://claude.ai/artifact/AiZDk3AGF5PiKcrT2Ztkn7 (scratchpad fortschritt-varianten.html).
+Spec `docs/superpowers/specs/2026-11-02-profil-p2b-fortschritt-design.md`, Plan `docs/superpowers/plans/2026-11-02-profil-p2b-fortschritt.md`,
+Mockup `docs/profil/mockups/profil-2b.html` — Branch `profil-p2b-fortschritt` (gestapelt auf 2a). Spec/Plan mit allen Entscheidungen nachgezogen; Bau kann starten.
 Mockup 2b: https://claude.ai/artifact/RZtNNuUqoV6rfy7U69KSJN (scratchpad profil-2b-mockup.html). Offen [Claude, ungeprüft]:
 Start 0 % im Zielbereich → Prozentpunkte; Schlaf = Anteil Nächte 7–9 h; Blutdruck = systolisch runter; Ring füllt bis +100 %.
+
+## Teilprojekt 2b gebaut (02.11.2026, Branch `profil-p2b-fortschritt`, PR https://github.com/Kossa97/HOKU-Health-Hub/pull/128, Basis 2a)
+Tasks 1–7 fertig: Migration `supabase-profil-p2b-fortschritt.sql` (progress_settings mit RLS nur Nutzer, Felder
+progress/badges, profile_snapshot_clean baut für andere nur Gesamt, fünf Bereiche, since und bekannte Abzeichen-IDs)
+— Trockenlauf zweimal im Container, NICHT gegen Produktion (nach 2a, vor dem Merge). Rechnung `progressScore.ts`,
+Baseline aus Health beim Setzen des Starts (`progressBaseline.ts`, 60 Tage davor, nur mit health_store_consent_at),
+39 Abzeichen (`badges.ts`, „Profil geteilt“ beim Teilen), Karte Gesamtfortschritt + Zeitreise + Aufschlüsselung
+(`/profil/fortschritt`), „Alle Abzeichen“ (`/profil/abzeichen`), fremdes Profil ohne Einzelwerte, e2e
+`profil-fortschritt.spec.ts`. Task 7: e1RM-Namen in App-Sprache (nie Kennung; auch Bestleistungen/Lieblingsübung aus
+dem Schnappschuss), Datenschutz Abschnitt 6 ergänzt (TERMS_VERSION unverändert), Texte de/en gegengelesen,
+code-review: Einnahme-/Wiegetage jetzt lokaler Kalendertag, profile_complete nie ohne Prüfpunkte.
+security-review 02.11.: keine Funde. Bottom-Nav über „Gesamt“ im Screenshot war nur Artefakt des Ganzseiten-Screenshots.
+Offen 2b: Produktivlauf der Migration (Ja nötig, zusammen mit 2a); „Stand“ der
+Datenschutzerklärung (Oktober 2026) ggf. anheben; Spec-Wörter „wartet“ (Karte) und „positive Veränderung“ bewusst
+gelassen; andere sehen bei Freigabe auch den Starttag (`since`) — so im Datenschutztext; Rechtlich prüfen:
+Baseline-Lesen aus Health und Speichern der Baseline (Art. 9) über die bestehende Einwilligung.
+
+## Teilprojekt 2c geplant (Brainstorming 02.11.2026)
+Entschieden [Nutzer]:
+- Link-Karte (WhatsApp/iMessage, nur bei Web-Link an): Profilbild + Name (nur wenn auf „Alle“, sonst neutrale
+  Hoku-Karte) PLUS etwas, das Nicht-Nutzer neugierig macht / zum Ansehen oder Laden animiert. Braucht Server-Funktion
+  auf Vercel (Meta-Tags + Vorschaubild), die SPA kann das nicht.
+- Abzeichen im Web: Standard nur unbedenkliche (Beständigkeit, Training, Gemeinschaft); Nutzer kann je Abzeichen
+  ein- und ausschalten (auch heikle freigeben oder unbedenkliche verbergen).
+- Hoku-Code: im „Profil teilen“-Sheet, Antippen = Vollbild zum Vorzeigen; Scannen mit normaler Kamera; eigener
+  Scanner erst mit Freunden (P3).
+- „In Hoku öffnen“: Universal Links (iOS) / App Links (Android) — App öffnet das Profil, sonst Store. Braucht
+  apple-app-site-association + assetlinks.json auf hoku.app und ein App-Update.
+Mockup 2c: `docs/profil/mockups/profil-2c.html` (Branch `profil-p2c-web`), Artefakt
+https://claude.ai/artifact/HVnY3jKnAdFug1uSPU8MSj. Nutzer 02.11. nach Mockup:
+- Link-Karte = Variante A (Gesamtfortschritt groß + Zahl der Web-Abzeichen); fällt auf C (Einladung, nur Bild+Name)
+  zurück, wenn Gesamtfortschritt nicht auf „Alle“; ohne Bild/Name auf „Alle“ neutrale Karte.
+- Web: Bereiche Blut und Einnahmen nie im Web (nur Gesamt + Körper, Training, Erholung & Fitness); App wie 2b.
+- Abzeichen zu Körperwerten (KFA, Gewicht, Ruhepuls) ab Werk wie Blut/Zyklen/Einnahmen aus.
+- Web-Link aus: Teilen geht trotzdem (nur App-Nutzer sehen das Profil), Hinweis + Schalter „Web-Link einschalten“.
+Domains (Vercel, Nutzer): **hokuhealth.app** (Haupt, live) und **meethoku.com** (308 → hokuhealth.app);
+Profil-Links = `hokuhealth.app/u/<name>`. Passkey-RP-ID ist noch `tyd-track-your-dose.vercel.app` (Wechsel = alle Passkeys neu).
+Nutzer 02.11. zum Mockup v1:
+- Karte A: Gesamtfortschritt nur, wenn positiv; dazu, wie viele Dinge der Nutzer mit Hoku trackt und aus welchen
+  Bereichen (nicht im Detail); Ziel-Tags „super“; Abzeichen auf der Karte unsicher („hm“).
+- Karte C: gut, aber anderer Text — wofür nutzt der Nutzer Hoku?
+- Neutrale Karte: „sehr gut“, nur besseres Logo (Brand-Kit) und ein Slogan (gibt es noch nicht).
+- Web: Bio zeigen, wenn auf „Alle“.
+- Gesamtfortschritt zeigt im Web zu viel → mehr teasern (Frage, ob strategisch sinnvoll).
+Nutzer 02.11. zu Mockup v2: „trackt N“ = einzelne Werte zählen (nur erlaubte Bereiche), Bereiche wählt der
+Nutzer selbst aus; Zahl hervorheben; Zahlen und Karten marketingorientiert einfärben/gestalten (Psychologie).
+Ziel-Tag „Blutwerte optimieren“ so lassen (im Web/Karte A sichtbar, nur Karte C filtert). Fortschritts-Abzeichen
+(+10/+25 %) ab Werk an lassen. Wahl von Teaser/A1-A2/C-Text/Slogan erst nach Überarbeitung (Mockup v3).
+Nutzer 02.11. zu Mockup v3: Karte **A1** (mit Abzeichen) gefällt am besten, aber zu viele Tags/Chips an derselben
+Stelle; insgesamt zu viel Farbe → dezenter, seriöser, hochwertiger. Slogans „geht so“ → mehr Vorschläge (Idee Nutzer:
+„Du im Vergleich zum besseren Dir“). Web-Abzeichen: nur eine Reihe, die seltensten/schwersten zuerst, 3 zeigen,
+das letzte weichgezeichnet + „+x“ für den Rest. Teaser T1–T3 noch offen.
+Nutzer 02.11. zu Mockup v4: Teaser **T1** (Stufe). Rückfall **Karte C Text 1** („Wofür nutzt Mara Hoku?“ —
+Thema vom Nutzer, Formulierung als Frage von Claude). A1-Aufbau (Zonen) gut, Optik wieder im Stil wie vorher →
+mehrere Stile zur Wahl. Neutrale Karten: aktuelle + vorherige behalten, mehr Möglichkeiten. Für alle Karten
+**Brand-Kit v2** (`docs/logo/hoku/brand-kit-v2/` auf main) für Logos/Icons; Logo hochwertig einbauen.
+Web-Vorschau gefällt, Farben im App-Stil, Grün für Fortschrittszahlen erlaubt.
+Nutzer 02.11. zu Mockup v5: neutrale Karte = **Fassung 2 (Hoku-Licht)**, aber nur Cyan-Licht von unten (kein
+Violett). Dazu passende Link-Karte A1 und Rückfall C im selben Stil; Logo an verschiedenen Stellen/Anordnungen als
+Varianten → eigenes neues Mockup `docs/profil/mockups/profil-2c-karten.html`.
+Nutzer 02.11. zu Karten-Mockup (`profil-2c-karten.html`): neutrale Karte = **H (Hauptlogo Mitte)**, A1 und C =
+**H (Hauptlogo unten Mitte)**; zusätzlich für alle drei mehr Varianten „Bildmarke angeschnitten“ (B) zeigen.
+Fortschrittsfarbe **Cyan**. Karte C: „Wofür nutzt Mara Hoku?“ unsicher → lieber direkt grob sagen, was Hoku kann und
+macht, auf den Nutzer bezogen; Hoku ist viel mehr als Health/Fitness/Erholung — klarstellen, Interesse wecken.
+Neuer, richtig guter Slogan gesucht (gern tiefgründig, psychologisch).
+Claude-Standard (ungeprüft, im Spec markiert): Adresse = echter Nickname; Berichte-Hinweis nur, wenn Feld
+Erfahrungsberichte auf „Alle“; Desktop: „In Hoku öffnen“ zeigt Store-Knöpfe + QR; neutrale Karte ohne Personen-Neugier.
 
 ## Offen
 - Migration `supabase-profil-p1-datenbasis.sql` lief am 31.10.2026 nach Freigabe gegen
@@ -77,7 +152,10 @@ Start 0 % im Zielbereich → Prozentpunkte; Schlaf = Anteil Nächte 7–9 h; Blu
   Datenschutzabschnitt „Apple Health und Health Connect“, Daten nach Widerruf;
   Bild-Check über Anthropic (Einwilligung oder berechtigtes Interesse?);
   Erfahrungsberichte mit Substanznamen für angemeldete Nutzer; Web-Vorschau (2c) vor dem Start;
-  Moderation/Apple 1.2/EU-DSA (Teilprojekt 4).
+  Moderation/Apple 1.2/EU-DSA (Teilprojekt 4);
+  2b: Baseline aus Health über bestehende Einwilligung (Art. 9); freigegebener Bereichswert mit nur einem
+  Wert verrät dessen Verlauf (z. B. Blut), freigegebene Abzeichen-IDs verraten Gesundheitsfakten
+  (first_bloodwork, all_markers_in_range, first_cycle_done) — nur nach Freigabe, Standard „Nur ich“.
 - 2a: Durchsicht-Punkte vom Nutzer bestätigt (Schnappschuss, Web-Link Standard aus, Prüffehler = privat).
   Chips: kleiner Punkt + Wort in derselben Zeile neben der Beschriftung. Bau auf Branch
   `profil-p2a-sichtbarkeit` (von profil-p1-datenbasis abgezweigt; nach Merge von #114 auf main umsetzen).

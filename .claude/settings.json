@@ -46,7 +46,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if command -v graphify >/dev/null 2>&1 && [ -f graphify-out/graph.json ] && [ -f graphify-out/manifest.json ] && [ -n \"$(find src scripts -type f \\( -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.mjs' \\) -newer graphify-out/manifest.json -print -quit 2>/dev/null)\" ]; then echo '{\"decision\": \"block\", \"reason\": \"Der Wissensgraph ist aelter als der geaenderte Code. Jetzt graphify update . laufen lassen und graphify-out in einem eigenen Commit nachziehen. Schlaegt der Lauf fehl: dem Nutzer sagen, statt es zu umgehen.\"}'; fi || true"
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/graphify-stop.sh\" || true"
           }
         ]
       }

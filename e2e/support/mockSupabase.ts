@@ -4,6 +4,7 @@ import { SUBSTANCE_CATALOG } from '../../scripts/substance-catalog-source.mjs'
 import { TERMS_VERSION } from '../../src/features/compliance/lib/consent'
 import { consentCoversLabels } from '../../supabase/functions/label-extract/prompt'
 import { hatZugang } from '../../supabase/functions/coach/prompt'
+import { isBadgeId } from '../../src/features/profil/lib/badgeIds'
 
 /**
  * Nachgebildetes Supabase fuer die Geraetetests.
@@ -158,6 +159,30 @@ function oeffentlicherTextFehler(text: unknown): string | null {
   if (/(https?:\/\/|www\.|\b[a-z0-9-]+\.(com|de|net|org|io|shop|store|eu|co|me|at|ch|nl|ru)\b|@[a-z0-9_]{3,})/.test(t)) return 'oeffentlicher_text_link'
   if (/\b(verkaufe|verkaufen|verkauf|bezugsquelle|bezugsquellen|lieferant|rabattcode|gutscheincode|vendor|supplier|sell|selling|telegram|whatsapp|wickr|threema)\b/.test(t)) return 'oeffentlicher_text_handel'
   return null
+}
+
+/**
+ * Nachbild des 2b-Teils von profile_snapshot_clean: "progress" nur mit total,
+ * den fuenf Bereichen und since (nie Einzelwerte oder Verlauf), "badges" nur
+ * bekannte IDs, jede einmal. Die uebrigen Felder bleiben wie in 2a roh.
+ */
+function schnappschussFuerAndere(snap: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = { ...snap }
+  delete out.progress
+  delete out.badges
+  const zahl = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && Math.abs(v) <= 10000 ? Math.round(v * 10) / 10 : undefined)
+  const p = snap.progress as Record<string, unknown> | undefined
+  if (p && typeof p === 'object' && zahl(p.total) !== undefined && typeof p.since === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.since)) {
+    const roh = (p.areas && typeof p.areas === 'object' ? p.areas : {}) as Record<string, unknown>
+    const areas = Object.fromEntries(['koerper', 'blut', 'training', 'einnahmen', 'erholung']
+      .flatMap(k => (zahl(roh[k]) === undefined ? [] : [[k, zahl(roh[k])]])))
+    out.progress = { total: zahl(p.total), areas, since: p.since }
+  }
+  if (Array.isArray(snap.badges)) {
+    const ids = [...new Set(snap.badges.filter(isBadgeId))].slice(0, 100)
+    if (ids.length > 0) out.badges = ids
+  }
+  return out
 }
 
 function toNumberish(value: string): unknown {
@@ -1252,7 +1277,8 @@ export class MockSupabase {
         member_since: typeof p.created_at === 'string' ? p.created_at.slice(0, 7) : undefined,
         cover: p.cover_path && (stufe === 'owner' || p.cover_status === 'approved') ? p.cover_path : undefined,
       }
-      const snap = (this.table('profile_snapshots').find(row => row.user_id === p.id)?.data ?? {}) as Record<string, unknown>
+      const roh = (this.table('profile_snapshots').find(row => row.user_id === p.id)?.data ?? {}) as Record<string, unknown>
+      const snap = stufe === 'owner' ? roh : schnappschussFuerAndere(roh)
       for (const [key, value] of Object.entries({ ...snap, ...zeile })) {
         if (value !== undefined && erlaubt(key)) fields[key] = value
       }

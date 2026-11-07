@@ -1,11 +1,16 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
 import { Link2, Pencil, Settings } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { ProfilKopf } from '../features/profil/components/ProfilKopf'
 import { ProfilKarten } from '../features/profil/components/ProfilKarten'
+import { FortschrittKarte, type FortschrittZusammenfassung } from '../features/profil/components/FortschrittKarte'
+import { AbzeichenKarte } from '../features/profil/components/AbzeichenKarte'
+import { SichtbarkeitsChip } from '../features/profil/components/SichtbarkeitsChip'
+import { useEigenerFortschritt } from '../features/profil/hooks/useEigenerFortschritt'
+import { visibilityOf } from '../features/profil/lib/profileVisibility'
 import type { BearbeitenAenderung, BearbeitenWerte } from '../features/profil/components/ProfilBearbeiten'
 import { useEigenesProfil, type ProfilZeile } from '../features/profil/hooks/useEigenesProfil'
 import { useFieldVisibility } from '../features/profil/hooks/useFieldVisibility'
@@ -60,6 +65,17 @@ function felderAusZeile(fields: ProfileViewFields, row: ProfilZeile, aenderung: 
   return next
 }
 
+/** Eigene Karte: frisch gerechnet, solange das lädt der Stand aus dem Schnappschuss. */
+function fortschrittsZusammenfassung(
+  f: ReturnType<typeof useEigenerFortschritt>['fortschritt'],
+  snap: ProfileViewFields['progress'],
+): FortschrittZusammenfassung {
+  if (f.status === 'ok') {
+    return { total: f.state.result?.total ?? null, areas: f.state.result?.areas ?? {}, since: f.state.setup?.startOn ?? null }
+  }
+  return snap ? { total: snap.total, areas: snap.areas, since: snap.since } : { total: null, areas: {}, since: null }
+}
+
 /**
  * Eigenes Profil als Schaufenster (Teilprojekt 2a): Kopf, Kennzahlen, Karten.
  * Jeder Wert trägt seine Stufe als Chip; Tippen schaltet Nur ich → Freunde →
@@ -72,6 +88,8 @@ export function Profil() {
   const [bearbeiten, setBearbeiten] = useState(false)
   const geladen = state.status === 'ok' ? state : null
   const sichtbarkeit = useFieldVisibility(user?.id, geladen?.view.visibility ?? null)
+  const { fortschritt } = useEigenerFortschritt(user?.id)
+  const navigate = useNavigate()
 
   // Beim Öffnen den Schnappschuss auffrischen: andere sehen dann den Stand von heute
   useEffect(() => { requestProfileSnapshot() }, [])
@@ -86,6 +104,13 @@ export function Profil() {
       } else {
         await navigator.clipboard.writeText(url)
         toast.success(t('link_kopiert'))
+      }
+      // Abzeichen „Profil geteilt“: folgt aus keiner Messung, wird hier vergeben
+      if (user) {
+        void import('../features/profil/services/progressStore')
+          .then(m => m.awardBadge(user.id, 'profile_shared'))
+          .then(neu => { if (neu) requestProfileSnapshot() })
+          .catch(() => {}) // Chunk nicht ladbar (offline): beim nächsten Teilen erneut
       }
     } catch (error) {
       if ((error as Error).name !== 'AbortError') toast.error(t('error'))
@@ -192,6 +217,24 @@ export function Profil() {
               </div>
             </div>
           )}
+
+          {fortschritt.status === 'laden' && !geladen.view.fields.progress ? (
+            <div className="mb-3 h-[260px] animate-pulse rounded-[24px] bg-[var(--lg-surface-2)]" aria-busy="true" data-progress-card-loading />
+          ) : (
+          <FortschrittKarte
+            summary={fortschrittsZusammenfassung(fortschritt, geladen.view.fields.progress)}
+            values={fortschritt.status === 'ok' ? fortschritt.state.result?.values ?? [] : undefined}
+            exerciseNames={fortschritt.status === 'ok' ? fortschritt.state.setup?.exerciseNames : undefined}
+            chip={<SichtbarkeitsChip field="progress" value={visibilityOf(sichtbarkeit.map, 'progress')} onChange={(f, v) => void sichtbarkeit.setField(f, v)} />}
+            onOpen={() => navigate('/profil/fortschritt')}
+          />
+          )}
+          <AbzeichenKarte
+            own
+            ids={fortschritt.status === 'ok' ? fortschritt.state.badgeIds : geladen.view.fields.badges ?? []}
+            earnedDays={fortschritt.status === 'ok' ? fortschritt.state.badges.earned : undefined}
+            chip={<SichtbarkeitsChip field="badges" value={visibilityOf(sichtbarkeit.map, 'badges')} onChange={(f, v) => void sichtbarkeit.setField(f, v)} />}
+          />
 
           <ProfilKarten
             fields={geladen.view.fields}

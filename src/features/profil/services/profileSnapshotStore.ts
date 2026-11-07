@@ -21,6 +21,8 @@ import {
   buildProfileSnapshot, shiftDay, STREAK_MAX_DAYS, ADHERENCE_DAYS,
   type ProfileSnapshotData, type ProfileSnapshotInput, type SnapshotDoseLog,
 } from '../lib/profileSnapshot'
+import { computeProgressState } from '../lib/progressState'
+import { loadProgressParts, persistProgress } from './progressStore'
 
 type QueryError = { code?: string; message?: string } | null
 
@@ -204,8 +206,29 @@ export async function writeProfileSnapshot(userId: string, data: ProfileSnapshot
   return true
 }
 
+/**
+ * Gesamtfortschritt und Abzeichen (2b) in den Schnappschuss: rechnen, Wochenreihe
+ * und neu verdiente Abzeichen in `progress_settings` festhalten. Scheitert das
+ * (etwa vor der Migration 2b), bleibt der Schnappschuss ohne beides.
+ */
+async function withProgress(userId: string, input: ProfileSnapshotInput, data: ProfileSnapshotData, now: Date): Promise<ProfileSnapshotData> {
+  try {
+    const parts = await loadProgressParts(userId, now)
+    const progressData = { input, ...parts }
+    const state = computeProgressState(progressData, localDay(now))
+    const out: ProfileSnapshotData = { ...data }
+    if (state.snapshot) out.progress = state.snapshot
+    if (state.badgeIds.length > 0) out.badges = state.badgeIds
+    await persistProgress(userId, progressData, state).catch(() => undefined)
+    return out
+  } catch {
+    return data
+  }
+}
+
 /** Ein ganzer Lauf: laden, rechnen, bei Aenderung schreiben. */
 export async function syncProfileSnapshot(userId: string, lang: 'de' | 'en', now = new Date()): Promise<boolean> {
   const input = await loadProfileSnapshotInput(userId, now, lang)
-  return writeProfileSnapshot(userId, buildProfileSnapshot(input, now), now)
+  const data = await withProgress(userId, input, buildProfileSnapshot(input, now), now)
+  return writeProfileSnapshot(userId, data, now)
 }

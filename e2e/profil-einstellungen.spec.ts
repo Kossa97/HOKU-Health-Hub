@@ -73,7 +73,7 @@ test('Einstellungen: privat, Web-Link, Wer sieht was, Blockiert', async ({ page,
 
   await page.locator('[data-setting-wer]').click()
   await expect(page).toHaveURL(/\/profil\/sichtbarkeit$/)
-  await expect(page.locator('[data-wer-feld]')).toHaveCount(30)
+  await expect(page.locator('[data-wer-feld]')).toHaveCount(32)
   await expect(page.locator('[data-wer-privat]')).toBeVisible()
   await page.locator('[data-settings-back]').click()
   await page.locator('[data-setting-private]').click()
